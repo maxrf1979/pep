@@ -36,10 +36,10 @@ export default function Pacientes() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pacientes</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {patients.length} pacientes cadastrados
+            {patientList.length} pacientes cadastrados
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+        <button onClick={() => setDialogOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
           <UserPlus className="h-4 w-4" strokeWidth={1.5} />
           Novo Paciente
         </button>

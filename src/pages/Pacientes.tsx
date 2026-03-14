@@ -162,6 +162,7 @@ export default function Pacientes() {
           </div>
         )}
       </motion.div>
+      <NovoPacienteDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleNewPatient} />
     </div>
   );
 }

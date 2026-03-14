@@ -15,6 +15,8 @@ interface SystemUser {
   crm?: string;
   coren?: string;
   status: "ativo" | "inativo";
+  password?: string;
+  mustChangePassword?: boolean;
 }
 
 const roleConfig = {
@@ -116,6 +118,8 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
       crm: form.roles.medico ? form.crm : undefined,
       coren: form.roles.enfermeiro ? form.coren : undefined,
       status: editingUser ? editingUser.status : "ativo",
+      password: form.password || (editingUser ? editingUser.password : "admin123"),
+      mustChangePassword: editingUser ? editingUser.mustChangePassword : true,
     });
     setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
     setErrors({});

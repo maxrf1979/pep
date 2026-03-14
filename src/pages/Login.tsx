@@ -36,11 +36,40 @@ export default function Login() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Hardcoded credentials for simulation
+    const savedUsers = localStorage.getItem("systemUsers");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    // Suporte para administrador master 
     if (email === "admin@admin.com" && password === "admin123") {
       const userData = {
         name: "Dr. Administrador",
         role: "Administrador",
         email: email,
+        lastLogin: new Date().toISOString()
+      };
+      localStorage.setItem("pulse-auth-session", JSON.stringify(userData));
+      toast.success("Bem-vindo ao Pulse PEP!");
+      navigate("/");
+      setIsLoading(false);
+      return;
+    }
+
+    const foundUser = users.find((u: any) => u.email === email || u.login === email);
+
+    if (foundUser && (foundUser.password === password || (!foundUser.password && password === "admin123"))) {
+      if (foundUser.status === "inativo") {
+        setError("Usuário inativo. Entre em contato com o suporte.");
+        toast.error("Acesso bloqueado.");
+        setIsLoading(false);
+        return;
+      }
+
+      const userData = {
+        id: foundUser.id,
+        name: foundUser.name,
+        role: foundUser.roles[0],
+        email: foundUser.email,
+        mustChangePassword: foundUser.mustChangePassword,
         lastLogin: new Date().toISOString()
       };
       

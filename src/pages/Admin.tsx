@@ -10,7 +10,8 @@ interface SystemUser {
   id: string;
   name: string;
   email: string;
-  role: "medico" | "enfermeiro" | "admin" | "recepcao";
+  login: string;
+  roles: ("medico" | "enfermeiro" | "admin" | "recepcao")[];
   crm?: string;
   coren?: string;
   status: "ativo" | "inativo";
@@ -24,23 +25,32 @@ const roleConfig = {
 };
 
 const initialUsers: SystemUser[] = [
-  { id: "u-001", name: "Dr. Ricardo Almeida", email: "ricardo.almeida@pulse.med.br", role: "medico", crm: "12345/SP", status: "ativo" },
-  { id: "u-002", name: "Dra. Juliana Moreira", email: "juliana.moreira@pulse.med.br", role: "medico", crm: "98765/SP", status: "ativo" },
-  { id: "u-003", name: "Dr. André Costa", email: "andre.costa@pulse.med.br", role: "medico", crm: "54321/RJ", status: "ativo" },
-  { id: "u-004", name: "Enf. Carla Souza", email: "carla.souza@pulse.med.br", role: "enfermeiro", coren: "54321/SP", status: "ativo" },
-  { id: "u-005", name: "Enf. Paulo Martins", email: "paulo.martins@pulse.med.br", role: "enfermeiro", coren: "65432/SP", status: "ativo" },
-  { id: "u-006", name: "Ana Gestora", email: "ana.gestora@pulse.med.br", role: "admin", status: "ativo" },
-  { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", role: "recepcao", status: "inativo" },
+  { id: "u-001", name: "Dr. Ricardo Almeida", email: "ricardo.almeida@pulse.med.br", login: "ricardo.almeida", roles: ["medico"], crm: "12345/SP", status: "ativo" },
+  { id: "u-002", name: "Dra. Juliana Moreira", email: "juliana.moreira@pulse.med.br", login: "juliana.moreira", roles: ["medico"], crm: "98765/SP", status: "ativo" },
+  { id: "u-003", name: "Dr. André Costa", email: "andre.costa@pulse.med.br", login: "andre.costa", roles: ["medico"], crm: "54321/RJ", status: "ativo" },
+  { id: "u-004", name: "Enf. Carla Souza", email: "carla.souza@pulse.med.br", login: "carla.souza", roles: ["enfermeiro"], coren: "54321/SP", status: "ativo" },
+  { id: "u-005", name: "Enf. Paulo Martins", email: "paulo.martins@pulse.med.br", login: "paulo.martins", roles: ["enfermeiro"], coren: "65432/SP", status: "ativo" },
+  { id: "u-006", name: "Ana Gestora", email: "ana.gestora@pulse.med.br", login: "ana.gestora", roles: ["admin"], status: "ativo" },
+  { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", login: "beatriz", roles: ["recepcao"], status: "inativo" },
 ];
 
 function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void;
 }) {
-  const [form, setForm] = useState({ name: "", email: "", role: "medico" as SystemUser["role"], crm: "", coren: "" });
+  const [form, setForm] = useState({
+    name: "", email: "", login: "", password: "", crm: "", coren: "",
+    roles: { medico: false, enfermeiro: false, admin: false, recepcao: false }
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: string) => {
-    setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string | boolean) => {
+    setForm((f) => {
+      if (k.startsWith("roles.")) {
+        const role = k.split(".")[1] as keyof typeof form.roles;
+        return { ...f, roles: { ...f.roles, [role]: v } };
+      }
+      return { ...f, [k]: v };
+    });
     setErrors((e) => ({ ...e, [k]: "" }));
   };
 
@@ -48,24 +58,33 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Nome obrigatório";
     if (!form.email.trim() || !form.email.includes("@")) e.email = "E-mail inválido";
-    if (form.role === "medico" && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
-    if (form.role === "enfermeiro" && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
+    if (!form.login.trim()) e.login = "Login obrigatório";
+    if (!form.password.trim()) e.password = "Senha obrigatória";
+    if (form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
+    if (!Object.values(form.roles).some(v => v)) e.roles = "Selecione pelo menos um papel";
+    if (form.roles.medico && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
+    if (form.roles.enfermeiro && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = () => {
     if (!validate()) return;
+    const selectedRoles = Object.entries(form.roles)
+      .filter(([_, v]) => v)
+      .map(([k]) => k as "medico" | "enfermeiro" | "admin" | "recepcao");
+
     onSave({
       id: crypto.randomUUID(),
       name: form.name.trim(),
       email: form.email.trim(),
-      role: form.role,
-      crm: form.role === "medico" ? form.crm : undefined,
-      coren: form.role === "enfermeiro" ? form.coren : undefined,
+      login: form.login.trim(),
+      roles: selectedRoles,
+      crm: form.roles.medico ? form.crm : undefined,
+      coren: form.roles.enfermeiro ? form.coren : undefined,
       status: "ativo",
     });
-    setForm({ name: "", email: "", role: "medico", crm: "", coren: "" });
+    setForm({ name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
     setErrors({});
     onOpenChange(false);
   };
@@ -75,7 +94,7 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Usuário</DialogTitle>
         </DialogHeader>
@@ -90,23 +109,50 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
             <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inp("email")} placeholder="email@pulse.med.br" />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Perfil *</label>
-            <select value={form.role} onChange={(e) => set("role", e.target.value)} className={inp("")}>
-              <option value="medico">Médico(a)</option>
-              <option value="enfermeiro">Enfermeiro(a)</option>
-              <option value="admin">Administrador</option>
-              <option value="recepcao">Recepção</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Login *</label>
+              <input value={form.login} onChange={(e) => set("login", e.target.value)} className={inp("login")} placeholder="usuario.nome" />
+              {errors.login && <p className="text-xs text-destructive mt-1">{errors.login}</p>}
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Senha *</label>
+              <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder="••••••" />
+              {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
+            </div>
           </div>
-          {form.role === "medico" && (
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground block mb-2">Papéis *</label>
+            <div className="space-y-2 p-3 bg-muted/30 rounded-md border border-border">
+              {[
+                { key: "medico" as const, label: "Médico(a)", icon: "🏥" },
+                { key: "enfermeiro" as const, label: "Enfermeiro(a)", icon: "🩺" },
+                { key: "admin" as const, label: "Administrador", icon: "⚙️" },
+                { key: "recepcao" as const, label: "Recepção", icon: "📞" },
+              ].map(role => (
+                <label key={role.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={form.roles[role.key]}
+                    onChange={(e) => set(`roles.${role.key}`, e.target.checked)}
+                    className="w-4 h-4 rounded border-border cursor-pointer"
+                  />
+                  <span className="text-sm">{role.icon} {role.label}</span>
+                </label>
+              ))}
+            </div>
+            {errors.roles && <p className="text-xs text-destructive mt-1">{errors.roles}</p>}
+          </div>
+
+          {form.roles.medico && (
             <div>
               <label className="text-xs font-medium text-muted-foreground">CRM *</label>
               <input value={form.crm} onChange={(e) => set("crm", e.target.value)} className={inp("crm")} placeholder="Ex: 12345/SP" />
               {errors.crm && <p className="text-xs text-destructive mt-1">{errors.crm}</p>}
             </div>
           )}
-          {form.role === "enfermeiro" && (
+          {form.roles.enfermeiro && (
             <div>
               <label className="text-xs font-medium text-muted-foreground">COREN *</label>
               <input value={form.coren} onChange={(e) => set("coren", e.target.value)} className={inp("coren")} placeholder="Ex: 54321/SP" />
@@ -134,9 +180,9 @@ export default function Admin() {
   const [userList, setUserList] = useState<SystemUser[]>(initialUsers);
 
   const filtered = userList.filter((u) => {
-    if (roleFilter !== "all" && u.role !== roleFilter) return false;
+    if (roleFilter !== "all" && !u.roles.includes(roleFilter as any)) return false;
     if (!search) return true;
-    return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+    return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
   });
 
   const toggleStatus = (id: string) => {
@@ -160,7 +206,7 @@ export default function Admin() {
     { label: "Total de Usuários", value: userList.length, color: "bg-primary/10 text-primary" },
     { label: "Ativos", value: userList.filter((u) => u.status === "ativo").length, color: "bg-success/10 text-success" },
     { label: "Inativos", value: userList.filter((u) => u.status === "inativo").length, color: "bg-muted text-muted-foreground" },
-    { label: "Médicos", value: userList.filter((u) => u.role === "medico").length, color: "bg-warning/10 text-warning" },
+    { label: "Médicos", value: userList.filter((u) => u.roles.includes("medico")).length, color: "bg-warning/10 text-warning" },
   ];
 
   return (
@@ -255,8 +301,9 @@ export default function Admin() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Usuário</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden lg:table-cell">Login</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden md:table-cell">E-mail</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Perfil</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Papéis</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden sm:table-cell">Conselho</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                 <th className="text-right text-xs font-semibold text-muted-foreground px-4 py-3">Ações</th>
@@ -265,61 +312,70 @@ export default function Admin() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center text-sm text-muted-foreground py-10">
+                  <td colSpan={7} className="text-center text-sm text-muted-foreground py-10">
                     Nenhum usuário encontrado.
                   </td>
                 </tr>
               ) : (
-                filtered.map((u) => {
-                  const role = roleConfig[u.role];
-                  return (
-                    <tr key={u.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                            {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
-                          </div>
-                          <span className="text-sm font-medium">{u.name}</span>
+                filtered.map((u) => (
+                  <tr key={u.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                          {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                         </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-sm text-muted-foreground">{u.email}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`badge-status ${role.cls}`}>{role.label}</span>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className="text-sm text-muted-foreground tabular-nums">
-                          {u.crm ? `CRM ${u.crm}` : u.coren ? `COREN ${u.coren}` : "—"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
+                        <div>
+                          <span className="text-sm font-medium block">{u.name}</span>
+                          <span className="text-xs text-muted-foreground">@{u.login}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <span className="text-sm text-muted-foreground font-mono">{u.login}</span>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className="text-sm text-muted-foreground">{u.email}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {u.roles.map((role) => (
+                          <span key={role} className={`badge-status text-xs ${roleConfig[role].cls}`}>
+                            {roleConfig[role].label}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {u.crm ? `CRM ${u.crm}` : u.coren ? `COREN ${u.coren}` : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => toggleStatus(u.id)}
+                        className={`badge-status ${u.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {u.status === "ativo" ? "Ativo" : "Inativo"}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => toggleStatus(u.id)}
-                          className={`badge-status ${u.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}
+                          onClick={() => toast.info("Edição de usuário disponível em breve.")}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                         >
-                          {u.status === "ativo" ? "Ativo" : "Inativo"}
+                          <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => toast.info("Edição de usuário disponível em breve.")}
-                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          </button>
-                          <button
-                            onClick={() => removeUser(u.id)}
-                            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        <button
+                          onClick={() => removeUser(u.id)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

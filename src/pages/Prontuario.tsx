@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { getPatient, getPatientTimeline, type TimelineEvent } from "@/lib/mock-data";
+import { RequestExamDialog } from "@/components/RequestExamDialog";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -88,12 +89,13 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [examDialogOpen, setExamDialogOpen] = useState(false);
 
   const quickActionHandlers: Record<string, () => void> = {
     "Sinais Vitais": () => navigate("/sinais-vitais"),
     "Nova Evolução": () => toast.info("Abra o prontuário e clique em 'Adicionar Evolução'. Funcionalidade completa em breve."),
     "Prescrever": () => navigate("/prescricoes"),
-    "Solicitar Exame": () => navigate("/exames"),
+    "Solicitar Exame": () => setExamDialogOpen(true),
     "Anexar Arquivo": () => toast.info("Funcionalidade de anexo de arquivos em breve."),
   };
   const patient = getPatient(id || "");
@@ -226,6 +228,12 @@ export default function Prontuario() {
           </div>
         </div>
       </div>
+
+      <RequestExamDialog
+        open={examDialogOpen}
+        onOpenChange={setExamDialogOpen}
+        patientName={patient.name}
+      />
     </div>
   );
 }

@@ -1,14 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, User, Bell, Shield, Palette, Save, Eye, EyeOff } from "lucide-react";
+import { 
+  Settings, User, Bell, Shield, Palette, Save, Eye, EyeOff, 
+  Upload, Trash2, Sparkles, Building2, Smartphone, Mail, MapPin, Clock, 
+  Palette as PaletteIcon
+} from "lucide-react";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
-type Tab = "perfil" | "notificacoes" | "seguranca" | "aparencia";
+type Tab = "perfil" | "clinica" | "notificacoes" | "seguranca";
 
 export default function Configuracoes() {
-  const [activeTab, setActiveTab] = useState<Tab>("perfil");
+  const [activeTab, setActiveTab] = useState<Tab>("clinica");
+
+  // Clínica Settings
+  const [clinicData, setClinicData] = useState(() => {
+    const saved = localStorage.getItem("clinicSettings");
+    return saved ? JSON.parse(saved) : {
+      name: "Aurea Dental",
+      cnpj: "12.345.678/0001-90",
+      phone: "(11) 3456-7890",
+      email: "contato@aureadental.com.br",
+      address: "Av. Paulista, 1000 - São Paulo, SP",
+      hoursStart: "08:00",
+      hoursEnd: "18:00",
+      primaryColor: "#10B981",
+      secondaryColor: "#10B981",
+      logo: null,
+      logoName: "logo de anthony.jpeg"
+    };
+  });
 
   const [profile, setProfile] = useState({
     name: "Dr. Usuário Atual",
@@ -35,26 +57,20 @@ export default function Configuracoes() {
     twoFactor: false,
     sessionTimeout: "60",
   });
-  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false });
-
-  const [appearance, setAppearance] = useState({
-    theme: "light",
-    density: "normal",
-    language: "pt-BR",
-    dateFormat: "DD/MM/YYYY",
-  });
 
   const tabs = [
+    { key: "clinica" as Tab, label: "Clínica", icon: Building2 },
     { key: "perfil" as Tab, label: "Perfil", icon: User },
     { key: "notificacoes" as Tab, label: "Notificações", icon: Bell },
     { key: "seguranca" as Tab, label: "Segurança", icon: Shield },
-    { key: "aparencia" as Tab, label: "Aparência", icon: Palette },
   ];
 
-  const inp = "w-full h-9 px-3 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20";
-  const sel = "w-full h-9 px-3 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20";
-
-  const handleSave = () => toast.success("Configurações salvas com sucesso.");
+  const inp = "w-full h-10 px-4 rounded-lg bg-muted/40 border-none text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all";
+  
+  const handleSave = () => {
+    localStorage.setItem("clinicSettings", JSON.stringify(clinicData));
+    toast.success("Configurações da clínica salvas com sucesso.");
+  };
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
     <button
@@ -66,10 +82,10 @@ export default function Configuracoes() {
   );
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-sm text-muted-foreground mt-1">Gerencie suas preferências e configurações da conta</p>
+        <p className="text-sm text-muted-foreground mt-1">Gerencie as informações da clínica e suas preferências pessoais</p>
       </div>
 
       <div className="flex gap-6 flex-col lg:flex-row">
@@ -80,12 +96,12 @@ export default function Configuracoes() {
           transition={transition}
           className="lg:w-48 shrink-0"
         >
-          <div className="bg-card rounded-lg shadow-card border-subtle p-2 space-y-1">
+          <div className="bg-card rounded-xl shadow-card border-subtle p-2 space-y-1">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
                   activeTab === tab.key
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -99,15 +115,194 @@ export default function Configuracoes() {
         </motion.nav>
 
         {/* Content */}
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={transition}
-          className="flex-1 bg-card rounded-lg shadow-card border-subtle p-6"
-        >
+        <div className="flex-1 space-y-6">
+          {activeTab === "clinica" && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={transition}
+              className="space-y-6"
+            >
+              {/* Identidade Visual Card */}
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <PaletteIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold">Identidade Visual</h2>
+                    <p className="text-xs text-muted-foreground">Logotipo, cores e tipografia da clínica</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground block mb-1.5">Nome da Clínica</label>
+                      <input 
+                        value={clinicData.name} 
+                        onChange={(e) => setClinicData({...clinicData, name: e.target.value})} 
+                        className={inp} 
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1.5">Cor Primária</label>
+                        <div className="flex gap-2">
+                          <div className="h-10 w-10 rounded-lg border-subtle shrink-0" style={{ backgroundColor: clinicData.primaryColor }} />
+                          <input 
+                            value={clinicData.primaryColor} 
+                            onChange={(e) => setClinicData({...clinicData, primaryColor: e.target.value})} 
+                            className={inp} 
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1.5">Cor Secundária</label>
+                        <div className="flex gap-2">
+                          <div className="h-10 w-10 rounded-lg border-subtle shrink-0" style={{ backgroundColor: clinicData.secondaryColor }} />
+                          <input 
+                            value={clinicData.secondaryColor} 
+                            onChange={(e) => setClinicData({...clinicData, secondaryColor: e.target.value})} 
+                            className={inp} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-xs font-medium text-muted-foreground block">Logotipo</label>
+                    <div className="flex items-start gap-4">
+                      <div className="h-20 w-20 rounded-xl bg-slate-900 flex items-center justify-center p-4 border border-border">
+                        <div className="text-primary text-xl">🦷</div>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex gap-2">
+                          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 border border-border text-xs font-medium hover:bg-muted transition-colors">
+                            <Upload className="h-3.5 w-3.5" />
+                            Upload Logo
+                          </button>
+                          <button className="px-3 py-2 rounded-lg border border-border text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">
+                            Remover
+                          </button>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground leading-relaxed">
+                          {clinicData.logoName}
+                          <br />
+                          PNG, JPG ou SVG. Máx. 6MB.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-primary">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Geração de Identidade (IA Premium)</span>
+                      </div>
+                      <button className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-background border border-primary text-primary text-xs font-semibold hover:bg-primary/5 transition-all w-full">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Gerar Marca com IA
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dados da Clínica Card */}
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold">Dados da Clínica</h2>
+                    <p className="text-xs text-muted-foreground">Informações cadastrais e endereço</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">CNPJ</label>
+                    <input 
+                      value={clinicData.cnpj} 
+                      onChange={(e) => setClinicData({...clinicData, cnpj: e.target.value})} 
+                      className={inp} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Telefone</label>
+                    <input 
+                      value={clinicData.phone} 
+                      onChange={(e) => setClinicData({...clinicData, phone: e.target.value})} 
+                      className={inp} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">E-mail</label>
+                    <input 
+                      type="email"
+                      value={clinicData.email} 
+                      onChange={(e) => setClinicData({...clinicData, email: e.target.value})} 
+                      className={inp} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Horário</label>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <input 
+                          type="time" 
+                          value={clinicData.hoursStart} 
+                          onChange={(e) => setClinicData({...clinicData, hoursStart: e.target.value})} 
+                          className={`${inp} pr-10`} 
+                        />
+                        <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">até</span>
+                      <div className="relative flex-1">
+                        <input 
+                          type="time" 
+                          value={clinicData.hoursEnd} 
+                          onChange={(e) => setClinicData({...clinicData, hoursEnd: e.target.value})} 
+                          className={`${inp} pr-10`} 
+                        />
+                        <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Endereço</label>
+                    <input 
+                      value={clinicData.address} 
+                      onChange={(e) => setClinicData({...clinicData, address: e.target.value})} 
+                      className={inp} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de Salvar Flutuante ou no Fim */}
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
+                >
+                  <Save className="h-4 w-4" />
+                  Salvar Configurações
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {activeTab === "perfil" && (
-            <div className="space-y-5">
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={transition}
+              className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-5"
+            >
               <div className="flex items-center gap-2 mb-4">
                 <User className="h-4 w-4 text-primary" strokeWidth={1.5} />
                 <h2 className="text-sm font-semibold">Informações do Perfil</h2>
@@ -120,7 +315,7 @@ export default function Configuracoes() {
                 <div>
                   <p className="text-sm font-medium">{profile.name}</p>
                   <p className="text-xs text-muted-foreground">{profile.specialty} • {profile.institution}</p>
-                  <button className="mt-1.5 text-xs text-primary hover:underline">Alterar foto</button>
+                  <button className="mt-1.5 text-xs text-primary hover:underline font-medium">Alterar foto</button>
                 </div>
               </div>
 
@@ -150,186 +345,28 @@ export default function Configuracoes() {
                   <input value={profile.institution} onChange={(e) => setProfile((p) => ({ ...p, institution: e.target.value }))} className={inp} />
                 </div>
               </div>
-            </div>
+
+              <div className="flex justify-end pt-5 border-t border-border">
+                <button onClick={() => toast.success("Perfil atualizado.")} className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                  Salvar Perfil
+                </button>
+              </div>
+            </motion.div>
           )}
 
-          {activeTab === "notificacoes" && (
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Bell className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <h2 className="text-sm font-semibold">Preferências de Notificação</h2>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Eventos</p>
-                {[
-                  { key: "novoResultado", label: "Novo resultado de exame disponível" },
-                  { key: "alertaCritico", label: "Alerta clínico crítico" },
-                  { key: "prescricaoVencendo", label: "Prescrição próxima do vencimento" },
-                  { key: "lembreteConsulta", label: "Lembrete de consulta agendada" },
-                ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                    <span className="text-sm">{item.label}</span>
-                    <Toggle
-                      checked={notifications[item.key as keyof typeof notifications] as boolean}
-                      onChange={(v) => setNotifications((n) => ({ ...n, [item.key]: v }))}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Canais</p>
-                {[
-                  { key: "sistema", label: "Notificações no sistema" },
-                  { key: "email", label: "Notificações por e-mail" },
-                ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                    <span className="text-sm">{item.label}</span>
-                    <Toggle
-                      checked={notifications[item.key as keyof typeof notifications] as boolean}
-                      onChange={(v) => setNotifications((n) => ({ ...n, [item.key]: v }))}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "seguranca" && (
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <h2 className="text-sm font-semibold">Segurança da Conta</h2>
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alterar Senha</p>
-                {[
-                  { key: "current" as const, label: "Senha atual", field: "currentPassword" as keyof typeof security },
-                  { key: "new" as const, label: "Nova senha", field: "newPassword" as keyof typeof security },
-                  { key: "confirm" as const, label: "Confirmar nova senha", field: "confirmPassword" as keyof typeof security },
-                ].map((item) => (
-                  <div key={item.key}>
-                    <label className="text-xs font-medium text-muted-foreground">{item.label}</label>
-                    <div className="relative">
-                      <input
-                        type={showPass[item.key] ? "text" : "password"}
-                        value={security[item.field] as string}
-                        onChange={(e) => setSecurity((s) => ({ ...s, [item.field]: e.target.value }))}
-                        className={`${inp} pr-10`}
-                        placeholder="••••••••"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPass((p) => ({ ...p, [item.key]: !p[item.key] }))}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPass[item.key] ? <EyeOff className="h-4 w-4" strokeWidth={1.5} /> : <Eye className="h-4 w-4" strokeWidth={1.5} />}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-border space-y-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sessão e Acesso</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm">Autenticação em dois fatores</p>
-                    <p className="text-xs text-muted-foreground">Adiciona uma camada extra de segurança</p>
-                  </div>
-                  <Toggle checked={security.twoFactor} onChange={(v) => setSecurity((s) => ({ ...s, twoFactor: v }))} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Timeout de sessão (minutos)</label>
-                  <select
-                    value={security.sessionTimeout}
-                    onChange={(e) => setSecurity((s) => ({ ...s, sessionTimeout: e.target.value }))}
-                    className={sel}
-                  >
-                    <option value="15">15 minutos</option>
-                    <option value="30">30 minutos</option>
-                    <option value="60">1 hora</option>
-                    <option value="120">2 horas</option>
-                    <option value="480">8 horas</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "aparencia" && (
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Palette className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <h2 className="text-sm font-semibold">Aparência e Localização</h2>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Tema</label>
-                  <div className="grid grid-cols-3 gap-2 mt-1.5">
-                    {[
-                      { key: "light", label: "Claro", preview: "bg-white border-2" },
-                      { key: "dark", label: "Escuro", preview: "bg-slate-900 border-2" },
-                      { key: "system", label: "Sistema", preview: "bg-gradient-to-r from-white to-slate-900 border-2" },
-                    ].map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() => setAppearance((a) => ({ ...a, theme: t.key }))}
-                        className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
-                          appearance.theme === t.key ? "border-primary" : "border-border"
-                        }`}
-                      >
-                        <div className={`h-10 w-full rounded ${t.preview} ${appearance.theme === t.key ? "border-primary" : "border-border"}`} />
-                        <span className="text-xs font-medium">{t.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Densidade da interface</label>
-                  <select value={appearance.density} onChange={(e) => setAppearance((a) => ({ ...a, density: e.target.value }))} className={sel}>
-                    <option value="compact">Compacto</option>
-                    <option value="normal">Normal</option>
-                    <option value="comfortable">Confortável</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Idioma</label>
-                  <select value={appearance.language} onChange={(e) => setAppearance((a) => ({ ...a, language: e.target.value }))} className={sel}>
-                    <option value="pt-BR">Português (Brasil)</option>
-                    <option value="en-US">English (US)</option>
-                    <option value="es">Español</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Formato de data</label>
-                  <select value={appearance.dateFormat} onChange={(e) => setAppearance((a) => ({ ...a, dateFormat: e.target.value }))} className={sel}>
-                    <option value="DD/MM/YYYY">DD/MM/AAAA</option>
-                    <option value="MM/DD/YYYY">MM/DD/AAAA</option>
-                    <option value="YYYY-MM-DD">AAAA-MM-DD</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Save button */}
-          <div className="mt-6 pt-5 border-t border-border flex justify-end">
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 px-5 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          {(activeTab === "notificacoes" || activeTab === "seguranca") && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={transition}
+              className="bg-card rounded-xl shadow-card border-subtle p-6"
             >
-              <Save className="h-4 w-4" strokeWidth={1.5} />
-              Salvar Alterações
-            </button>
-          </div>
-        </motion.div>
+              <p className="text-sm text-muted-foreground text-center py-10 italic">
+                {activeTab === "notificacoes" ? "Configurações de notificações em breve." : "Configurações de segurança em breve."}
+              </p>
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

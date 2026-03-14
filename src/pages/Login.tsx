@@ -112,15 +112,11 @@ export default function Login() {
         {/* Content */}
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl overflow-hidden">
-              {clinicData.logo ? (
-                <img src={clinicData.logo} alt="Logo" className="max-h-full max-w-full object-contain p-1.5" />
-              ) : (
-                <HeartPulse className="h-7 w-7 text-white" />
-              )}
+            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
+              <HeartPulse className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">{clinicData.name || "Pulse PEP"}</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">Pulse PEP</h1>
               <p className="text-white/70 text-sm font-medium">Prontuário Eletrônico do Paciente</p>
             </div>
           </div>

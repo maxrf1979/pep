@@ -40,6 +40,7 @@ export interface TimelineEvent {
   summary: string;
   professional: string;
   details?: string;
+  fileData?: string;
 }
 
 export const patients: Patient[] = [

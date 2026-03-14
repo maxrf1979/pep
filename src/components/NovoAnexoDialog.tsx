@@ -15,6 +15,7 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId }
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [fileName, setFileName] = useState("");
+  const [fileData, setFileData] = useState<string | undefined>(undefined);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -37,6 +38,7 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId }
       title: title.trim(),
       summary: summary.trim() || `Arquivo: ${fileName}`,
       professional: "Sistema — Usuário Atual",
+      fileData: fileData
     });
     
     setPatientId(initialPatientId || "");
@@ -112,6 +114,12 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId }
                         setFileName(file.name);
                         setErrors(er => ({ ...er, file: "" }));
                         if (!title) setTitle(file.name.split('.')[0]);
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          setFileData(event.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
                       }
                     }} />
                   </label>

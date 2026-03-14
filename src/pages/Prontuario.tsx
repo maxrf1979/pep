@@ -65,6 +65,30 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
           </div>
           <h3 className="text-sm font-semibold mt-2">{event.title}</h3>
           <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{event.summary}</p>
+          
+          {event.fileData && (
+            <div className="mt-3">
+              {event.fileData.startsWith("data:image/") ? (
+                <img 
+                  src={event.fileData} 
+                  alt={event.title} 
+                  className="max-w-xs h-auto max-h-48 rounded-lg border border-border shadow-sm object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                  onClick={(e) => { e.stopPropagation(); window.open(event.fileData, '_blank'); }} 
+                />
+              ) : (
+                <a 
+                  href={event.fileData} 
+                  download={event.summary.replace("Arquivo: ", "")}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-foreground border border-border rounded-md text-xs font-medium hover:bg-muted/80 transition-colors"
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  Baixar Arquivo
+                </a>
+              )}
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground mt-2">{event.professional}</p>
 
           {event.details && (

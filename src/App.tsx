@@ -11,7 +11,6 @@ import Prontuarios from "./pages/Prontuarios";
 import SinaisVitais from "./pages/SinaisVitais";
 import Prescricoes from "./pages/Prescricoes";
 import Exames from "./pages/Exames";
-import Usuarios from "./pages/Usuarios";
 import Relatorios from "./pages/Relatorios";
 import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
@@ -34,7 +33,6 @@ const App = () => (
             <Route path="/sinais-vitais" element={<SinaisVitais />} />
             <Route path="/prescricoes" element={<Prescricoes />} />
             <Route path="/exames" element={<Exames />} />
-            <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/configuracoes" element={<Configuracoes />} />

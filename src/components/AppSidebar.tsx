@@ -41,7 +41,6 @@ const clinicalNav = [
 ];
 
 const adminNav = [
-  { title: "Usuários", url: "/usuarios", icon: Users },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Administração", url: "/admin", icon: Shield },
   { title: "Configurações", url: "/configuracoes", icon: Settings },

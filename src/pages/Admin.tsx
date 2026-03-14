@@ -276,12 +276,6 @@ export default function Admin() {
     toast.success(`Usuário ${currentStatus === "ativo" ? "inativado" : "ativado"} com sucesso.`);
   };
 
-  const removeUser = (id: string, name: string) => {
-    if (window.confirm(`Tem certeza que deseja remover o usuário ${name}?`)) {
-      setUserList((prev) => prev.filter((u) => u.id !== id));
-      toast.success("Usuário removido.");
-    }
-  };
 
   const handleSave = (u: SystemUser) => {
     if (editingUser) {
@@ -474,13 +468,6 @@ export default function Admin() {
                           title={u.status === "ativo" ? "Inativar usuário" : "Ativar usuário"}
                         >
                           {u.status === "ativo" ? <Lock className="h-4 w-4" strokeWidth={1.5} /> : <LockOpen className="h-4 w-4" strokeWidth={1.5} />}
-                        </button>
-                        <button
-                          onClick={() => removeUser(u.id, u.name)}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          title="Remover usuário"
-                        >
-                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </div>
                     </td>

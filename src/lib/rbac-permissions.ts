@@ -3,7 +3,7 @@
  * Define permissões específicas para cada perfil de usuário
  */
 
-export type UserRole = "medico" | "enfermeiro" | "admin" | "recepcao";
+export type UserRole = "medico" | "enfermeiro" | "admin" | "recepcao" | "tecnico_enfermagem";
 
 export interface Permission {
   readonly name: string;

@@ -159,10 +159,23 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
             <div>
               <label className="text-xs font-medium text-muted-foreground">Confirmar Senha *</label>
               <div className="relative">
-                <input type={showPass ? "text" : "password"} value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} className={inp("confirmPassword")} placeholder="Confirme a senha" />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground">
+                {form.password && form.confirmPassword && form.password === form.confirmPassword ? (
+                  <input
+                    type={showPass ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={(e) => set("confirmPassword", e.target.value)}
+                    className="w-full h-9 px-3 rounded-md bg-background border border-success text-sm focus:outline-none focus:ring-2 focus:ring-success/20"
+                    placeholder="Confirme a senha"
+                  />
+                ) : (
+                  <input type={showPass ? "text" : "password"} value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} className={inp("confirmPassword")} placeholder="Confirme a senha" />
+                )}
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground">
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+                {form.password && form.confirmPassword && form.password === form.confirmPassword && (
+                  <Check className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-success" strokeWidth={3} />
+                )}
               </div>
               {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>}
             </div>

@@ -24,15 +24,7 @@ const roleConfig = {
   recepcao: { label: "Recepção", cls: "bg-warning/10 text-warning", icon: "📞" },
 };
 
-const initialUsers: SystemUser[] = [
-  { id: "u-001", name: "Dr. Ricardo Almeida", email: "ricardo.almeida@pulse.med.br", login: "ricardo.almeida", roles: ["medico"], crm: "12345/SP", status: "ativo" },
-  { id: "u-002", name: "Dra. Juliana Moreira", email: "juliana.moreira@pulse.med.br", login: "juliana.moreira", roles: ["medico"], crm: "98765/SP", status: "ativo" },
-  { id: "u-003", name: "Dr. André Costa", email: "andre.costa@pulse.med.br", login: "andre.costa", roles: ["medico"], crm: "54321/RJ", status: "ativo" },
-  { id: "u-004", name: "Enf. Carla Souza", email: "carla.souza@pulse.med.br", login: "carla.souza", roles: ["enfermeiro"], coren: "54321/SP", status: "ativo" },
-  { id: "u-005", name: "Enf. Paulo Martins", email: "paulo.martins@pulse.med.br", login: "paulo.martins", roles: ["enfermeiro"], coren: "65432/SP", status: "ativo" },
-  { id: "u-006", name: "Ana Gestora", email: "ana.gestora@pulse.med.br", login: "ana.gestora", roles: ["admin"], status: "ativo" },
-  { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", login: "beatriz", roles: ["recepcao"], status: "inativo" },
-];
+const initialUsers: SystemUser[] = [];
 
 function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
   open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void; editingUser?: SystemUser;

@@ -20,7 +20,7 @@ export default function Pacientes() {
     toast.success(`Paciente ${p.name} cadastrado com sucesso!`);
   };
 
-  const filtered = patients.filter((p) => {
+  const filtered = patientList.filter((p) => {
     const matchesQuery =
       !query ||
       p.name.toLowerCase().includes(query.toLowerCase()) ||

@@ -66,7 +66,6 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Nome obrigatório";
-    if (!form.email.trim() || !form.email.includes("@")) e.email = "E-mail inválido";
     if (!form.login.trim()) e.login = "Login obrigatório";
     if (!isEditing && !form.password.trim()) e.password = "Senha obrigatória";
     if (form.password && form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
@@ -112,11 +111,6 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
             <label className="text-xs font-medium text-muted-foreground">Nome completo *</label>
             <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp("name")} placeholder="Nome do usuário" />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">E-mail *</label>
-            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inp("email")} placeholder="email@pulse.med.br" />
-            {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

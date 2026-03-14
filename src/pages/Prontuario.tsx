@@ -235,9 +235,9 @@ export default function Prontuario() {
             </h3>
             {[
               { label: "Sinais Vitais",   icon: Activity },
+              { label: "Solicitar Exame", icon: FlaskConical },
               { label: "Nova Evolução",   icon: FilePlus },
               { label: "Prescrever",      icon: Pill },
-              { label: "Solicitar Exame", icon: FlaskConical },
               { label: "Anexar Arquivo",  icon: Paperclip },
             ].map((action) => (
               <button

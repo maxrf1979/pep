@@ -23,6 +23,7 @@ import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
 import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
+import { PrintableProntuario } from "@/components/PrintableProntuario";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -103,6 +104,7 @@ export default function Prontuario() {
   const [evolucaoEnfermagemOpen, setEvolucaoEnfermagemOpen] = useState(false);
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
@@ -185,6 +187,7 @@ export default function Prontuario() {
           .print-only { display: block !important; }
           #prontuario-container { page-break-inside: avoid; }
           .print-header, .print-footer { display: block; }
+          .section-block { page-break-inside: avoid; }
           @page { margin: 1.5cm; }
           body::before {
             content: "";
@@ -272,7 +275,13 @@ export default function Prontuario() {
             )}
           </div>
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              setIsPrinting(true);
+              setTimeout(() => {
+                window.print();
+                setIsPrinting(false);
+              }, 100);
+            }}
             className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors"
           >
             <FileDown className="h-4 w-4" strokeWidth={1.5} />
@@ -372,6 +381,8 @@ export default function Prontuario() {
       <div className="hidden print:block print-footer mt-8">
         <ReportFooter />
       </div>
+
+      {isPrinting && <PrintableProntuario patientId={id!} />}
     </div>
   );
 }

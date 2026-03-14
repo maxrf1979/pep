@@ -18,7 +18,8 @@ export default function Login() {
     const saved = localStorage.getItem("clinicSettings");
     return saved ? JSON.parse(saved) : { name: "Aurea Dental", logo: null };
   })();
-鼓
+
+
 
 
   // Simulation of authentication
@@ -191,7 +192,9 @@ export default function Login() {
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Acesse sua conta</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Entre com suas credenciais para gerenciar o Pulse PEP.</p>
             </div>
-鼓
+
+
+
             <form onSubmit={handleLogin} className="space-y-5">
               <AnimatePresence mode="wait">
                 {error && (

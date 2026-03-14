@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, X, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { patients, type Prescription, type PrescriptionMedication } from "@/lib/mock-data";
+import { PrintableDocument } from "./PrintableDocument";
 
 interface MedLine {
   name: string;
@@ -57,6 +58,14 @@ export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatien
     setMeds([{ name: "", dose: "", route: "VO", frequency: "", duration: "" }]); 
     setErrors({});
     onOpenChange(false);
+  };
+
+  const handleEmitirEImprimir = () => {
+    if (!validate()) return;
+    setTimeout(() => {
+      window.print();
+      handleSave();
+    }, 100);
   };
 
   const inp = (field: string) =>
@@ -154,10 +163,27 @@ export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatien
           <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
             Cancelar
           </button>
-          <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Emitir Prescrição
+          <button onClick={handleSave} className="px-4 py-2 rounded-md text-sm font-medium hover:bg-muted transition-colors">
+            Apenas Emitir
+          </button>
+          <button onClick={handleEmitirEImprimir} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+            Emitir Prescrição e Imprimir
           </button>
         </DialogFooter>
+        {selectedPatient && (
+          <PrintableDocument
+            type="prescription"
+            patient={{
+              name: selectedPatient.name,
+              age: selectedPatient.age,
+              cpf: selectedPatient.cpf || "---",
+              sex: selectedPatient.sex,
+            }}
+            items={meds}
+            notes={notes}
+            professionalLabel="Dr. Usuário Atual — CRM 00000/SP"
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

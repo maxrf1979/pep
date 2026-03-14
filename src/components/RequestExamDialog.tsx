@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { patients } from "@/lib/mock-data";
+import { PrintableDocument } from "./PrintableDocument";
 
 interface ExamField {
   id: string;
@@ -82,6 +84,13 @@ export function RequestExamDialog({
     // Reset form
     setExams([{ id: "1", name: "", type: "Laboratorial" }]);
     setJustification("");
+  };
+
+  const handleEmitirEImprimir = () => {
+    setTimeout(() => {
+      window.print();
+      handleSubmit();
+    }, 100);
   };
 
   return (
@@ -194,10 +203,27 @@ export function RequestExamDialog({
           >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit}>
-            Solicitar
+          <Button variant="outline" onClick={handleSubmit}>
+            Apenas Solicitar
+          </Button>
+          <Button onClick={handleEmitirEImprimir}>
+            Solicitar e Imprimir
           </Button>
         </DialogFooter>
+        {patients.find(p => p.name === patientName) && (
+          <PrintableDocument
+            type="exam"
+            patient={{
+              name: patientName,
+              age: patients.find(p => p.name === patientName)!.age,
+              cpf: patients.find(p => p.name === patientName)!.cpf || "---",
+              sex: patients.find(p => p.name === patientName)!.sex,
+            }}
+            items={exams}
+            notes={justification}
+            professionalLabel="Dr. Usuário Atual — CRM 00000/SP"
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { patients, exams, type Exam } from "@/lib/mock-data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { PrintableDocument } from "@/components/PrintableDocument";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -165,6 +166,14 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
     onOpenChange(false);
   };
 
+  const handleEmitirEImprimir = () => {
+    if (!validate()) return;
+    setTimeout(() => {
+      window.print();
+      handleSave();
+    }, 100);
+  };
+
   const inp = (field: string) =>
     `w-full h-9 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 ${errors[field] ? "border-destructive" : "border-border"}`;
 
@@ -242,10 +251,27 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
           <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
             Cancelar
           </button>
-          <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Solicitar
+          <button onClick={handleSave} className="px-4 py-2 rounded-md text-sm font-medium hover:bg-muted transition-colors">
+            Apenas Solicitar
+          </button>
+          <button onClick={handleEmitirEImprimir} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+            Solicitar e Imprimir
           </button>
         </DialogFooter>
+        {patients.find(p => p.id === patientId) && (
+          <PrintableDocument
+            type="exam"
+            patient={{
+              name: patients.find(p => p.id === patientId)!.name,
+              age: patients.find(p => p.id === patientId)!.age,
+              cpf: patients.find(p => p.id === patientId)!.cpf || "---",
+              sex: patients.find(p => p.id === patientId)!.sex,
+            }}
+            items={exams}
+            notes={notes}
+            professionalLabel="Dr. Usuário Atual — CRM 00000/SP"
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

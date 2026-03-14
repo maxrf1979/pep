@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Users, Plus, Search, X, Edit2, Trash2 } from "lucide-react";
+import { Shield, Users, Plus, Search, X, Edit2, Trash2, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -18,10 +18,10 @@ interface SystemUser {
 }
 
 const roleConfig = {
-  medico: { label: "Médico(a)", cls: "bg-primary/10 text-primary" },
-  enfermeiro: { label: "Enfermeiro(a)", cls: "bg-success/10 text-success" },
-  admin: { label: "Administrador", cls: "bg-destructive/10 text-destructive" },
-  recepcao: { label: "Recepção", cls: "bg-warning/10 text-warning" },
+  medico: { label: "Médico(a)", cls: "bg-primary/10 text-primary", icon: "🏥" },
+  enfermeiro: { label: "Enfermeiro(a)", cls: "bg-success/10 text-success", icon: "🩺" },
+  admin: { label: "Administrador", cls: "bg-destructive/10 text-destructive", icon: "⚙️" },
+  recepcao: { label: "Recepção", cls: "bg-warning/10 text-warning", icon: "📞" },
 };
 
 const initialUsers: SystemUser[] = [
@@ -34,12 +34,29 @@ const initialUsers: SystemUser[] = [
   { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", login: "beatriz", roles: ["recepcao"], status: "inativo" },
 ];
 
-function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void;
+function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void; editingUser?: SystemUser;
 }) {
-  const [form, setForm] = useState({
-    name: "", email: "", login: "", password: "", crm: "", coren: "",
-    roles: { medico: false, enfermeiro: false, admin: false, recepcao: false }
+  const isEditing = !!editingUser;
+  const [showPass, setShowPass] = useState(false);
+  const [form, setForm] = useState(() => {
+    if (editingUser) {
+      return {
+        name: editingUser.name,
+        email: editingUser.email,
+        login: editingUser.login,
+        password: "",
+        crm: editingUser.crm || "",
+        coren: editingUser.coren || "",
+        roles: {
+          medico: editingUser.roles.includes("medico"),
+          enfermeiro: editingUser.roles.includes("enfermeiro"),
+          admin: editingUser.roles.includes("admin"),
+          recepcao: editingUser.roles.includes("recepcao"),
+        }
+      };
+    }
+    return { name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -59,8 +76,8 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     if (!form.name.trim()) e.name = "Nome obrigatório";
     if (!form.email.trim() || !form.email.includes("@")) e.email = "E-mail inválido";
     if (!form.login.trim()) e.login = "Login obrigatório";
-    if (!form.password.trim()) e.password = "Senha obrigatória";
-    if (form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
+    if (!isEditing && !form.password.trim()) e.password = "Senha obrigatória";
+    if (form.password && form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
     if (!Object.values(form.roles).some(v => v)) e.roles = "Selecione pelo menos um papel";
     if (form.roles.medico && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
     if (form.roles.enfermeiro && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
@@ -75,14 +92,14 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
       .map(([k]) => k as "medico" | "enfermeiro" | "admin" | "recepcao");
 
     onSave({
-      id: crypto.randomUUID(),
+      id: editingUser ? editingUser.id : crypto.randomUUID(),
       name: form.name.trim(),
       email: form.email.trim(),
       login: form.login.trim(),
       roles: selectedRoles,
       crm: form.roles.medico ? form.crm : undefined,
       coren: form.roles.enfermeiro ? form.coren : undefined,
-      status: "ativo",
+      status: editingUser ? editingUser.status : "ativo",
     });
     setForm({ name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
     setErrors({});
@@ -96,7 +113,7 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Usuário</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Usuário" : "Novo Usuário"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -116,8 +133,13 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
               {errors.login && <p className="text-xs text-destructive mt-1">{errors.login}</p>}
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Senha *</label>
-              <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder="••••••" />
+              <label className="text-xs font-medium text-muted-foreground">Senha {isEditing ? "(opcional)" : "*"}</label>
+              <div className="relative">
+                <input type={showPass ? "text" : "password"} value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder={isEditing ? "Deixe vazio para não alterar" : "••••••"} />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground">
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
             </div>
           </div>
@@ -131,13 +153,16 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
                 { key: "admin" as const, label: "Administrador", icon: "⚙️" },
                 { key: "recepcao" as const, label: "Recepção", icon: "📞" },
               ].map(role => (
-                <label key={role.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={form.roles[role.key]}
-                    onChange={(e) => set(`roles.${role.key}`, e.target.checked)}
-                    className="w-4 h-4 rounded border-border cursor-pointer"
-                  />
+                <label key={role.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors group">
+                  <div className="relative flex items-center justify-center h-4 w-4">
+                    <input
+                      type="checkbox"
+                      checked={form.roles[role.key]}
+                      onChange={(e) => set(`roles.${role.key}`, e.target.checked)}
+                      className="peer h-4 w-4 rounded border-border appearance-none checked:bg-primary checked:border-primary cursor-pointer transition-all"
+                    />
+                    <Check className="absolute h-3 w-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                  </div>
                   <span className="text-sm">{role.icon} {role.label}</span>
                 </label>
               ))}
@@ -165,7 +190,7 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
             Cancelar
           </button>
           <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Criar Usuário
+            {isEditing ? "Salvar Alterações" : "Criar Usuário"}
           </button>
         </DialogFooter>
       </DialogContent>
@@ -177,6 +202,7 @@ export default function Admin() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<SystemUser | undefined>();
   const [userList, setUserList] = useState<SystemUser[]>(initialUsers);
 
   const filtered = userList.filter((u) => {
@@ -185,33 +211,51 @@ export default function Admin() {
     return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
   });
 
-  const toggleStatus = (id: string) => {
+  const toggleStatus = (id: string, currentStatus: string) => {
     setUserList((prev) =>
       prev.map((u) => u.id === id ? { ...u, status: u.status === "ativo" ? "inativo" : "ativo" } : u)
     );
-    toast.success("Status do usuário atualizado.");
+    toast.success(`Usuário ${currentStatus === "ativo" ? "inativado" : "ativado"} com sucesso.`);
   };
 
-  const removeUser = (id: string) => {
-    setUserList((prev) => prev.filter((u) => u.id !== id));
-    toast.success("Usuário removido.");
+  const removeUser = (id: string, name: string) => {
+    if (window.confirm(`Tem certeza que deseja remover o usuário ${name}?`)) {
+      setUserList((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Usuário removido.");
+    }
   };
 
   const handleSave = (u: SystemUser) => {
-    setUserList((prev) => [u, ...prev]);
-    toast.success("Usuário criado com sucesso.");
+    if (editingUser) {
+      setUserList((prev) => prev.map((user) => user.id === u.id ? u : user));
+      toast.success("Usuário atualizado com sucesso.");
+      setEditingUser(undefined);
+    } else {
+      setUserList((prev) => [u, ...prev]);
+      toast.success("Usuário criado com sucesso.");
+    }
+  };
+
+  const openNewDialog = () => {
+    setEditingUser(undefined);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (user: SystemUser) => {
+    setEditingUser(user);
+    setDialogOpen(true);
   };
 
   const stats = [
-    { label: "Total de Usuários", value: userList.length, color: "bg-primary/10 text-primary" },
-    { label: "Ativos", value: userList.filter((u) => u.status === "ativo").length, color: "bg-success/10 text-success" },
-    { label: "Inativos", value: userList.filter((u) => u.status === "inativo").length, color: "bg-muted text-muted-foreground" },
-    { label: "Médicos", value: userList.filter((u) => u.roles.includes("medico")).length, color: "bg-warning/10 text-warning" },
+    { label: "Total de Usuários", value: userList.length, color: "bg-primary/10 text-primary", icon: Users },
+    { label: "Ativos", value: userList.filter((u) => u.status === "ativo").length, color: "bg-success/10 text-success", icon: LockOpen },
+    { label: "Inativos", value: userList.filter((u) => u.status === "inativo").length, color: "bg-muted text-muted-foreground", icon: Lock },
+    { label: "Médicos", value: userList.filter((u) => u.roles.includes("medico")).length, color: "bg-warning/10 text-warning", icon: Users },
   ];
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <NovoUsuarioDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} />
+      <UsuarioDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} editingUser={editingUser} />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -219,10 +263,10 @@ export default function Admin() {
           <p className="text-sm text-muted-foreground mt-1">Gerenciamento de usuários e permissões do sistema</p>
         </div>
         <button
-          onClick={() => setDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          onClick={openNewDialog}
+          className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
         >
-          <Plus className="h-4 w-4" strokeWidth={2} />
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
           Novo Usuário
         </button>
       </div>
@@ -243,7 +287,7 @@ export default function Admin() {
             className="bg-card rounded-lg p-4 shadow-card border-subtle"
           >
             <div className={`inline-flex items-center justify-center h-8 w-8 rounded-lg mb-3 ${s.color}`}>
-              <Shield className="h-4 w-4" strokeWidth={1.5} />
+              <s.icon className="h-4 w-4" strokeWidth={1.5} />
             </div>
             <div className="text-2xl font-bold tabular-nums">{s.value}</div>
             <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
@@ -268,7 +312,7 @@ export default function Admin() {
             </button>
           )}
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {[
             { key: "all", label: "Todos" },
             { key: "medico", label: "Médicos" },
@@ -279,7 +323,7 @@ export default function Admin() {
             <button
               key={f.key}
               onClick={() => setRoleFilter(f.key)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 roleFilter === f.key ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
               }`}
             >
@@ -339,7 +383,8 @@ export default function Admin() {
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1.5">
                         {u.roles.map((role) => (
-                          <span key={role} className={`badge-status text-xs ${roleConfig[role].cls}`}>
+                          <span key={role} className={`badge-status text-xs ${roleConfig[role].cls} flex items-center gap-1`}>
+                            <span>{roleConfig[role].icon}</span>
                             {roleConfig[role].label}
                           </span>
                         ))}
@@ -352,7 +397,7 @@ export default function Admin() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => toggleStatus(u.id)}
+                        onClick={() => toggleStatus(u.id, u.status)}
                         className={`badge-status ${u.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}
                       >
                         {u.status === "ativo" ? "Ativo" : "Inativo"}
@@ -361,16 +406,29 @@ export default function Admin() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => toast.info("Edição de usuário disponível em breve.")}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                          onClick={() => openEditDialog(u)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Editar usuário"
                         >
-                          <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <Edit2 className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                         <button
-                          onClick={() => removeUser(u.id)}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          onClick={() => toggleStatus(u.id, u.status)}
+                          className={`p-1.5 rounded-md transition-colors ${
+                            u.status === "ativo"
+                              ? "text-muted-foreground hover:text-warning hover:bg-warning/10"
+                              : "text-muted-foreground hover:text-success hover:bg-success/10"
+                          }`}
+                          title={u.status === "ativo" ? "Inativar usuário" : "Ativar usuário"}
                         >
-                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          {u.status === "ativo" ? <Lock className="h-4 w-4" strokeWidth={1.5} /> : <LockOpen className="h-4 w-4" strokeWidth={1.5} />}
+                        </button>
+                        <button
+                          onClick={() => removeUser(u.id, u.name)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Remover usuário"
+                        >
+                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </div>
                     </td>

@@ -179,4 +179,3 @@ export default function PainelChamadaExibicao() {
     </div>
   );
 }
-鼓

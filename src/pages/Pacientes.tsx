@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, UserPlus, ChevronRight } from "lucide-react";
+import { Search, Filter, UserPlus, ChevronRight, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { patients as initialPatients, Patient } from "@/lib/mock-data";
 import NovoPacienteDialog from "@/components/NovoPacienteDialog";
+import ChamarPacienteDialog from "@/components/ChamarPacienteDialog";
 import { toast } from "sonner";
 
 const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };

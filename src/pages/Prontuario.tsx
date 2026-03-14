@@ -23,7 +23,7 @@ import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
 import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
-import { PrintableProntuario } from "@/components/PrintableProntuario";
+import { ProfessionalProntuario } from "@/components/ProfessionalProntuario";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -382,7 +382,7 @@ export default function Prontuario() {
         <ReportFooter />
       </div>
 
-      {isPrinting && <PrintableProntuario patientId={id!} />}
+      {isPrinting && <ProfessionalProntuario patientId={id!} />}
     </div>
   );
 }

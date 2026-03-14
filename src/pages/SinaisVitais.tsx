@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Activity, Plus, Thermometer, Heart, Wind, Droplets, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -92,7 +92,15 @@ function VitalCard({ vital, patient, index }: { vital: VitalSign; patient: Patie
 export default function SinaisVitais() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [localVitals, setLocalVitals] = useState<VitalSign[]>([]);
+  const [localVitals, setLocalVitals] = useState<VitalSign[]>(() => {
+    const saved = localStorage.getItem("localVitals");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Salvar sinais vitais no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("localVitals", JSON.stringify(localVitals));
+  }, [localVitals]);
 
   const allVitals = [...localVitals, ...vitalSigns].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()

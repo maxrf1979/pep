@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -104,7 +105,19 @@ export function AppSidebar() {
         {renderGroup("Clínico", clinicalNav)}
         {renderGroup("Sistema", adminNav)}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
+        {!collapsed && (
+          <button
+            onClick={() => {
+              localStorage.removeItem("pulse-auth-session");
+              window.location.href = "/login";
+            }}
+            className="flex items-center gap-3 w-full p-2 px-3 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-semibold"
+          >
+            <LogOut className="h-[18px] w-[18px]" strokeWidth={2} />
+            <span>Sair do Sistema</span>
+          </button>
+        )}
         <button
           onClick={toggleSidebar}
           className="flex items-center justify-center w-full p-2 rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"

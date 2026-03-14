@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,9 +14,19 @@ import Exames from "./pages/Exames";
 import Relatorios from "./pages/Relatorios";
 import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const session = localStorage.getItem("pulse-auth-session");
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+  return <AppLayout>{children}</AppLayout>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,21 +34,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/prontuarios" element={<Prontuarios />} />
-            <Route path="/prontuario/:id" element={<Prontuario />} />
-            <Route path="/sinais-vitais" element={<SinaisVitais />} />
-            <Route path="/prescricoes" element={<Prescricoes />} />
-            <Route path="/exames" element={<Exames />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* Protected Routes */}
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/pacientes" element={<ProtectedRoute><Pacientes /></ProtectedRoute>} />
+          <Route path="/prontuarios" element={<ProtectedRoute><Prontuarios /></ProtectedRoute>} />
+          <Route path="/prontuario/:id" element={<ProtectedRoute><Prontuario /></ProtectedRoute>} />
+          <Route path="/sinais-vitais" element={<ProtectedRoute><SinaisVitais /></ProtectedRoute>} />
+          <Route path="/prescricoes" element={<ProtectedRoute><Prescricoes /></ProtectedRoute>} />
+          <Route path="/exames" element={<ProtectedRoute><Exames /></ProtectedRoute>} />
+          <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

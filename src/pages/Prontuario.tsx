@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { getPatient, getPatientTimeline, type TimelineEvent } from "@/lib/mock-data";
+import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -87,6 +88,14 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  const quickActionHandlers: Record<string, () => void> = {
+    "Sinais Vitais": () => navigate("/sinais-vitais"),
+    "Nova Evolução": () => toast.info("Abra o prontuário e clique em 'Adicionar Evolução'. Funcionalidade completa em breve."),
+    "Prescrever": () => navigate("/prescricoes"),
+    "Solicitar Exame": () => navigate("/exames"),
+    "Anexar Arquivo": () => toast.info("Funcionalidade de anexo de arquivos em breve."),
+  };
   const patient = getPatient(id || "");
   const timeline = getPatientTimeline(id || "");
 
@@ -158,7 +167,10 @@ export default function Prontuario() {
               </div>
             )}
           </div>
-          <button className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors">
+          <button
+            onClick={() => window.print()}
+            className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors"
+          >
             <FileDown className="h-4 w-4" strokeWidth={1.5} />
             Relatório PDF
           </button>
@@ -204,6 +216,7 @@ export default function Prontuario() {
             ].map((action) => (
               <button
                 key={action.label}
+                onClick={quickActionHandlers[action.label]}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left"
               >
                 <action.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />

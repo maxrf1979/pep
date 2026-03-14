@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Users, Plus, Search, X, Trash2, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
+import { Shield, Users, Plus, Search, X, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 

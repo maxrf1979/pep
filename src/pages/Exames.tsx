@@ -98,40 +98,60 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
   );
 }
 
+interface ExamLine {
+  name: string;
+  type: Exam["type"];
+}
+
+const emptyLine = (): ExamLine => ({ name: "", type: "laboratorial" });
+
 function NovoExameDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: Exam) => void;
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (exams: Exam[]) => void;
 }) {
-  const [form, setForm] = useState({
-    patientId: "", name: "", type: "laboratorial" as Exam["type"], notes: "",
-  });
+  const [patientId, setPatientId] = useState("");
+  const [notes, setNotes] = useState("");
+  const [lines, setLines] = useState<ExamLine[]>([emptyLine()]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: string) => {
-    setForm((f) => ({ ...f, [k]: v }));
-    setErrors((e) => ({ ...e, [k]: "" }));
+  const addLine = () => setLines((l) => [...l, emptyLine()]);
+
+  const removeLine = (i: number) =>
+    setLines((l) => l.filter((_, idx) => idx !== i));
+
+  const setLine = (i: number, k: keyof ExamLine, v: string) => {
+    setLines((l) => l.map((line, idx) => idx === i ? { ...line, [k]: v } : line));
+    setErrors((e) => { const next = { ...e }; delete next[`name_${i}`]; return next; });
   };
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.patientId) e.patientId = "Selecione um paciente";
-    if (!form.name.trim()) e.name = "Nome do exame obrigatório";
+    if (!patientId) e.patientId = "Selecione um paciente";
+    lines.forEach((l, i) => {
+      if (!l.name.trim()) e[`name_${i}`] = "Obrigatório";
+    });
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = () => {
     if (!validate()) return;
-    onSave({
+    const now = new Date().toISOString();
+    const result: Exam[] = lines.map((l) => ({
       id: crypto.randomUUID(),
-      patientId: form.patientId,
-      requestDate: new Date().toISOString(),
-      type: form.type,
-      name: form.name.trim(),
-      status: "solicitado",
+      patientId,
+      requestDate: now,
+      type: l.type,
+      name: l.name.trim(),
+      status: "solicitado" as const,
       professional: "Dr. Usuário Atual — CRM 00000/SP",
-    });
-    setForm({ patientId: "", name: "", type: "laboratorial", notes: "" });
-    setErrors({});
+    }));
+    onSave(result);
+    setPatientId(""); setNotes(""); setLines([emptyLine()]); setErrors({});
+    onOpenChange(false);
+  };
+
+  const handleClose = () => {
+    setPatientId(""); setNotes(""); setLines([emptyLine()]); setErrors({});
     onOpenChange(false);
   };
 
@@ -139,55 +159,112 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
     `w-full h-9 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 ${errors[field] ? "border-destructive" : "border-border"}`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Solicitar Exame</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Paciente */}
           <div>
             <label className="text-xs font-medium text-muted-foreground">Paciente *</label>
-            <select value={form.patientId} onChange={(e) => set("patientId", e.target.value)} className={inp("patientId")}>
+            <select
+              value={patientId}
+              onChange={(e) => { setPatientId(e.target.value); setErrors((er) => ({ ...er, patientId: "" })); }}
+              className={inp("patientId")}
+            >
               <option value="">Selecionar paciente...</option>
               {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             {errors.patientId && <p className="text-xs text-destructive mt-1">{errors.patientId}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className="text-xs font-medium text-muted-foreground">Nome do exame *</label>
-              <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp("name")} placeholder="Ex: Hemograma Completo" />
-              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+          {/* Lista de exames */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Exames solicitados *
+                <span className="ml-1.5 text-muted-foreground/60 font-normal">
+                  ({lines.length} {lines.length === 1 ? "exame" : "exames"})
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={addLine}
+                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                Adicionar exame
+              </button>
             </div>
-            <div className="col-span-2">
-              <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-              <select value={form.type} onChange={(e) => set("type", e.target.value)} className={inp("")}>
-                <option value="laboratorial">Laboratorial</option>
-                <option value="imagem">Imagem</option>
-                <option value="funcional">Funcional</option>
-                <option value="outro">Outro</option>
-              </select>
+
+            <div className="space-y-2">
+              {lines.map((line, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  {/* Número */}
+                  <span className="text-xs text-muted-foreground mt-2.5 w-5 shrink-0 tabular-nums text-right">
+                    {i + 1}.
+                  </span>
+
+                  {/* Nome */}
+                  <div className="flex-1 min-w-0">
+                    <input
+                      value={line.name}
+                      onChange={(e) => setLine(i, "name", e.target.value)}
+                      className={inp(`name_${i}`)}
+                      placeholder="Nome do exame"
+                    />
+                    {errors[`name_${i}`] && (
+                      <p className="text-xs text-destructive mt-0.5">{errors[`name_${i}`]}</p>
+                    )}
+                  </div>
+
+                  {/* Tipo */}
+                  <select
+                    value={line.type}
+                    onChange={(e) => setLine(i, "type", e.target.value)}
+                    className="h-9 px-2 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0 w-36"
+                  >
+                    <option value="laboratorial">Laboratorial</option>
+                    <option value="imagem">Imagem</option>
+                    <option value="funcional">Funcional</option>
+                    <option value="outro">Outro</option>
+                  </select>
+
+                  {/* Remover */}
+                  <button
+                    type="button"
+                    onClick={() => removeLine(i)}
+                    disabled={lines.length === 1}
+                    className="mt-1.5 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-25 disabled:cursor-not-allowed shrink-0"
+                    title="Remover exame"
+                  >
+                    <X className="h-4 w-4" strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* Justificativa */}
           <div>
             <label className="text-xs font-medium text-muted-foreground">Justificativa / Observações</label>
             <textarea
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3 py-2 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-              rows={3}
+              rows={2}
               placeholder="Indicação clínica, urgência..."
             />
           </div>
         </div>
+
         <DialogFooter className="mt-2">
-          <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+          <button onClick={handleClose} className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
             Cancelar
           </button>
           <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Solicitar
+            Solicitar {lines.length > 1 ? `${lines.length} exames` : "exame"}
           </button>
         </DialogFooter>
       </DialogContent>
@@ -215,9 +292,13 @@ export default function Exames() {
     return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search) || e.name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const handleSave = (e: Exam) => {
-    setLocalExams((prev) => [e, ...prev]);
-    toast.success("Exame solicitado com sucesso.");
+  const handleSave = (newExams: Exam[]) => {
+    setLocalExams((prev) => [...newExams, ...prev]);
+    toast.success(
+      newExams.length === 1
+        ? "Exame solicitado com sucesso."
+        : `${newExams.length} exames solicitados com sucesso.`
+    );
   };
 
   return (

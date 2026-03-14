@@ -16,6 +16,8 @@ import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
 import Login from "./pages/Login";
 import AlterarSenha from "./pages/AlterarSenha";
+import PainelChamadaExibicao from "./pages/PainelChamadaExibicao";
+import PainelChamadaAdmin from "./pages/PainelChamadaAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +45,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/alterar-senha" element={<AlterarSenha />} />
+          <Route path="/painel" element={<PainelChamadaExibicao />} />
           
           {/* Protected Routes */}
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -53,6 +56,7 @@ const App = () => (
           <Route path="/prescricoes" element={<ProtectedRoute><Prescricoes /></ProtectedRoute>} />
           <Route path="/exames" element={<ProtectedRoute><Exames /></ProtectedRoute>} />
           <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+          <Route path="/admin/painel" element={<ProtectedRoute><PainelChamadaAdmin /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
           

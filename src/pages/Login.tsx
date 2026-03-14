@@ -182,13 +182,22 @@ export default function Login() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-[420px]"
+          className="w-full max-w-[420px] pt-10"
         >
-          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-3xl border border-white/20 dark:border-slate-800/50 shadow-2xl relative overflow-hidden group">
+          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-3xl border border-white/20 dark:border-slate-800/50 shadow-2xl relative group">
+            {/* Logo Overlapping Box */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 h-20 w-20 bg-primary rounded-xl flex items-center justify-center shadow-lg border-4 border-slate-50 dark:border-slate-900 overflow-hidden">
+              {clinicData.logo ? (
+                <img src={clinicData.logo} alt="Logo" className="max-h-full max-w-full object-contain p-2" />
+              ) : (
+                <HeartPulse className="h-10 w-10 text-white" />
+              )}
+            </div>
+
             {/* Gloss shine effect */}
             <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent group-hover:inset-x-full duration-1000 transition-all pointer-events-none" />
 
-            <div className="mb-10 text-center md:text-left">
+            <div className="mb-10 text-center md:text-left pt-6">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Acesse sua conta</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Entre com suas credenciais para gerenciar o Pulse PEP.</p>
             </div>

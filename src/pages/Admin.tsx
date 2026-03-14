@@ -234,6 +234,7 @@ export default function Admin() {
       setUserList((prev) => [u, ...prev]);
       toast.success("Usuário criado com sucesso.");
     }
+    setDialogOpen(false);
   };
 
   const openNewDialog = () => {

@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { createPortal } from "react-dom";
 
 interface PrintableDocumentProps {
   type: "prescription" | "exam";
@@ -23,6 +24,7 @@ export function PrintableDocument({
   documentId = crypto.randomUUID(),
 }: PrintableDocumentProps) {
   const clinicData = (() => {
+    // ...
     const saved = localStorage.getItem("clinicSettings");
     return saved
       ? JSON.parse(saved)
@@ -42,8 +44,8 @@ export function PrintableDocument({
     qrCodeData
   )}`;
 
-  return (
-    <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-8 printable-content">
+  return createPortal(
+    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content">
       {/* Header */}
       <div
         className="print-header flex justify-between items-start pb-4 mb-6 border-b-2"
@@ -196,6 +198,7 @@ export function PrintableDocument({
           {new Date().toLocaleTimeString("pt-BR")}
         </p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -14,9 +14,7 @@
   /* Page setup */
   @page {
     size: A4;
-    margin: 2cm;
-    margin-top: 3cm;
-    margin-bottom: 3cm;
+    margin: 1.5cm;
   }
 
   /* Body styling */

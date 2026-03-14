@@ -4,7 +4,7 @@ import { Search, Filter, UserPlus, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { patients } from "@/lib/mock-data";
 
-const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] };
+const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
 
 export default function Pacientes() {
   const navigate = useNavigate();

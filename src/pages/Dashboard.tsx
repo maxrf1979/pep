@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { patients } from "@/lib/mock-data";
 
-const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] };
+const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
 
 const kpis = [
   { label: "Pacientes Ativos", value: "247", change: "+12", icon: Users, color: "primary" },

@@ -18,7 +18,7 @@ import {
 import { useState } from "react";
 import { getPatient, getPatientTimeline, type TimelineEvent } from "@/lib/mock-data";
 
-const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
+const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
 const typeConfig: Record<string, { icon: typeof FileText; label: string; color: string; border: string }> = {
   evolucao_medica: { icon: Stethoscope, label: "Evolução Médica", color: "text-primary", border: "border-primary" },

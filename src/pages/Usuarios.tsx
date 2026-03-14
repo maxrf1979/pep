@@ -356,7 +356,7 @@ export default function Usuarios() {
                 filtered.map((u) => (
                   <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                      <button onClick={() => openEditDialog(u)} className="flex items-center gap-3 w-full text-left hover:opacity-70 transition-opacity">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                           {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                         </div>
@@ -364,7 +364,7 @@ export default function Usuarios() {
                           <span className="text-sm font-medium block">{u.name}</span>
                           <span className="text-xs text-muted-foreground">@{u.login}</span>
                         </div>
-                      </div>
+                      </button>
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       <span className="text-sm text-muted-foreground font-mono">{u.login}</span>

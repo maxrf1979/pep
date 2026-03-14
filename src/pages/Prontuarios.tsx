@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, FileText, ChevronRight, Activity, Pill, FlaskConical, Stethoscope, ClipboardPlus, Paperclip } from "lucide-react";
+import { Search, FileText, ChevronRight, Activity, Pill, FlaskConical, Stethoscope, ClipboardPlus, Paperclip, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients, timelineEvents, type TimelineEvent } from "@/lib/mock-data";
+import { patients, timelineEvents, type TimelineEvent, type VitalSign, type Prescription, type Exam } from "@/lib/mock-data";
+import { toast } from "sonner";
+
+// New Dialog Components
+import { NovoSinalDialog } from "@/components/NovoSinalDialog";
+import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
+import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
+import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
+import { RequestExamDialog } from "@/components/RequestExamDialog";
 
 const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
 
@@ -33,21 +41,31 @@ const typeColor: Record<string, string> = {
   anexo: "text-muted-foreground bg-muted",
 };
 
-function getPatientEvents(patientId: string): TimelineEvent[] {
-  return timelineEvents
-    .filter((e) => e.patientId === patientId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
 export default function Prontuarios() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("todos");
+  
+  // Dialog States
+  const [sinaisOpen, setSinaisOpen] = useState(false);
+  const [prescricaoOpen, setPrescricaoOpen] = useState(false);
+  const [evolucaoMedicaOpen, setEvolucaoMedicaOpen] = useState(false);
+  const [evolucaoEnfermagemOpen, setEvolucaoEnfermagemOpen] = useState(false);
+  const [exameOpen, setExameOpen] = useState(false);
+  const [anexoOpen, setAnexoOpen] = useState(false);
 
   // Build list of patients that have timeline events
   const patientsWithRecords = patients.map((p) => {
-    const events = getPatientEvents(p.id);
-    return { ...p, events, lastEvent: events[0] };
+    const events = timelineEvents
+      .filter((e) => e.patientId === p.id)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // Filter events by type for the summary section if a filter is active
+    const filteredEvents = typeFilter === "todos" 
+      ? events 
+      : events.filter(e => e.type === typeFilter);
+
+    return { ...p, events: filteredEvents, totalEvents: events.length, lastEvent: events[0] };
   });
 
   const filtered = patientsWithRecords.filter((p) => {
@@ -55,20 +73,53 @@ export default function Prontuarios() {
       !query ||
       p.name.toLowerCase().includes(query.toLowerCase()) ||
       p.cpf.includes(query);
-    const matchesType =
-      typeFilter === "todos" || p.events.some((e) => e.type === typeFilter);
+    
+    // In "todos", we show everyone who has at least one record.
+    // In specific tabs, we show everyone who has at least one record of THAT type.
+    const matchesType = typeFilter === "todos" 
+      ? p.totalEvents > 0 
+      : p.events.length > 0;
+
     return matchesQuery && matchesType;
   });
 
   const allTypes = ["todos", "evolucao_medica", "evolucao_enfermagem", "sinais_vitais", "prescricao", "exame", "anexo"];
 
+  const handleCreateNew = () => {
+    switch(typeFilter) {
+      case "evolucao_medica": setEvolucaoMedicaOpen(true); break;
+      case "evolucao_enfermagem": setEvolucaoEnfermagemOpen(true); break;
+      case "sinais_vitais": setSinaisOpen(true); break;
+      case "prescricao": setPrescricaoOpen(true); break;
+      case "exame": setExameOpen(true); break;
+      case "anexo": setAnexoOpen(true); break;
+      default: toast.info("Selecione uma categoria para criar um novo registro.");
+    }
+  };
+
+  const onSaveEvent = (ev: TimelineEvent) => {
+    toast.success(`${typeLabel[ev.type]} registrado com sucesso.`);
+    // In a real app, we would update the state or refetch
+  };
+
   return (
     <div className="space-y-5 max-w-7xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Prontuários</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Acesse o prontuário eletrônico de cada paciente
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Prontuários</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Acesse o prontuário eletrônico de cada paciente
+          </p>
+        </div>
+        {typeFilter !== "todos" && (
+          <button
+            onClick={handleCreateNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Novo {typeLabel[typeFilter]}
+          </button>
+        )}
       </div>
 
       {/* Search and type filter */}
@@ -130,7 +181,7 @@ export default function Prontuarios() {
                         : "bg-success/10 text-success"
                     }`}
                   >
-                    {p.status}
+                   {p.status}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
@@ -141,7 +192,7 @@ export default function Prontuarios() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="text-right hidden sm:block">
-                  <div className="text-xs text-muted-foreground">{p.events.length} registro{p.events.length !== 1 ? "s" : ""}</div>
+                  <div className="text-xs text-muted-foreground">{p.totalEvents} registro{p.totalEvents !== 1 ? "s" : ""}</div>
                   {p.lastEvent && (
                     <div className="text-[11px] text-muted-foreground tabular-nums">
                       Último: {new Date(p.lastEvent.date).toLocaleDateString("pt-BR")}
@@ -156,7 +207,7 @@ export default function Prontuarios() {
             {p.events.length > 0 && (
               <div className="border-t border-border px-4 py-3 bg-muted/20">
                 <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Últimos registros
+                  {typeFilter === "todos" ? "Últimos registros" : `Registros de ${typeLabel[typeFilter]}`}
                 </div>
                 <div className="space-y-1.5">
                   {p.events.slice(0, 3).map((ev) => {
@@ -191,9 +242,9 @@ export default function Prontuarios() {
               </div>
             )}
 
-            {p.events.length === 0 && (
+            {p.events.length === 0 && typeFilter !== "todos" && (
               <div className="border-t border-border px-4 py-3 bg-muted/20">
-                <p className="text-xs text-muted-foreground">Nenhum registro no prontuário.</p>
+                <p className="text-xs text-muted-foreground">Nenhum registro de {typeLabel[typeFilter]} para este paciente.</p>
               </div>
             )}
           </motion.div>
@@ -201,10 +252,18 @@ export default function Prontuarios() {
 
         {filtered.length === 0 && (
           <div className="py-12 text-center text-muted-foreground text-sm">
-            Nenhum prontuário encontrado.
+            Nenhum prontuário encontrado para os filtros selecionados.
           </div>
         )}
       </div>
+
+      {/* Dialogs */}
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }); }} />
+      <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} type="evolucao_medica" onSave={onSaveEvent} />
+      <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} type="evolucao_enfermagem" onSave={onSaveEvent} />
+      <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} onSave={onSaveEvent} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName="" />
     </div>
   );
 }

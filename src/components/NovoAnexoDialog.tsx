@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Paperclip } from "lucide-react";
+import { Paperclip, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { patients, type TimelineEvent } from "@/lib/mock-data";
 

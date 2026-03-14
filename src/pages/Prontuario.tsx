@@ -16,8 +16,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useState } from "react";
-import { getPatient, getPatientTimeline, type TimelineEvent } from "@/lib/mock-data";
+import { getPatient, getPatientTimeline, type TimelineEvent, type VitalSign, type Prescription } from "@/lib/mock-data";
 import { RequestExamDialog } from "@/components/RequestExamDialog";
+import { NovoSinalDialog } from "@/components/NovoSinalDialog";
+import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
+import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
+import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -89,15 +93,16 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [examDialogOpen, setExamDialogOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("todos");
 
-  const quickActionHandlers: Record<string, () => void> = {
-    "Sinais Vitais": () => navigate("/sinais-vitais"),
-    "Nova Evolução": () => toast.info("Abra o prontuário e clique em 'Adicionar Evolução'. Funcionalidade completa em breve."),
-    "Prescrever": () => navigate("/prescricoes"),
-    "Solicitar Exame": () => setExamDialogOpen(true),
-    "Anexar Arquivo": () => toast.info("Funcionalidade de anexo de arquivos em breve."),
-  };
+  // Dialog States
+  const [sinaisOpen, setSinaisOpen] = useState(false);
+  const [prescricaoOpen, setPrescricaoOpen] = useState(false);
+  const [evolucaoMedicaOpen, setEvolucaoMedicaOpen] = useState(false);
+  const [evolucaoEnfermagemOpen, setEvolucaoEnfermagemOpen] = useState(false);
+  const [exameOpen, setExameOpen] = useState(false);
+  const [anexoOpen, setAnexoOpen] = useState(false);
+
   const patient = getPatient(id || "");
   const timeline = getPatientTimeline(id || "");
 
@@ -109,13 +114,31 @@ export default function Prontuario() {
     );
   }
 
+  const onSaveEvent = (ev: TimelineEvent) => {
+    toast.success(`${typeConfig[ev.type]?.label || 'Registro'} adicionado com sucesso.`);
+  };
+
+  const filteredTimeline = typeFilter === "todos" 
+    ? timeline 
+    : timeline.filter(ev => ev.type === typeFilter);
+
   // Group by date
-  const grouped = timeline.reduce<Record<string, TimelineEvent[]>>((acc, ev) => {
+  const grouped = filteredTimeline.reduce<Record<string, TimelineEvent[]>>((acc, ev) => {
     const day = new Date(ev.date).toLocaleDateString("pt-BR");
     if (!acc[day]) acc[day] = [];
     acc[day].push(ev);
     return acc;
   }, {});
+
+  const tabs = [
+    { id: "todos", label: "Todos", icon: FileText },
+    { id: "evolucao_medica", label: "Evolução Médica", icon: Stethoscope },
+    { id: "evolucao_enfermagem", label: "Evolução Enfermagem", icon: ClipboardPlus },
+    { id: "sinais_vitais", label: "Sinais Vitais", icon: Activity },
+    { id: "prescricao", label: "Prescrição", icon: Pill },
+    { id: "exame", label: "Exame", icon: FlaskConical },
+    { id: "anexo", label: "Anexo", icon: Paperclip },
+  ];
 
   return (
     <div className="max-w-5xl space-y-0">
@@ -179,28 +202,56 @@ export default function Prontuario() {
         </div>
       </motion.div>
 
+      {/* Tabs Filter */}
+      <div className="flex items-center gap-1 bg-card border border-border rounded-md p-1 mb-6 overflow-x-auto scrollbar-none">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setTypeFilter(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                typeFilter === tab.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex gap-6">
         {/* Timeline */}
         <div className="flex-1 space-y-6">
-          {Object.entries(grouped).map(([date, events]) => (
-            <div key={date}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {date}
-                </div>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-              <div className="space-y-3 relative">
-                <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
-                {events.map((ev, i) => (
-                  <div key={ev.id} className="relative pl-10">
-                    <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
-                    <TimelineCard event={ev} index={i} />
-                  </div>
-                ))}
-              </div>
+          {Object.entries(grouped).length === 0 ? (
+            <div className="py-20 text-center text-muted-foreground">
+              <FileText className="h-10 w-10 mx-auto opacity-20 mb-3" />
+              <p className="text-sm">Nenhum registro encontrado para este filtro.</p>
             </div>
-          ))}
+          ) : (
+            Object.entries(grouped).map(([date, events]) => (
+              <div key={date}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {date}
+                  </div>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-3 relative">
+                  <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
+                  {events.map((ev, i) => (
+                    <div key={ev.id} className="relative pl-10">
+                      <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
+                      <TimelineCard event={ev} index={i} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Quick Actions Sidebar */}
@@ -210,15 +261,16 @@ export default function Prontuario() {
               Ações Rápidas
             </h3>
             {[
-              { label: "Sinais Vitais", icon: Activity },
-              { label: "Nova Evolução", icon: FilePlus },
-              { label: "Prescrever", icon: Pill },
-              { label: "Solicitar Exame", icon: FlaskConical },
-              { label: "Anexar Arquivo", icon: Paperclip },
+              { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true) },
+              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true) },
+              { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true) },
+              { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true) },
+              { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true) },
+              { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true) },
             ].map((action) => (
               <button
                 key={action.label}
-                onClick={quickActionHandlers[action.label]}
+                onClick={action.onClick}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left"
               >
                 <action.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
@@ -229,11 +281,13 @@ export default function Prontuario() {
         </div>
       </div>
 
-      <RequestExamDialog
-        open={examDialogOpen}
-        onOpenChange={setExamDialogOpen}
-        patientName={patient.name}
-      />
+      {/* Dialogs */}
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }); }} />
+      <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} initialPatientId={id} type="evolucao_medica" onSave={onSaveEvent} />
+      <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
+      <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} />
     </div>
   );
 }

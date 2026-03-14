@@ -189,7 +189,15 @@ export default function Admin() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<SystemUser | undefined>();
-  const [userList, setUserList] = useState<SystemUser[]>(initialUsers);
+  const [userList, setUserList] = useState<SystemUser[]>(() => {
+    const saved = localStorage.getItem("systemUsers");
+    return saved ? JSON.parse(saved) : initialUsers;
+  });
+
+  // Salvar usuários no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("systemUsers", JSON.stringify(userList));
+  }, [userList]);
 
   const filtered = userList.filter((u) => {
     if (roleFilter !== "all" && !u.roles.includes(roleFilter as any)) return false;

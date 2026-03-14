@@ -1,0 +1,392 @@
+/* Estilos de Impressão para Prontuário Médico */
+/* ============================================= */
+
+@media print {
+  /* Reset e configurações globais */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    background: white;
+    color: #000;
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.4;
+    font-size: 10pt;
+  }
+
+  /* Configuração de página */
+  @page {
+    size: A4;
+    margin: 1.5cm 2cm;
+
+    @top-center {
+      content: "Prontuário Médico do Paciente";
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-size: 9pt;
+    }
+  }
+
+  @page :first {
+    @top-center {
+      content: "";
+    }
+  }
+
+  /* Ocultando elementos da UI */
+  .no-print,
+  [aria-label="Ações Rápidas"],
+  button,
+  .tabs-filter,
+  .quick-actions,
+  nav,
+  aside,
+  .back-button,
+  .sidebar,
+  .navigation {
+    display: none !important;
+  }
+
+  /* Páginas */
+  .page {
+    page-break-after: always;
+    page-break-inside: avoid;
+    padding: 2cm;
+    min-height: 27.7cm;
+    position: relative;
+    background: white;
+    break-inside: avoid;
+  }
+
+  .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* Cabeçalho do documento */
+  .document-header {
+    border-bottom: 3px solid #000;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    page-break-inside: avoid;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    font-size: 9pt;
+  }
+
+  .header-left {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex: 1;
+  }
+
+  .logo-placeholder {
+    width: 40px;
+    height: 40px;
+    background: #f0f0f0;
+    border: 1px solid #999;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .clinic-info h1 {
+    font-size: 12pt;
+    font-weight: 700;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  .clinic-info p {
+    font-size: 8pt;
+    color: #333;
+    margin: 1px 0;
+  }
+
+  .header-right {
+    text-align: right;
+    font-size: 8pt;
+    color: #333;
+    line-height: 1.6;
+    flex-shrink: 0;
+    margin-left: 1rem;
+  }
+
+  /* Título do documento */
+  .document-title {
+    text-align: center;
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 1.5rem 0;
+    page-break-inside: avoid;
+  }
+
+  /* Seções */
+  .section {
+    margin-bottom: 1.5rem;
+    page-break-inside: avoid;
+  }
+
+  .section-title {
+    font-size: 11pt;
+    font-weight: 700;
+    background: #e8e8e8;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.8rem;
+    border-left: 4px solid #000;
+    page-break-inside: avoid;
+    letter-spacing: 0.5px;
+  }
+
+  /* Grade de informações */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem 1rem;
+    background: #fafafa;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+    page-break-inside: avoid;
+  }
+
+  .info-grid.two-column {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .info-item {
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+
+  .info-label {
+    color: #555;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 8pt;
+  }
+
+  .info-value {
+    color: #000;
+    font-weight: 500;
+    font-size: 9pt;
+  }
+
+  .info-value.font-mono {
+    font-family: 'Courier New', 'Monaco', monospace;
+  }
+
+  /* Caixa de alerta */
+  .alert-box {
+    background: #ffe6e6;
+    border: 1.5px solid #cc0000;
+    border-radius: 2px;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #990000;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+
+  /* Tabelas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+
+  table thead {
+    background: #d3d3d3;
+    page-break-inside: avoid;
+  }
+
+  table th {
+    padding: 0.4rem;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #000;
+    color: #000;
+    font-size: 8pt;
+  }
+
+  table td {
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 9pt;
+  }
+
+  table tr:last-child td {
+    border-bottom: 1px solid #000;
+  }
+
+  table tr {
+    page-break-inside: avoid;
+  }
+
+  table th.text-center,
+  table td.text-center {
+    text-align: center;
+  }
+
+  table th.text-right,
+  table td.text-right {
+    text-align: right;
+  }
+
+  table td.font-mono {
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Blocos de evolução */
+  .evolution-block {
+    border-left: 3px solid #ccc;
+    padding-left: 0.8rem;
+    margin-bottom: 1rem;
+    page-break-inside: avoid;
+  }
+
+  .evolution-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 9pt;
+    margin-bottom: 0.4rem;
+    color: #000;
+  }
+
+  .evolution-type {
+    color: #0066cc;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+
+  .evolution-date {
+    font-family: 'Courier New', monospace;
+    color: #666;
+    font-size: 8pt;
+  }
+
+  .evolution-text {
+    font-size: 9pt;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 0.4rem;
+    color: #000;
+  }
+
+  .evolution-professional {
+    font-size: 8pt;
+    color: #777;
+    font-style: italic;
+  }
+
+  /* Rodapé */
+  .document-footer {
+    border-top: 1px solid #ccc;
+    padding-top: 0.8rem;
+    margin-top: 2rem;
+    font-size: 8pt;
+    color: #666;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+
+  .document-footer p {
+    margin: 0.4rem 0;
+    font-size: 8pt;
+  }
+
+  .footer-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8pt;
+    color: #666;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ddd;
+  }
+
+  /* Estado vazio */
+  .empty-state {
+    text-align: center;
+    color: #999;
+    padding: 1rem;
+    font-size: 9pt;
+    font-style: italic;
+  }
+
+  /* Utilitários */
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+  .mb-1 { margin-bottom: 0.5rem; }
+  .mb-2 { margin-bottom: 1rem; }
+
+  /* Garantir que links não fiquem coloridos em impressão */
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  /* Ajustar imagens */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Cores mais adequadas para impressão P&B */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  pre {
+    page-break-inside: avoid;
+    background: #f5f5f5;
+    padding: 0.4rem;
+    border: 1px solid #ddd;
+  }
+
+  /* Compatibilidade com diferentes navegadores */
+  @supports (break-inside: avoid) {
+    .section,
+    table,
+    .page,
+    .evolution-block {
+      break-inside: avoid;
+    }
+  }
+}
+
+/* Estilos para visualização em tela (opcional) */
+@media screen {
+  .printable-content {
+    display: none;
+  }
+}

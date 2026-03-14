@@ -6,6 +6,20 @@ interface ProfessionalProntuarioProps {
 }
 
 export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProps) {
+  // Obter usuário logado (para assinatura/responsável)
+  const getLoggedUser = (): string => {
+    const saved = localStorage.getItem("pulse-auth-session");
+    if (saved) {
+      try {
+        const session = JSON.parse(saved);
+        return session.username || "Usuário do Sistema";
+      } catch {
+        return "Usuário do Sistema";
+      }
+    }
+    return "Usuário do Sistema";
+  };
+
   // Carregamento de dados da clínica
   const clinicData = (() => {
     const saved = localStorage.getItem("clinicSettings");
@@ -452,9 +466,12 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
               <span className="info-label">Email</span>
               <span className="info-value">{patient.email ? formatValue(patient.email) : "Não informado"}</span>
             </div>
+          </div>
+
+          <div className="info-grid" style={{ gridTemplateColumns: "1fr" }}>
             <div className="info-item">
               <span className="info-label">Endereço Completo</span>
-              <span className="info-value">Não informado</span>
+              <span className="info-value">Não informado no sistema</span>
             </div>
           </div>
 
@@ -701,22 +718,66 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÁGINA FINAL - RODAPÉ */}
+      {/* PÁGINA FINAL - ASSINATURA E RODAPÉ */}
       <div className="page">
-        <div className="document-footer">
+        <div className="document-header">
+          <div className="header-top">
+            <div>
+              <strong>{clinicData.name}</strong><br />
+              <span style={{ fontSize: "9px", color: "#666" }}>Prontuário: {patient.name}</span>
+            </div>
+            <div style={{ textAlign: "right", fontSize: "9px", color: "#666" }}>
+              Página Final<br />
+              {printDate}
+            </div>
+          </div>
+        </div>
+
+        <div className="section" style={{ marginTop: "2rem" }}>
+          <div className="section-title">7. RESPONSÁVEIS E ASSINATURAS</div>
+
+          <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ height: "60px", borderBottom: "1px solid #000", marginBottom: "0.5rem" }}></div>
+              <p style={{ fontSize: "10px", fontWeight: 600 }}>Médico Responsável</p>
+              <p style={{ fontSize: "9px", color: "#666" }}>Registro Profissional</p>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <div style={{ height: "60px", borderBottom: "1px solid #000", marginBottom: "0.5rem" }}></div>
+              <p style={{ fontSize: "10px", fontWeight: 600 }}>Responsável Administrativo</p>
+              <p style={{ fontSize: "9px", color: "#666" }}>Carimbo/Assinatura</p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "2rem", padding: "1rem", backgroundColor: "#f5f5f5", border: "1px solid #ddd", borderRadius: "3px" }}>
+            <p style={{ fontSize: "9px", color: "#666", marginBottom: "0.5rem" }}>
+              <strong>Data de Emissão:</strong> {printDate} às {printTime}
+            </p>
+            <p style={{ fontSize: "9px", color: "#666", marginBottom: "0.5rem" }}>
+              <strong>Gerado por:</strong> {getLoggedUser()}
+            </p>
+            <p style={{ fontSize: "8px", color: "#999", marginTop: "1rem", fontStyle: "italic" }}>
+              Este documento é um registro oficial do atendimento médico realizado na {clinicData.name}.<br />
+              Deve ser arquivado de forma segura, conforme legislação vigente (Lei 12.842/2013 e Resolução CFM 1.638/2002).<br />
+              A cópia em meio eletrônico tem validade legal quando assinada digitalmente ou impressa e assinada.
+            </p>
+          </div>
+        </div>
+
+        <div className="document-footer" style={{ marginTop: "3rem" }}>
           <p style={{ marginBottom: "1rem" }}>
             <strong>FIM DO PRONTUÁRIO</strong>
           </p>
-          <p>Este documento é um registro oficial do atendimento médico e deve ser arquivado de forma segura.</p>
-          <p style={{ marginTop: "1rem", color: "#ccc" }}>
-            Gerado por: Pulse PEP - Sistema de Gerenciamento Eletrônico de Prontuário<br />
-            Data/Hora de Impressão: {printDate} às {printTime}
-          </p>
-          <div className="footer-info">
+          <div className="footer-info" style={{ marginTop: "1rem" }}>
             <span>Paciente: {patient.name}</span>
             <span>Prontuário: {patient.id}</span>
             <span>Clínica: {clinicData.name}</span>
           </div>
+          <p style={{ marginTop: "1rem", fontSize: "8px", color: "#999" }}>
+            Gerado por: Pulse PEP - Sistema de Gerenciamento Eletrônico de Prontuário<br />
+            Data/Hora de Impressão: {printDate} às {printTime}
+          </p>
         </div>
       </div>
     </div>,

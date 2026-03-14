@@ -18,11 +18,18 @@ export default function Pacientes() {
     return saved ? JSON.parse(saved) : initialPatients;
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [callDialogOpen, setCallDialogOpen] = useState(false);
+  const [selectedPatientForCall, setSelectedPatientForCall] = useState<{ id: string; name: string } | null>(null);
 
   // Salvar pacientes no localStorage sempre que a lista mudar
   useEffect(() => {
     localStorage.setItem("patients", JSON.stringify(patientList));
   }, [patientList]);
+
+  const handleTriggerCall = (p: Patient) => {
+    setSelectedPatientForCall({ id: p.id, name: p.name });
+    setCallDialogOpen(true);
+  };
 
   const handleNewPatient = (p: Patient) => {
     setPatientList((prev) => [p, ...prev]);
@@ -160,8 +167,16 @@ export default function Pacientes() {
                     {p.status}
                   </span>
                 </td>
-                <td className="py-2.5 px-2">
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <td className="py-2.5 px-2 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    onClick={() => handleTriggerCall(p)}
+                    className="p-1 px-2 text-xs font-semibold bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors flex items-center gap-1"
+                    title="Chamar no Painel"
+                  >
+                    <Bell className="h-3.5 w-3.5" />
+                    Chamar
+                  </button>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
                 </td>
               </motion.tr>
             ))}
@@ -174,6 +189,12 @@ export default function Pacientes() {
         )}
       </motion.div>
       <NovoPacienteDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleNewPatient} />
+      <ChamarPacienteDialog 
+        open={callDialogOpen} 
+        onOpenChange={setCallDialogOpen} 
+        patientName={selectedPatientForCall?.name || ""} 
+        patientId={selectedPatientForCall?.id || ""} 
+      />
     </div>
   );
 }

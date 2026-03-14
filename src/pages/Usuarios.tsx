@@ -34,12 +34,28 @@ const initialUsers: SystemUser[] = [
   { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", login: "beatriz", roles: ["recepcao"], status: "inativo" },
 ];
 
-function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void;
+function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void; editingUser?: SystemUser;
 }) {
-  const [form, setForm] = useState({
-    name: "", email: "", login: "", password: "", crm: "", coren: "",
-    roles: { medico: false, enfermeiro: false, admin: false, recepcao: false }
+  const isEditing = !!editingUser;
+  const [form, setForm] = useState(() => {
+    if (editingUser) {
+      return {
+        name: editingUser.name,
+        email: editingUser.email,
+        login: editingUser.login,
+        password: "",
+        crm: editingUser.crm || "",
+        coren: editingUser.coren || "",
+        roles: {
+          medico: editingUser.roles.includes("medico"),
+          enfermeiro: editingUser.roles.includes("enfermeiro"),
+          admin: editingUser.roles.includes("admin"),
+          recepcao: editingUser.roles.includes("recepcao"),
+        }
+      };
+    }
+    return { name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -59,8 +75,8 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     if (!form.name.trim()) e.name = "Nome obrigatório";
     if (!form.email.trim() || !form.email.includes("@")) e.email = "E-mail inválido";
     if (!form.login.trim()) e.login = "Login obrigatório";
-    if (!form.password.trim()) e.password = "Senha obrigatória";
-    if (form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
+    if (!isEditing && !form.password.trim()) e.password = "Senha obrigatória";
+    if (form.password && form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
     if (!Object.values(form.roles).some(v => v)) e.roles = "Selecione pelo menos um papel";
     if (form.roles.medico && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
     if (form.roles.enfermeiro && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
@@ -75,14 +91,14 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
       .map(([k]) => k as "medico" | "enfermeiro" | "admin" | "recepcao");
 
     onSave({
-      id: crypto.randomUUID(),
+      id: editingUser ? editingUser.id : crypto.randomUUID(),
       name: form.name.trim(),
       email: form.email.trim(),
       login: form.login.trim(),
       roles: selectedRoles,
       crm: form.roles.medico ? form.crm : undefined,
       coren: form.roles.enfermeiro ? form.coren : undefined,
-      status: "ativo",
+      status: editingUser ? editingUser.status : "ativo",
     });
     setForm({ name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
     setErrors({});
@@ -96,7 +112,7 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Criar Novo Usuário</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Usuário" : "Criar Novo Usuário"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -116,8 +132,10 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
               {errors.login && <p className="text-xs text-destructive mt-1">{errors.login}</p>}
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Senha *</label>
-              <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder="••••••" />
+              <label className="text-xs font-medium text-muted-foreground">
+                Senha {isEditing ? "(deixe vazio para não alterar)" : "*"}
+              </label>
+              <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder={isEditing ? "Opcional" : "••••••"} />
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
             </div>
           </div>
@@ -177,6 +195,7 @@ export default function Usuarios() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<SystemUser | undefined>();
   const [userList, setUserList] = useState<SystemUser[]>(initialUsers);
 
   const filtered = userList.filter((u) => {
@@ -198,13 +217,30 @@ export default function Usuarios() {
   };
 
   const handleSave = (u: SystemUser) => {
-    setUserList((prev) => [u, ...prev]);
-    toast.success("Usuário criado com sucesso.");
+    if (editingUser) {
+      setUserList((prev) => prev.map((user) => user.id === u.id ? u : user));
+      toast.success("Usuário atualizado com sucesso.");
+      setEditingUser(undefined);
+    } else {
+      setUserList((prev) => [u, ...prev]);
+      toast.success("Usuário criado com sucesso.");
+    }
+    setDialogOpen(false);
+  };
+
+  const openNewDialog = () => {
+    setEditingUser(undefined);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (user: SystemUser) => {
+    setEditingUser(user);
+    setDialogOpen(true);
   };
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <NovoUsuarioDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} />
+      <UsuarioDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} editingUser={editingUser} />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -215,7 +251,7 @@ export default function Usuarios() {
           <p className="text-sm text-muted-foreground mt-1">Crie, edite e gerencie usuários do sistema com login, senha e papéis</p>
         </div>
         <button
-          onClick={() => setDialogOpen(true)}
+          onClick={openNewDialog}
           className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
@@ -356,14 +392,16 @@ export default function Usuarios() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => toast.info("Edição de usuário disponível em breve.")}
+                          onClick={() => openEditDialog(u)}
                           className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                          title="Editar usuário"
                         >
                           <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => removeUser(u.id)}
                           className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Remover usuário"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Users, Plus, Search, X, Edit2, Trash2, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
+import { Shield, Users, Plus, Search, X, Trash2, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -428,13 +428,6 @@ export default function Admin() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => openEditDialog(u)}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                          title="Editar usuário"
-                        >
-                          <Edit2 className="h-4 w-4" strokeWidth={1.5} />
-                        </button>
                         <button
                           onClick={() => toggleStatus(u.id, u.status)}
                           className={`p-1.5 rounded-md transition-colors ${

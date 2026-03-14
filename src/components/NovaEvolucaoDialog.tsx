@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertCircle } from "lucide-react";
 import { patients, type TimelineEvent } from "@/lib/mock-data";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface NovaEvolucaoDialogProps {
   open: boolean;
@@ -11,11 +15,44 @@ interface NovaEvolucaoDialogProps {
 }
 
 export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPatientId }: NovaEvolucaoDialogProps) {
+  const { user } = useAuth();
+  const { can, isEnfermeiro, isMedico, isAdmin } = usePermissions();
   const [patientId, setPatientId] = useState(initialPatientId || "");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [details, setDetails] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
+
+  // Validar permissões ao abrir o dialog
+  useEffect(() => {
+    if (!open) {
+      setIsUnauthorized(false);
+      return;
+    }
+
+    // Verificar se o usuário tem permissão para criar este tipo de evolução
+    if (type === "evolucao_medica") {
+      if (!can("evolucao_medica.criar")) {
+        setIsUnauthorized(true);
+        toast.error("Acesso não autorizado para este perfil de usuário.");
+        // Fechar o dialog automaticamente após 2 segundos
+        const timeout = setTimeout(() => {
+          onOpenChange(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    } else if (type === "evolucao_enfermagem") {
+      if (!can("evolucao_enfermagem.criar")) {
+        setIsUnauthorized(true);
+        toast.error("Acesso não autorizado para este perfil de usuário.");
+        const timeout = setTimeout(() => {
+          onOpenChange(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [open, type, can, onOpenChange]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -27,8 +64,28 @@ export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPa
   };
 
   const handleSave = () => {
+    // Verificar permissão novamente (defesa em profundidade)
+    if (type === "evolucao_medica" && !can("evolucao_medica.criar")) {
+      toast.error("Acesso não autorizado. Você não pode criar evolução médica.");
+      return;
+    }
+
+    if (type === "evolucao_enfermagem" && !can("evolucao_enfermagem.criar")) {
+      toast.error("Acesso não autorizado. Você não pode criar evolução de enfermagem.");
+      return;
+    }
+
     if (!validate()) return;
-    
+
+    // Montar o nome do profissional com informações reais da sessão
+    let professionalName = "Usuário Desconhecido";
+    if (user) {
+      const profession = type === "evolucao_medica"
+        ? `Dr(a). ${user.name}${user.crm ? ` — CRM ${user.crm}` : ""}`
+        : `Enf. ${user.name}${user.coren ? ` — COREN ${user.coren}` : ""}`;
+      professionalName = profession;
+    }
+
     onSave({
       id: crypto.randomUUID(),
       patientId,
@@ -37,11 +94,9 @@ export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPa
       title: title.trim(),
       summary: summary.trim(),
       details: details.trim() || undefined,
-      professional: type === "evolucao_medica" 
-        ? "Dr. Usuário Atual — CRM 00000/SP" 
-        : "Enf. Usuário Atual — COREN 00000/SP",
+      professional: professionalName,
     });
-    
+
     setPatientId(initialPatientId || "");
     setTitle("");
     setSummary("");
@@ -55,6 +110,39 @@ export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPa
 
   const selectedPatient = patients.find(p => p.id === patientId);
   const label = type === "evolucao_medica" ? "Evolução Médica" : "Evolução de Enfermagem";
+
+  if (isUnauthorized) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Acesso Não Autorizado</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-destructive">
+                Você não tem permissão para esta ação
+              </h3>
+              <p className="text-sm text-destructive/80 mt-2">
+                {type === "evolucao_medica"
+                  ? "Apenas MÉDICOS podem criar evolução médica. Enfermeiros podem criar evolução de enfermagem."
+                  : "Apenas ENFERMEIROS podem criar evolução de enfermagem."}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

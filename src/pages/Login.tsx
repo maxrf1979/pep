@@ -48,11 +48,19 @@ export default function Login() {
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
     // Suporte para administrador master 
-    if (email === "admin@admin.com" && password === "admin123") {
+    const mockUsers = [
+      { email: "admin@admin.com", password: "admin123", name: "Dr. Administrador", role: "admin" },
+      { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos Médico", role: "medico" },
+      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana Cláudia", role: "enfermeiro" }
+    ];
+
+    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
+
+    if (mockUser) {
       const userData = {
-        name: "Dr. Administrador",
-        role: "Administrador",
-        email: email,
+        name: mockUser.name,
+        role: mockUser.role,
+        email: mockUser.email,
         lastLogin: new Date().toISOString()
       };
       localStorage.setItem("pulse-auth-session", JSON.stringify(userData));

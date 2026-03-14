@@ -14,9 +14,12 @@ import {
   Paperclip,
   ChevronDown,
   ChevronUp,
+  Lock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getPatient, timelineEvents, type TimelineEvent, type VitalSign, type Prescription } from "@/lib/mock-data";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 import { RequestExamDialog } from "@/components/RequestExamDialog";
 import { NovoSinalDialog } from "@/components/NovoSinalDialog";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
@@ -130,6 +133,8 @@ function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: 
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isEnfermeiro, canFilterMedicalEvolution, canFilterNursingEvolution, isAdmin, isMedico, canCreateNursingEvolution } = usePermissions();
+  const { user } = useAuth();
   const [typeFilter, setTypeFilter] = useState("todos");
 
   // Dialog States
@@ -214,15 +219,24 @@ export default function Prontuario() {
     return acc;
   }, {});
 
-  const tabs = [
+  // Tabs disponíveis baseado em permissões
+  const allTabs = [
     { id: "todos", label: "Todos", icon: FileText },
-    { id: "evolucao_medica", label: "Evolução Médica", icon: Stethoscope },
-    { id: "evolucao_enfermagem", label: "Evolução Enfermagem", icon: ClipboardPlus },
+    { id: "evolucao_medica", label: "Evolução Médica", icon: Stethoscope, restricted: !canFilterMedicalEvolution },
+    { id: "evolucao_enfermagem", label: "Evolução Enfermagem", icon: ClipboardPlus, restricted: !canFilterNursingEvolution },
     { id: "sinais_vitais", label: "Sinais Vitais", icon: Activity },
     { id: "prescricao", label: "Prescrição", icon: Pill },
     { id: "exame", label: "Exame", icon: FlaskConical },
     { id: "anexo", label: "Anexo", icon: Paperclip },
   ];
+
+  // Filtrar abas: se enfermeiro e não pode filtrar evolução médica, remover aba
+  const tabs = allTabs.filter(tab => {
+    if (tab.id === "evolucao_medica" && !canFilterMedicalEvolution) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className={`max-w-5xl space-y-0 ${currentPrintingEvent ? "print:hidden" : ""}`}>
@@ -349,6 +363,7 @@ export default function Prontuario() {
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
+              title={tab.restricted ? `Restrito para ${user?.role}` : ""}
             >
               <Icon className="h-3.5 w-3.5" strokeWidth={2} />
               {tab.label}
@@ -395,13 +410,13 @@ export default function Prontuario() {
               Ações Rápidas
             </h3>
             {[
-              { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true) },
-              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true) },
-              { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true) },
-              { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true) },
-              { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true) },
-              { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true) },
-            ].map((action) => (
+              { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true), visible: true },
+              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true), visible: true },
+              { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
+              { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: true },
+              { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: true },
+              { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
+            ].filter(action => action.visible).map((action) => (
               <button
                 key={action.label}
                 onClick={action.onClick}

@@ -53,8 +53,18 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const sessionString = localStorage.getItem("pulse-auth-session");
+  const userRole = sessionString ? JSON.parse(sessionString).role : "Administrador";
+
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const filteredAdminNav = adminNav.filter(item => {
+    if (userRole === "medico" && ["Administração", "Configurações"].includes(item.title)) {
+      return false;
+    }
+    return true;
+  });
 
   const renderGroup = (
     label: string,
@@ -105,7 +115,7 @@ export function AppSidebar() {
       <SidebarContent className="py-2">
         {renderGroup("Principal", mainNav)}
         {renderGroup("Clínico", clinicalNav)}
-        {renderGroup("Sistema", adminNav)}
+        {renderGroup("Sistema", filteredAdminNav)}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
         {!collapsed && (

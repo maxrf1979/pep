@@ -23,7 +23,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 // Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) => {
   const sessionString = localStorage.getItem("pulse-auth-session");
   if (!sessionString) {
     return <Navigate to="/login" replace />;
@@ -32,6 +32,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (session.mustChangePassword) {
     return <Navigate to="/alterar-senha" replace />;
   }
+
+  if (allowedRoles && !allowedRoles.includes(session.role)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+        <div className="text-center space-y-3 bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-card max-w-md">
+          <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          </div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Acesso Não Autorizado</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Este perfil de usuário ({session.role}) não possui permissão para acessar esta página.</p>
+          <div className="pt-2">
+            <a href="/" className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              Voltar ao Início
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return <AppLayout>{children}</AppLayout>;
 };
 
@@ -56,9 +76,9 @@ const App = () => (
           <Route path="/prescricoes" element={<ProtectedRoute><Prescricoes /></ProtectedRoute>} />
           <Route path="/exames" element={<ProtectedRoute><Exames /></ProtectedRoute>} />
           <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
-          <Route path="/admin/painel" element={<ProtectedRoute><PainelChamadaAdmin /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-          <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+          <Route path="/admin/painel" element={<ProtectedRoute allowedRoles={['Administrador']}><PainelChamadaAdmin /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['Administrador']}><Admin /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute allowedRoles={['Administrador']}><Configuracoes /></ProtectedRoute>} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>

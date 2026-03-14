@@ -41,7 +41,7 @@ export function usePermissions() {
    * Verifica se o usuário é um enfermeiro
    */
   const isEnfermeiro = (): boolean => {
-    return user?.role === "enfermeiro";
+    return user?.role === "enfermeiro" || user?.role === "tecnico_enfermagem";
   };
 
   /**

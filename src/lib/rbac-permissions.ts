@@ -152,6 +152,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Set<string>> = {
       .filter(([_, perm]) => perm.roles.includes("enfermeiro"))
       .map(([key]) => key)
   ),
+  tecnico_enfermagem: new Set(
+    Object.entries(PERMISSIONS)
+      .filter(([_, perm]) => perm.roles.includes("enfermeiro"))
+      .map(([key]) => key)
+  ),
   admin: new Set(
     Object.entries(PERMISSIONS)
       .filter(([_, perm]) => perm.roles.includes("admin"))
@@ -236,6 +241,25 @@ export const ROLE_CONFIG: Record<
     label: "Enfermeiro(a)",
     description:
       "Pode criar evoluções de enfermagem, registrar sinais vitais (sem acesso a evolução médica)",
+    icon: "🩺",
+    color: "text-success",
+    permissions: [
+      "evolucao_enfermagem.criar",
+      "evolucao_enfermagem.editar",
+      "evolucao_enfermagem.visualizar",
+      "evolucao_enfermagem.filtrar",
+      "sinais_vitais.criar",
+      "sinais_vitais.editar",
+      "sinais_vitais.visualizar",
+      "exame.visualizar",
+      "evolucao_medica.visualizar",
+      "prescricao.visualizar",
+    ],
+  },
+  tecnico_enfermagem: {
+    label: "Técnico(a) de Enfermagem",
+    description:
+      "Pode criar evoluções de enfermagem, registrar sinais vitais (mesmas funções do enfermeiro)",
     icon: "🩺",
     color: "text-success",
     permissions: [

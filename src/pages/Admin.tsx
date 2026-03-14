@@ -11,7 +11,7 @@ interface SystemUser {
   name: string;
   email: string;
   login: string;
-  roles: ("medico" | "enfermeiro" | "admin" | "recepcao")[];
+  roles: ("medico" | "enfermeiro" | "admin" | "recepcao" | "tecnico_enfermagem")[];
   crm?: string;
   coren?: string;
   status: "ativo" | "inativo";
@@ -22,6 +22,7 @@ interface SystemUser {
 const roleConfig = {
   medico: { label: "Médico(a)", cls: "bg-primary/10 text-primary", icon: "🏥" },
   enfermeiro: { label: "Enfermeiro(a)", cls: "bg-success/10 text-success", icon: "🩺" },
+  tecnico_enfermagem: { label: "Técnico Enfermagem", cls: "bg-teal-500/10 text-teal-600", icon: "🩺" },
   admin: { label: "Administrador", cls: "bg-destructive/10 text-destructive", icon: "⚙️" },
   recepcao: { label: "Recepção", cls: "bg-warning/10 text-warning", icon: "📞" },
 };
@@ -46,12 +47,13 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         roles: {
           medico: editingUser.roles.includes("medico"),
           enfermeiro: editingUser.roles.includes("enfermeiro"),
+          tecnico_enfermagem: editingUser.roles.includes("tecnico_enfermagem"),
           admin: editingUser.roles.includes("admin"),
           recepcao: editingUser.roles.includes("recepcao"),
         }
       };
     }
-    return { name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } };
+    return { name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -68,12 +70,13 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         roles: {
           medico: editingUser.roles.includes("medico"),
           enfermeiro: editingUser.roles.includes("enfermeiro"),
+          tecnico_enfermagem: editingUser.roles.includes("tecnico_enfermagem"),
           admin: editingUser.roles.includes("admin"),
           recepcao: editingUser.roles.includes("recepcao"),
         }
       });
     } else {
-      setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
+      setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
     }
     setErrors({});
   }, [editingUser]);
@@ -98,7 +101,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     if (form.password && form.password !== form.confirmPassword) e.confirmPassword = "As senhas não conferem";
     if (!Object.values(form.roles).some(v => v)) e.roles = "Selecione pelo menos um papel";
     if (form.roles.medico && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
-    if (form.roles.enfermeiro && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
+    if ((form.roles.enfermeiro || form.roles.tecnico_enfermagem) && !form.coren.trim()) e.coren = "COREN obrigatório";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -107,7 +110,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     if (!validate()) return;
     const selectedRoles = Object.entries(form.roles)
       .filter(([_, v]) => v)
-      .map(([k]) => k as "medico" | "enfermeiro" | "admin" | "recepcao");
+      .map(([k]) => k as "medico" | "enfermeiro" | "tecnico_enfermagem" | "admin" | "recepcao");
 
     onSave({
       id: editingUser ? editingUser.id : crypto.randomUUID(),
@@ -121,7 +124,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
       password: form.password || (editingUser ? editingUser.password : "admin123"),
       mustChangePassword: editingUser ? editingUser.mustChangePassword : true,
     });
-    setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
+    setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
     setErrors({});
     onOpenChange(false);
   };
@@ -204,6 +207,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
               {[
                 { key: "medico" as const, label: "Médico(a)", icon: "🏥" },
                 { key: "enfermeiro" as const, label: "Enfermeiro(a)", icon: "🩺" },
+                { key: "tecnico_enfermagem" as const, label: "Técnico(a) de Enfermagem", icon: "🩺" },
                 { key: "admin" as const, label: "Administrador", icon: "⚙️" },
                 { key: "recepcao" as const, label: "Recepção", icon: "📞" },
               ].map(role => (
@@ -374,6 +378,7 @@ export default function Admin() {
             { key: "all", label: "Todos" },
             { key: "medico", label: "Médicos" },
             { key: "enfermeiro", label: "Enfermeiros" },
+            { key: "tecnico_enfermagem", label: "Técnicos" },
             { key: "admin", label: "Admin" },
             { key: "recepcao", label: "Recepção" },
           ].map((f) => (
@@ -506,17 +511,17 @@ export default function Admin() {
             </thead>
             <tbody className="divide-y divide-border">
               {[
-                { feat: "Prontuários", medico: true, enfermeiro: true, admin: true, recepcao: false },
-                { feat: "Prescrições", medico: true, enfermeiro: false, admin: true, recepcao: false },
-                { feat: "Solicitar Exames", medico: true, enfermeiro: false, admin: true, recepcao: false },
-                { feat: "Sinais Vitais", medico: true, enfermeiro: true, admin: true, recepcao: false },
-                { feat: "Cadastrar Pacientes", medico: true, enfermeiro: true, admin: true, recepcao: true },
-                { feat: "Relatórios", medico: false, enfermeiro: false, admin: true, recepcao: false },
-                { feat: "Administração", medico: false, enfermeiro: false, admin: true, recepcao: false },
+                { feat: "Prontuários", medico: true, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: false },
+                { feat: "Prescrições", medico: true, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
+                { feat: "Solicitar Exames", medico: true, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
+                { feat: "Sinais Vitais", medico: true, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: false },
+                { feat: "Cadastrar Pacientes", medico: true, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: true },
+                { feat: "Relatórios", medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
+                { feat: "Administração", medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
               ].map((row) => (
                 <tr key={row.feat} className="hover:bg-muted/20 transition-colors">
                   <td className="py-2 pr-4 font-medium text-muted-foreground">{row.feat}</td>
-                  {[row.medico, row.enfermeiro, row.admin, row.recepcao].map((allowed, i) => (
+                  {[row.medico, row.enfermeiro, row.tecnico_enfermagem, row.admin, row.recepcao].map((allowed, i) => (
                     <td key={i} className="text-center py-2 px-3">
                       <span className={allowed ? "text-success font-bold" : "text-muted-foreground/30"}>
                         {allowed ? "✓" : "✗"}

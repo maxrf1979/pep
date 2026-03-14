@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Heart,
   LogOut,
+  Tv,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -43,6 +44,7 @@ const clinicalNav = [
 
 const adminNav = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "Painel de Chamada", url: "/admin/painel", icon: Tv },
   { title: "Administração", url: "/admin", icon: Shield },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];

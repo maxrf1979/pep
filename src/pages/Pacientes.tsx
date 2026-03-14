@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, UserPlus, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -12,8 +12,16 @@ export default function Pacientes() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [patientList, setPatientList] = useState<Patient[]>(initialPatients);
+  const [patientList, setPatientList] = useState<Patient[]>(() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : initialPatients;
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Salvar pacientes no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("patients", JSON.stringify(patientList));
+  }, [patientList]);
 
   const handleNewPatient = (p: Patient) => {
     setPatientList((prev) => [p, ...prev]);

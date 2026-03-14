@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Pill, Plus, Search, X, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -98,7 +98,15 @@ export default function Prescricoes() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [localPrescriptions, setLocalPrescriptions] = useState<Prescription[]>([]);
+  const [localPrescriptions, setLocalPrescriptions] = useState<Prescription[]>(() => {
+    const saved = localStorage.getItem("localPrescriptions");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Salvar prescrições no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("localPrescriptions", JSON.stringify(localPrescriptions));
+  }, [localPrescriptions]);
 
   const allRx = [...localPrescriptions, ...prescriptions].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()

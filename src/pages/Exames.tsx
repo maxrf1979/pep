@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FlaskConical, Plus, Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -200,7 +200,15 @@ export default function Exames() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [localExams, setLocalExams] = useState<Exam[]>([]);
+  const [localExams, setLocalExams] = useState<Exam[]>(() => {
+    const saved = localStorage.getItem("localExams");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Salvar exames no localStorage sempre que a lista mudar
+  useEffect(() => {
+    localStorage.setItem("localExams", JSON.stringify(localExams));
+  }, [localExams]);
 
   const allExams = [...localExams, ...exams].sort(
     (a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime()

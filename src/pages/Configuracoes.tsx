@@ -42,12 +42,14 @@ export default function Configuracoes() {
   });
 
   const [notifications, setNotifications] = useState({
-    novoResultado: true,
-    alertaCritico: true,
-    prescricaoVencendo: false,
-    lembreteConsulta: true,
-    email: false,
-    sistema: true,
+    novosAgendamentos: true,
+    cancelamentos: true,
+    resultadosExames: false,
+    atualizacoesPendentes: true,
+    avisosEstoque: false,
+    canalEmail: false,
+    canalPush: true,
+    canalSMS: false,
   });
 
   const [security, setSecurity] = useState({
@@ -373,16 +375,162 @@ export default function Configuracoes() {
             </motion.div>
           )}
 
-          {(activeTab === "notificacoes" || activeTab === "seguranca") && (
+          {activeTab === "notificacoes" && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={transition}
-              className="bg-card rounded-xl shadow-card border-subtle p-6"
+              className="space-y-6"
             >
-              <p className="text-sm text-muted-foreground text-center py-10 italic">
-                {activeTab === "notificacoes" ? "Configurações de notificações em breve." : "Configurações de segurança em breve."}
-              </p>
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-5">
+                <div className="flex items-center gap-2 mb-2 border-b border-border pb-3">
+                  <Bell className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Alertas de Pacientes</h2>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { key: "novosAgendamentos" as const, label: "Novos agendamentos" },
+                    { key: "cancelamentos" as const, label: "Cancelamentos de última hora" },
+                    { key: "resultadosExames" as const, label: "Resultados de exames prontos" },
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <Toggle checked={notifications[item.key]} onChange={(v) => { setNotifications({...notifications, [item.key]: v}); toast.success("Configuração salva."); }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-5">
+                <div className="flex items-center gap-2 mb-2 border-b border-border pb-3">
+                  <Settings className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Lembretes de Sistema</h2>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { key: "atualizacoesPendentes" as const, label: "Atualizações de prontuário pendentes" },
+                    { key: "avisosEstoque" as const, label: "Avisos de estoque de suprimentos" },
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <Toggle checked={notifications[item.key]} onChange={(v) => { setNotifications({...notifications, [item.key]: v}); toast.success("Configuração salva."); }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-5">
+                <div className="flex items-center gap-2 mb-2 border-b border-border pb-3">
+                  <Mail className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Canais de Comunicação</h2>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { key: "canalEmail" as const, label: "E-mail" },
+                    { key: "canalPush" as const, label: "Push Notification (Navegador/App)" },
+                    { key: "canalSMS" as const, label: "SMS (para urgências)" },
+                  ].map((item) => (
+                    <label key={item.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/30 p-2 rounded-lg transition-colors text-sm">
+                      <input 
+                        type="checkbox" 
+                        checked={notifications[item.key]} 
+                        onChange={(e) => { setNotifications({...notifications, [item.key]: e.target.checked}); toast.success("Configuração salva."); }} 
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer" 
+                      />
+                      <span className="text-muted-foreground">{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "seguranca" && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={transition}
+              className="space-y-6"
+            >
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-2 border-b border-border pb-3">
+                  <Shield className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Alteração de Senha</h2>
+                </div>
+                <div className="space-y-3 max-w-sm">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Senha Atual</label>
+                    <input type="password" className={inp} placeholder="••••••••" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Nova Senha</label>
+                    <input type="password" className={inp} placeholder="Nova senha" />
+                    <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden w-full">
+                      <div className="h-full bg-warning w-2/3" /> {/* Indicador de força simple */}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1.5">Confirmar Nova Senha</label>
+                    <input type="password" className={inp} placeholder="Confirme a senha" />
+                  </div>
+                  <button onClick={() => toast.success("Senha atualizada com sucesso.")} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                    Atualizar Senha
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Autenticação de Dois Fatores (2FA)</h2>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-medium">Status: <span className="text-destructive font-bold">Desativado</span></p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Adicione segurança extra à sua conta</p>
+                  </div>
+                  <button onClick={() => toast.info("Configuração de 2FA em desenvolvimento.")} className="px-4 py-2 border border-border rounded-lg text-xs font-medium hover:bg-muted transition-colors">
+                    Configurar via App ou SMS
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-2 border-b border-border pb-3">
+                  <Settings className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Sessões Ativas</h2>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { device: "Chrome no Windows", city: "São Paulo, Brasil", active: true },
+                    { device: "Safari no iPhone", city: "Rio de Janeiro, Brasil", active: false },
+                  ].map((s, i) => (
+                    <div key={i} className="flex justify-between items-center text-sm p-2 hover:bg-muted/30 rounded-lg transition-colors">
+                      <div>
+                        <p className="font-medium text-gray-800">{s.device}</p>
+                        <p className="text-xs text-muted-foreground">{s.city} {s.active && <span className="text-success font-bold">• Atual</span>}</p>
+                      </div>
+                      {!s.active && (
+                        <button onClick={() => toast.success("Sessão encerrada.")} className="text-xs text-destructive hover:underline">Sair</button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={() => toast.success("Todas as sessões foram encerradas.")} className="w-full py-2 bg-destructive/5 text-destructive border border-destructive/20 rounded-lg text-xs font-medium hover:bg-destructive/10 transition-colors">
+                    Encerrar todas as outras sessões
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-xl shadow-card border-subtle p-6 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Shield className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                  <h2 className="text-sm font-semibold">Privacidade e LGPD</h2>
+                </div>
+                <div className="flex flex-col gap-2 items-start text-xs">
+                  <button onClick={() => toast.success("Logs exportados. Verifique seu e-mail.")} className="text-primary hover:underline font-medium">Exportar meus dados de log</button>
+                  <button onClick={() => toast.info("Termos de Uso mostrados em nova aba.")} className="text-primary hover:underline font-medium">Termos de Uso e Política de Privacidade</button>
+                </div>
+              </div>
             </motion.div>
           )}
         </div>

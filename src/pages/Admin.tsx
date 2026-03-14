@@ -38,6 +38,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         email: editingUser.email,
         login: editingUser.login,
         password: "",
+        confirmPassword: "",
         crm: editingUser.crm || "",
         coren: editingUser.coren || "",
         roles: {
@@ -48,7 +49,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         }
       };
     }
-    return { name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } };
+    return { name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -69,6 +70,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     if (!form.login.trim()) e.login = "Login obrigatório";
     if (!isEditing && !form.password.trim()) e.password = "Senha obrigatória";
     if (form.password && form.password.length < 6) e.password = "Senha deve ter no mínimo 6 caracteres";
+    if (form.password && form.password !== form.confirmPassword) e.confirmPassword = "As senhas não conferem";
     if (!Object.values(form.roles).some(v => v)) e.roles = "Selecione pelo menos um papel";
     if (form.roles.medico && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
     if (form.roles.enfermeiro && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
@@ -92,7 +94,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
       coren: form.roles.enfermeiro ? form.coren : undefined,
       status: editingUser ? editingUser.status : "ativo",
     });
-    setForm({ name: "", email: "", login: "", password: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
+    setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
     setErrors({});
     onOpenChange(false);
   };
@@ -129,6 +131,32 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
             </div>
           </div>
+
+          {form.password && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Confirmar Senha *</label>
+              <div className="relative">
+                <input type={showPass ? "text" : "password"} value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} className={inp("confirmPassword")} placeholder="Confirme a senha" />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground">
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>}
+            </div>
+          )}
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={() => {
+                set("password", "");
+                set("confirmPassword", "");
+              }}
+              className="w-full px-3 py-2 rounded-md bg-muted/50 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Redefinir Senha
+            </button>
+          )}
 
           <div>
             <label className="text-xs font-medium text-muted-foreground block mb-2">Papéis *</label>

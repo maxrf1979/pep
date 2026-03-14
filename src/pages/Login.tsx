@@ -14,10 +14,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
 
-  const clinicData = (() => {
-    const saved = localStorage.getItem("clinicSettings");
-    return saved ? JSON.parse(saved) : { name: "Aurea Dental", logo: null };
-  })();
 
   // Simulation of authentication
   const handleLogin = async (e: React.FormEvent) => {
@@ -171,12 +167,8 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 relative">
         {/* Mobile Logo Only */}
         <div className="absolute top-8 left-8 flex items-center gap-2 md:hidden">
-          {clinicData.logo ? (
-            <img src={clinicData.logo} alt="Logo" className="h-6 w-6 object-contain" />
-          ) : (
-            <HeartPulse className="h-6 w-6 text-primary" />
-          )}
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">{clinicData.name || "Pulse PEP"}</span>
+          <HeartPulse className="h-6 w-6 text-primary" />
+          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Pulse PEP</span>
         </div>
 
         <motion.div 

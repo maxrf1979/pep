@@ -196,16 +196,6 @@ export default function Configuracoes() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex flex-col gap-3">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Geração de Identidade (IA Premium)</span>
-                      </div>
-                      <button className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-background border border-primary text-primary text-xs font-semibold hover:bg-primary/5 transition-all w-full">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Gerar Marca com IA
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>

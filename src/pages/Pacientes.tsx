@@ -2,7 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, UserPlus, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients } from "@/lib/mock-data";
+import { patients as initialPatients, Patient } from "@/lib/mock-data";
+import NovoPacienteDialog from "@/components/NovoPacienteDialog";
+import { toast } from "sonner";
 
 const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
 
@@ -10,8 +12,15 @@ export default function Pacientes() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [patientList, setPatientList] = useState<Patient[]>(initialPatients);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const filtered = patients.filter((p) => {
+  const handleNewPatient = (p: Patient) => {
+    setPatientList((prev) => [p, ...prev]);
+    toast.success(`Paciente ${p.name} cadastrado com sucesso!`);
+  };
+
+  const filtered = patientList.filter((p) => {
     const matchesQuery =
       !query ||
       p.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -27,10 +36,10 @@ export default function Pacientes() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pacientes</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {patients.length} pacientes cadastrados
+            {patientList.length} pacientes cadastrados
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+        <button onClick={() => setDialogOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
           <UserPlus className="h-4 w-4" strokeWidth={1.5} />
           Novo Paciente
         </button>
@@ -153,6 +162,7 @@ export default function Pacientes() {
           </div>
         )}
       </motion.div>
+      <NovoPacienteDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleNewPatient} />
     </div>
   );
 }

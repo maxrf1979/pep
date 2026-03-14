@@ -37,7 +37,7 @@ const typeConfig: Record<string, { icon: typeof FileText; label: string; color: 
   anexo: { icon: Paperclip, label: "Anexo", color: "text-muted-foreground", border: "border-muted-foreground" },
 };
 
-function TimelineCard({ event, index }: { event: TimelineEvent; index: number }) {
+function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: number, onPrint?: (ev: TimelineEvent) => void }) {
   const [expanded, setExpanded] = useState(false);
   const config = typeConfig[event.type];
   const Icon = config.icon;
@@ -91,24 +91,35 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
 
           <p className="text-xs text-muted-foreground mt-2">{event.professional}</p>
 
-          {event.details && (
-            <>
-              {expanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-3 pt-3 border-t border-border"
-                >
-                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                    {event.details}
-                  </pre>
-                </motion.div>
-              )}
-              <button className="mt-2 flex items-center gap-1 text-xs text-primary font-medium">
-                {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          <div className="mt-3 flex items-center gap-4 border-t border-border pt-2">
+            {event.details && (
+              <button className="flex items-center gap-1 text-xs text-primary font-semibold">
+                {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 {expanded ? "Recolher" : "Ver detalhes"}
               </button>
-            </>
+            )}
+
+            {["evolucao_medica", "evolucao_enfermagem", "sinais_vitais"].includes(event.type) && onPrint && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); onPrint(event); }}
+                className="flex items-center gap-1 text-xs text-slate-500 hover:text-primary font-semibold transition-colors"
+              >
+                <FileDown className="h-3.5 w-3.5" />
+                Imprimir
+              </button>
+            )}
+          </div>
+
+          {event.details && expanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-2 pt-2"
+            >
+              <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
+                {event.details}
+              </pre>
+            </motion.div>
           )}
         </div>
       </div>
@@ -129,6 +140,17 @@ export default function Prontuario() {
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [currentPrintingEvent, setCurrentPrintingEvent] = useState<TimelineEvent | null>(null);
+
+  const handlePrintIndividual = (event: TimelineEvent) => {
+    setCurrentPrintingEvent(event);
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+      setCurrentPrintingEvent(null);
+    }, 150);
+  };
 
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
@@ -203,7 +225,7 @@ export default function Prontuario() {
   ];
 
   return (
-    <div className="max-w-5xl space-y-0">
+    <div className={`max-w-5xl space-y-0 ${currentPrintingEvent ? "print:hidden" : ""}`}>
       <style>{`
         @media print {
           body { background: white; color: black; }
@@ -357,7 +379,7 @@ export default function Prontuario() {
                   {events.map((ev, i) => (
                     <div key={ev.id} className="relative pl-10">
                       <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
-                      <TimelineCard event={ev} index={i} />
+                      <TimelineCard event={ev} index={i} onPrint={handlePrintIndividual} />
                     </div>
                   ))}
                 </div>
@@ -406,7 +428,39 @@ export default function Prontuario() {
         <ReportFooter />
       </div>
 
-      {isPrinting && <ProfessionalProntuario patientId={id!} />}
+      {/* Individual Event Print View */}
+      {isPrinting && currentPrintingEvent && (
+        <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-10 text-slate-800">
+          <ReportHeader />
+          <div className="my-6 border-b border-slate-200 pb-4">
+            <h2 className="text-xl font-bold text-slate-900">{typeConfig[currentPrintingEvent.type]?.label}</h2>
+            <div className="flex justify-between text-xs text-slate-500 mt-2">
+              <span>Data: {new Date(currentPrintingEvent.date).toLocaleString("pt-BR")}</span>
+              <span>Profissional: {currentPrintingEvent.professional}</span>
+            </div>
+          </div>
+          <div className="text-sm font-sans leading-relaxed whitespace-pre-wrap text-slate-800">
+            <p className="font-bold text-base mb-2 text-slate-900">{currentPrintingEvent.title}</p>
+            <div className="mt-2 bg-slate-50 p-4 rounded-lg border border-slate-100">
+              <p className="font-semibold text-xs text-slate-500 mb-1">Resumo:</p>
+              <p>{currentPrintingEvent.summary}</p>
+            </div>
+            {currentPrintingEvent.details && (
+              <div className="mt-4">
+                <p className="font-semibold text-xs text-slate-500 mb-1">Detalhamento:</p>
+                <div className="mt-1 font-sans whitespace-pre-wrap bg-white p-3 rounded-lg border border-slate-100 text-slate-700">
+                  {currentPrintingEvent.details}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="mt-24">
+            <ReportFooter />
+          </div>
+        </div>
+      )}
+
+      {isPrinting && !currentPrintingEvent && <ProfessionalProntuario patientId={id!} />}
     </div>
   );
 }

@@ -53,6 +53,29 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (editingUser) {
+      setForm({
+        name: editingUser.name,
+        email: editingUser.email,
+        login: editingUser.login,
+        password: "",
+        confirmPassword: "",
+        crm: editingUser.crm || "",
+        coren: editingUser.coren || "",
+        roles: {
+          medico: editingUser.roles.includes("medico"),
+          enfermeiro: editingUser.roles.includes("enfermeiro"),
+          admin: editingUser.roles.includes("admin"),
+          recepcao: editingUser.roles.includes("recepcao"),
+        }
+      });
+    } else {
+      setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, admin: false, recepcao: false } });
+    }
+    setErrors({});
+  }, [editingUser]);
+
   const set = (k: string, v: string | boolean) => {
     setForm((f) => {
       if (k.startsWith("roles.")) {

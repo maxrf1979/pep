@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Pacientes from "./pages/Pacientes";
 import Prontuario from "./pages/Prontuario";
+import Prontuarios from "./pages/Prontuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

@@ -392,6 +392,13 @@ export default function Usuarios() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
+                          onClick={() => openEditDialog(u)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                          title="Editar usuário"
+                        >
+                          <Eye className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        </button>
+                        <button
                           onClick={() => toggleStatus(u.id)}
                           className={`p-1.5 rounded-md transition-colors ${
                             u.status === "ativo"
@@ -399,17 +406,6 @@ export default function Usuarios() {
                               : "text-muted-foreground hover:text-success hover:bg-success/10"
                           }`}
                           title={u.status === "ativo" ? "Inativar usuário" : "Ativar usuário"}
-                        >
-                          {u.status === "ativo" ? (
-                            <Eye className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          ) : (
-                            <EyeOff className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => openEditDialog(u)}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                          title="Editar usuário"
                         >
                           <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                         </button>

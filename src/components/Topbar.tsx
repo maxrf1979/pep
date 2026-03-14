@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { patients } from "@/lib/mock-data";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -234,14 +235,21 @@ export function Topbar() {
               </div>
               <div className="py-1">
                 <button
-                  onClick={() => { navigate("/configuracoes"); setShowProfile(false); }}
+                  onClick={() => { 
+                    navigate("/configuracoes"); 
+                    setShowProfile(false);
+                    toast.info("Acessando configurações...");
+                  }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                 >
                   <Settings className="h-4 w-4" strokeWidth={1.5} />
                   Configurações
                 </button>
                 <button
-                  onClick={() => setShowProfile(false)}
+                  onClick={() => {
+                    setShowProfile(false);
+                    toast.success("Sessão encerrada com sucesso.");
+                  }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" strokeWidth={1.5} />

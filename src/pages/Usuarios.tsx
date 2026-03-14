@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Search, X, Edit2, Trash2, Lock, LockOpen, Eye, EyeOff } from "lucide-react";
+import { Users, Plus, Search, X, Edit2, Trash2, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -38,6 +38,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
   open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void; editingUser?: SystemUser;
 }) {
   const isEditing = !!editingUser;
+  const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState(() => {
     if (editingUser) {
       return {
@@ -110,7 +111,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Usuário" : "Criar Novo Usuário"}</DialogTitle>
         </DialogHeader>
@@ -140,7 +141,16 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
               <label className="text-xs font-medium text-muted-foreground">
                 Senha {isEditing ? "(deixe vazio para não alterar)" : "*"}
               </label>
-              <input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder={isEditing ? "Opcional" : "••••••"} />
+              <div className="relative">
+                <input type={showPass ? "text" : "password"} value={form.password} onChange={(e) => set("password", e.target.value)} className={inp("password")} placeholder={isEditing ? "Opcional" : "••••••"} />
+                <button 
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
             </div>
           </div>
@@ -154,14 +164,17 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
                 { key: "admin" as const, label: "Administrador", icon: "⚙️" },
                 { key: "recepcao" as const, label: "Recepção", icon: "📞" },
               ].map(role => (
-                <label key={role.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={form.roles[role.key]}
-                    onChange={(e) => set(`roles.${role.key}`, e.target.checked)}
-                    className="w-4 h-4 rounded border-border cursor-pointer"
-                  />
-                  <span className="text-sm">{role.icon} {role.label}</span>
+                <label key={role.key} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors group">
+                  <div className="relative flex items-center justify-center h-4 w-4">
+                    <input
+                      type="checkbox"
+                      checked={form.roles[role.key]}
+                      onChange={(e) => set(`roles.${role.key}`, e.target.checked)}
+                      className="peer h-4 w-4 rounded border-border transition-all checked:bg-primary checked:border-primary appearance-none cursor-pointer"
+                    />
+                    <Check className="absolute h-3 w-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
+                  </div>
+                  <span className="text-sm group-hover:text-foreground transition-colors">{role.icon} {role.label}</span>
                 </label>
               ))}
             </div>
@@ -209,16 +222,18 @@ export default function Usuarios() {
     return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
   });
 
-  const toggleStatus = (id: string) => {
+  const toggleStatus = (id: string, currentStatus: string) => {
     setUserList((prev) =>
       prev.map((u) => u.id === id ? { ...u, status: u.status === "ativo" ? "inativo" : "ativo" } : u)
     );
-    toast.success("Status do usuário atualizado.");
+    toast.success(`Usuário ${currentStatus === "ativo" ? "inativado" : "ativado"} com sucesso.`);
   };
 
-  const removeUser = (id: string) => {
-    setUserList((prev) => prev.filter((u) => u.id !== id));
-    toast.success("Usuário removido.");
+  const removeUser = (id: string, name: string) => {
+    if (window.confirm(`Tem certeza que deseja remover o usuário ${name}?`)) {
+      setUserList((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Usuário removido.");
+    }
   };
 
   const handleSave = (u: SystemUser) => {
@@ -257,9 +272,9 @@ export default function Usuarios() {
         </div>
         <button
           onClick={openNewDialog}
-          className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
         >
-          <Plus className="h-4 w-4" strokeWidth={2} />
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
           Novo Usuário
         </button>
       </div>
@@ -295,7 +310,7 @@ export default function Usuarios() {
 
       {/* Filters */}
       <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-48">
+        <div className="relative flex-1 min-w-[280px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
@@ -361,7 +376,7 @@ export default function Usuarios() {
                 filtered.map((u) => (
                   <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
-                      <button onClick={() => openEditDialog(u)} className="flex items-center gap-3 w-full text-left hover:opacity-70 transition-opacity">
+                      <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                           {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                         </div>
@@ -369,7 +384,7 @@ export default function Usuarios() {
                           <span className="text-sm font-medium block">{u.name}</span>
                           <span className="text-xs text-muted-foreground">@{u.login}</span>
                         </div>
-                      </button>
+                      </div>
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       <span className="text-sm text-muted-foreground font-mono">{u.login}</span>
@@ -380,7 +395,8 @@ export default function Usuarios() {
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1.5">
                         {u.roles.map((role) => (
-                          <span key={role} className={`badge-status text-xs ${roleConfig[role].cls}`}>
+                          <span key={role} className={`badge-status text-xs ${roleConfig[role].cls} flex items-center gap-1`}>
+                            <span>{roleConfig[role].icon}</span>
                             {roleConfig[role].label}
                           </span>
                         ))}
@@ -388,7 +404,7 @@ export default function Usuarios() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => toggleStatus(u.id)}
+                        onClick={() => toggleStatus(u.id, u.status)}
                         className={`badge-status ${u.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}
                       >
                         {u.status === "ativo" ? "Ativo" : "Inativo"}
@@ -398,13 +414,13 @@ export default function Usuarios() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEditDialog(u)}
-                          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                           title="Editar usuário"
                         >
-                          <Eye className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <Edit2 className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                         <button
-                          onClick={() => toggleStatus(u.id)}
+                          onClick={() => toggleStatus(u.id, u.status)}
                           className={`p-1.5 rounded-md transition-colors ${
                             u.status === "ativo"
                               ? "text-muted-foreground hover:text-warning hover:bg-warning/10"
@@ -412,14 +428,14 @@ export default function Usuarios() {
                           }`}
                           title={u.status === "ativo" ? "Inativar usuário" : "Ativar usuário"}
                         >
-                          <Edit2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          {u.status === "ativo" ? <Lock className="h-4 w-4" strokeWidth={1.5} /> : <LockOpen className="h-4 w-4" strokeWidth={1.5} />}
                         </button>
                         <button
-                          onClick={() => removeUser(u.id)}
+                          onClick={() => removeUser(u.id, u.name)}
                           className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                           title="Remover usuário"
                         >
-                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </div>
                     </td>

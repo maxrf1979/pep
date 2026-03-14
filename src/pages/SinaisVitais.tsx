@@ -115,6 +115,21 @@ export default function SinaisVitais() {
 
   const handleSave = (v: VitalSign) => {
     setLocalVitals((prev) => [v, ...prev]);
+
+    // Also save to global timeline
+    const savedTimeline = localStorage.getItem("pep-timeline");
+    const timeline = savedTimeline ? JSON.parse(savedTimeline) : [];
+    const ev = {
+      id: crypto.randomUUID(),
+      patientId: v.patientId,
+      type: "sinais_vitais",
+      date: v.date,
+      title: "Sinais Vitais",
+      summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`,
+      professional: v.professional
+    };
+    localStorage.setItem("pep-timeline", JSON.stringify([ev, ...timeline]));
+
     toast.success("Sinais vitais registrados com sucesso.");
   };
 

@@ -11,7 +11,8 @@ export interface Patient {
   bloodType?: string;
   allergies: string[];
   lastVisit: string;
-  status: "internado" | "ambulatorial" | "alta";
+  status: "internado" | "ambulatorial" | "alta" | "obito";
+  deathDate?: string;
 }
 
 export interface VitalSign {

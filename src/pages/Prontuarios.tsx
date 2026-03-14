@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, FileText, ChevronRight, Activity, Pill, FlaskConical, Stethoscope, ClipboardPlus, Paperclip, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -54,9 +54,25 @@ export default function Prontuarios() {
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
 
+  // Persistence logic for Timeline
+  const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pep-timeline");
+    if (saved) {
+      setLocalTimeline(JSON.parse(saved));
+    } else {
+      // Initialize with mock data if empty
+      localStorage.setItem("pep-timeline", JSON.stringify(timelineEvents));
+      setLocalTimeline(timelineEvents);
+    }
+  }, []);
+
+  const totalTimeline = localTimeline.length > 0 ? localTimeline : timelineEvents;
+
   // Build list of patients that have timeline events
-  const patientsWithRecords = patients.map((p) => {
-    const events = timelineEvents
+  const processedPatients = patients.map((p) => {
+    const events = totalTimeline
       .filter((e) => e.patientId === p.id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
@@ -68,19 +84,18 @@ export default function Prontuarios() {
     return { ...p, events: filteredEvents, totalEvents: events.length, lastEvent: events[0] };
   });
 
-  const filtered = patientsWithRecords.filter((p) => {
+  const filtered = processedPatients.filter((p) => {
     const matchesQuery =
       !query ||
       p.name.toLowerCase().includes(query.toLowerCase()) ||
       p.cpf.includes(query);
     
-    // In "todos", we show everyone who has at least one record.
-    // In specific tabs, we show everyone who has at least one record of THAT type.
-    const matchesType = typeFilter === "todos" 
-      ? p.totalEvents > 0 
-      : p.events.length > 0;
-
-    return matchesQuery && matchesType;
+    // In "todos", we show everyone who matches the query.
+    // In specific tabs, we only show those who have at least one record of THAT type.
+    const hasRecordsOfType = p.events.length > 0;
+    
+    if (typeFilter === "todos") return matchesQuery;
+    return matchesQuery && hasRecordsOfType;
   });
 
   const allTypes = ["todos", "evolucao_medica", "evolucao_enfermagem", "sinais_vitais", "prescricao", "exame", "anexo"];
@@ -97,9 +112,26 @@ export default function Prontuarios() {
     }
   };
 
-  const onSaveEvent = (ev: TimelineEvent) => {
+  const onSaveEvent = (ev: TimelineEvent, rawData?: any) => {
+    // 1. Save to Timeline
+    const updatedTimeline = [ev, ...localTimeline];
+    setLocalTimeline(updatedTimeline);
+    localStorage.setItem("pep-timeline", JSON.stringify(updatedTimeline));
+
+    // 2. Save to specific stores if needed
+    if (ev.type === "sinais_vitais" && rawData) {
+      const savedVitals = localStorage.getItem("localVitals");
+      const currentVitals = savedVitals ? JSON.parse(savedVitals) : [];
+      localStorage.setItem("localVitals", JSON.stringify([rawData, ...currentVitals]));
+    }
+
+    if (ev.type === "prescricao" && rawData) {
+      const savedRx = localStorage.getItem("localPrescriptions");
+      const currentRx = savedRx ? JSON.parse(savedRx) : [];
+      localStorage.setItem("localPrescriptions", JSON.stringify([rawData, ...currentRx]));
+    }
+
     toast.success(`${typeLabel[ev.type]} registrado com sucesso.`);
-    // In a real app, we would update the state or refetch
   };
 
   return (
@@ -178,10 +210,12 @@ export default function Prontuarios() {
                         ? "bg-destructive/10 text-destructive"
                         : p.status === "ambulatorial"
                         ? "bg-primary/10 text-primary"
+                        : p.status === "obito"
+                        ? "bg-zinc-500 text-white dark:bg-zinc-800 dark:text-zinc-400 font-bold"
                         : "bg-success/10 text-success"
                     }`}
                   >
-                   {p.status}
+                   {p.status === "obito" ? "ÓBITO" : p.status}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
@@ -258,8 +292,8 @@ export default function Prontuarios() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }); }} />
-      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }); }} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }, p); }} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} type="evolucao_medica" onSave={onSaveEvent} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} onSave={onSaveEvent} />

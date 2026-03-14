@@ -133,12 +133,10 @@ export default function Configuracoes() {
                     <h2 className="text-base font-semibold">Identidade Visual</h2>
                     <p className="text-xs text-muted-foreground">Logotipo, cores e tipografia da clínica</p>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground block mb-1.5">Nome da Clínica</label>
+                      <label className="text-xs font-medium text-muted-foreground block mb-1.5">Nome da Instituição</label>
                       <input 
                         value={clinicData.name} 
                         onChange={(e) => setClinicData({...clinicData, name: e.target.value})} 
@@ -175,28 +173,59 @@ export default function Configuracoes() {
                   <div className="space-y-4">
                     <label className="text-xs font-medium text-muted-foreground block">Logotipo</label>
                     <div className="flex items-start gap-4">
-                      <div className="h-20 w-20 rounded-xl bg-slate-900 flex items-center justify-center p-4 border border-border">
-                        <div className="text-primary text-xl">🦷</div>
+                      <div className="h-20 w-20 rounded-xl bg-slate-900 flex items-center justify-center p-2 border border-border overflow-hidden">
+                        {clinicData.logo ? (
+                          <img src={clinicData.logo} alt="Logo" className="max-h-full max-w-full object-contain" />
+                        ) : (
+                          <div className="text-primary text-xl">🦷</div>
+                        )}
                       </div>
                       <div className="flex-1 space-y-2">
                         <div className="flex gap-2">
-                          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 border border-border text-xs font-medium hover:bg-muted transition-colors">
+                          <input
+                            type="file"
+                            id="logo-upload"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setClinicData({
+                                    ...clinicData,
+                                    logo: reader.result as string,
+                                    logoName: file.name
+                                  });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <button 
+                            onClick={() => document.getElementById('logo-upload')?.click()}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 border border-border text-xs font-medium hover:bg-muted transition-colors"
+                          >
                             <Upload className="h-3.5 w-3.5" />
                             Upload Logo
                           </button>
-                          <button className="px-3 py-2 rounded-lg border border-border text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">
+                          <button 
+                            onClick={() => setClinicData({...clinicData, logo: null, logoName: ""})}
+                            className="px-3 py-2 rounded-lg border border-border text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                          >
                             Remover
                           </button>
                         </div>
                         <div className="text-[10px] text-muted-foreground leading-relaxed">
-                          {clinicData.logoName}
+                          {clinicData.logoName || "Nenhum arquivo selecionado"}
                           <br />
                           PNG, JPG ou SVG. Máx. 6MB.
                         </div>
                       </div>
                     </div>
-
                   </div>
+                </div>
+
                 </div>
               </div>
 

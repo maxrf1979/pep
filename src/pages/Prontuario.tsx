@@ -15,8 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useState } from "react";
-import { getPatient, getPatientTimeline, type TimelineEvent, type VitalSign, type Prescription } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { getPatient, timelineEvents, type TimelineEvent, type VitalSign, type Prescription } from "@/lib/mock-data";
 import { RequestExamDialog } from "@/components/RequestExamDialog";
 import { NovoSinalDialog } from "@/components/NovoSinalDialog";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
@@ -103,8 +103,25 @@ export default function Prontuario() {
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
 
+  // Persistence logic for Timeline
+  const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pep-timeline");
+    if (saved) {
+      setLocalTimeline(JSON.parse(saved));
+    } else {
+      localStorage.setItem("pep-timeline", JSON.stringify(timelineEvents));
+      setLocalTimeline(timelineEvents);
+    }
+  }, []);
+
   const patient = getPatient(id || "");
-  const timeline = getPatientTimeline(id || "");
+  
+  // Filter and sort patient timeline from local state
+  const patientTimeline = localTimeline
+    .filter(ev => ev.patientId === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (!patient) {
     return (
@@ -114,13 +131,31 @@ export default function Prontuario() {
     );
   }
 
-  const onSaveEvent = (ev: TimelineEvent) => {
+  const onSaveEvent = (ev: TimelineEvent, rawData?: any) => {
+    // 1. Save to Timeline
+    const updatedTimeline = [ev, ...localTimeline];
+    setLocalTimeline(updatedTimeline);
+    localStorage.setItem("pep-timeline", JSON.stringify(updatedTimeline));
+
+    // 2. Save to specific stores if needed
+    if (ev.type === "sinais_vitais" && rawData) {
+      const savedVitals = localStorage.getItem("localVitals");
+      const currentVitals = savedVitals ? JSON.parse(savedVitals) : [];
+      localStorage.setItem("localVitals", JSON.stringify([rawData, ...currentVitals]));
+    }
+
+    if (ev.type === "prescricao" && rawData) {
+      const savedRx = localStorage.getItem("localPrescriptions");
+      const currentRx = savedRx ? JSON.parse(savedRx) : [];
+      localStorage.setItem("localPrescriptions", JSON.stringify([rawData, ...currentRx]));
+    }
+
     toast.success(`${typeConfig[ev.type]?.label || 'Registro'} adicionado com sucesso.`);
   };
 
   const filteredTimeline = typeFilter === "todos" 
-    ? timeline 
-    : timeline.filter(ev => ev.type === typeFilter);
+    ? patientTimeline 
+    : patientTimeline.filter(ev => ev.type === typeFilter);
 
   // Group by date
   const grouped = filteredTimeline.reduce<Record<string, TimelineEvent[]>>((acc, ev) => {
@@ -171,10 +206,12 @@ export default function Prontuario() {
                     ? "bg-destructive/10 text-destructive"
                     : patient.status === "ambulatorial"
                     ? "bg-primary/10 text-primary"
+                    : patient.status === "obito"
+                    ? "bg-zinc-500 text-white dark:bg-zinc-800 dark:text-zinc-400 font-bold"
                     : "bg-success/10 text-success"
                 }`}
               >
-                {patient.status}
+                {patient.status === "obito" ? "ÓBITO" : patient.status}
               </span>
             </div>
             <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground flex-wrap">
@@ -182,6 +219,9 @@ export default function Prontuario() {
               <span className="tabular-nums">CPF: {patient.cpf}</span>
               {patient.sus && <span className="tabular-nums">SUS: {patient.sus}</span>}
               {patient.bloodType && <span>Tipo: {patient.bloodType}</span>}
+              {patient.status === "obito" && patient.deathDate && (
+                <span className="text-destructive font-semibold">Óbito em: {new Date(patient.deathDate).toLocaleDateString("pt-BR")}</span>
+              )}
             </div>
             {patient.allergies.length > 0 && (
               <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-md bg-destructive/5 border border-destructive/20">
@@ -282,8 +322,8 @@ export default function Prontuario() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }); }} />
-      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }); }} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }, p); }} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} initialPatientId={id} type="evolucao_medica" onSave={onSaveEvent} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />

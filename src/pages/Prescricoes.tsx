@@ -122,6 +122,21 @@ export default function Prescricoes() {
 
   const handleSave = (rx: Prescription) => {
     setLocalPrescriptions((prev) => [rx, ...prev]);
+
+    // Also save to global timeline
+    const savedTimeline = localStorage.getItem("pep-timeline");
+    const timeline = savedTimeline ? JSON.parse(savedTimeline) : [];
+    const ev = {
+      id: rx.id,
+      patientId: rx.patientId,
+      type: "prescricao",
+      date: rx.date,
+      title: "Prescrição Médica",
+      summary: rx.medications.map(m => m.name).join(", "),
+      professional: rx.professional
+    };
+    localStorage.setItem("pep-timeline", JSON.stringify([ev, ...timeline]));
+
     toast.success("Prescrição emitida com sucesso.");
   };
 

@@ -66,7 +66,7 @@ export default function Pacientes() {
           />
         </div>
         <div className="flex items-center gap-1 bg-card border border-border rounded-md p-0.5">
-          {["todos", "internado", "ambulatorial", "alta"].map((s) => (
+          {["todos", "internado", "ambulatorial", "alta", "obito"].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -151,6 +151,8 @@ export default function Pacientes() {
                         ? "bg-destructive/10 text-destructive"
                         : p.status === "ambulatorial"
                         ? "bg-primary/10 text-primary"
+                        : p.status === "obito"
+                        ? "bg-zinc-500/10 text-zinc-500"
                         : "bg-success/10 text-success"
                     }`}
                   >

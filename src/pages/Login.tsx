@@ -14,6 +14,12 @@ export default function Login() {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
 
+  const clinicData = (() => {
+    const saved = localStorage.getItem("clinicSettings");
+    return saved ? JSON.parse(saved) : { name: "Aurea Dental", logo: null };
+  })();
+鼓
+
 
   // Simulation of authentication
   const handleLogin = async (e: React.FormEvent) => {

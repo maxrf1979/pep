@@ -92,6 +92,11 @@ function VitalCard({ vital, patient, index }: { vital: VitalSign; patient: Patie
 export default function SinaisVitais() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  const allPatients: Patient[] = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
   const [localVitals, setLocalVitals] = useState<VitalSign[]>(() => {
     const saved = localStorage.getItem("localVitals");
     return saved ? JSON.parse(saved) : [];
@@ -107,7 +112,7 @@ export default function SinaisVitais() {
   );
 
   const filtered = allVitals.filter((v) => {
-    const p = patients.find((p) => p.id === v.patientId);
+    const p = allPatients.find((p) => p.id === v.patientId);
     if (!p) return false;
     if (!search) return true;
     return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search);
@@ -190,7 +195,7 @@ export default function SinaisVitais() {
           </div>
         ) : (
           filtered.map((v, i) => {
-            const p = patients.find((p) => p.id === v.patientId);
+            const p = allPatients.find((p) => p.id === v.patientId);
             if (!p) return null;
             return <VitalCard key={v.id} vital={v} patient={p} index={i} />;
           })

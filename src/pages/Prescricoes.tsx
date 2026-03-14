@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Pill, Plus, Search, X, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients, prescriptions, type Prescription, type PrescriptionMedication } from "@/lib/mock-data";
+import { patients, prescriptions, type Prescription, type PrescriptionMedication, type Patient } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { PrintableDocument } from "@/components/PrintableDocument";
@@ -131,6 +131,11 @@ export default function Prescricoes() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const allPatients: Patient[] = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
   const [localPrescriptions, setLocalPrescriptions] = useState<Prescription[]>(() => {
     const saved = localStorage.getItem("localPrescriptions");
     return saved ? JSON.parse(saved) : [];
@@ -146,7 +151,7 @@ export default function Prescricoes() {
   );
 
   const filtered = allRx.filter((rx) => {
-    const p = patients.find((p) => p.id === rx.patientId);
+    const p = allPatients.find((p) => p.id === rx.patientId);
     if (!p) return false;
     if (statusFilter !== "all" && rx.status !== statusFilter) return false;
     if (!search) return true;

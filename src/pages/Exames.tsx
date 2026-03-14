@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FlaskConical, Plus, Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients, exams, type Exam } from "@/lib/mock-data";
+import { patients, exams, type Exam, type Patient } from "@/lib/mock-data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { PrintableDocument } from "@/components/PrintableDocument";
@@ -279,6 +279,12 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
 
 export default function Exames() {
   const [search, setSearch] = useState("");
+  
+  const allPatients: Patient[] = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
+
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -297,7 +303,7 @@ export default function Exames() {
   );
 
   const filtered = allExams.filter((e) => {
-    const p = patients.find((p) => p.id === e.patientId);
+    const p = allPatients.find((p) => p.id === e.patientId);
     if (!p) return false;
     if (typeFilter !== "all" && e.type !== typeFilter) return false;
     if (statusFilter !== "all" && e.status !== statusFilter) return false;

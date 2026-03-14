@@ -22,6 +22,11 @@ interface NovoSinalDialogProps {
 }
 
 export function NovoSinalDialog({ open, onOpenChange, onSave, initialPatientId }: NovoSinalDialogProps) {
+  const allPatients: Patient[] = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
+
   const [form, setForm] = useState<NewVitalForm>({
     patientId: initialPatientId || "",
     temperature: "",
@@ -93,7 +98,7 @@ export function NovoSinalDialog({ open, onOpenChange, onSave, initialPatientId }
   const inp = (field: string) =>
     `w-full h-9 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 ${errors[field] ? "border-destructive" : "border-border"}`;
 
-  const selectedPatient = patients.find(p => p.id === form.patientId);
+  const selectedPatient = allPatients.find(p => p.id === form.patientId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,7 +112,7 @@ export function NovoSinalDialog({ open, onOpenChange, onSave, initialPatientId }
               <label className="text-xs font-medium text-muted-foreground">Paciente *</label>
               <select value={form.patientId} onChange={(e) => set("patientId", e.target.value)} className={inp("patientId")}>
                 <option value="">Selecionar paciente...</option>
-                {patients.filter(p => p.status !== "alta").map((p) => (
+                {allPatients.filter(p => p.status !== "alta").map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>

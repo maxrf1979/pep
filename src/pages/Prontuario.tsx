@@ -18,16 +18,17 @@ import {
 import { useState } from "react";
 import { getPatient, getPatientTimeline, type TimelineEvent } from "@/lib/mock-data";
 import { toast } from "sonner";
+import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
 const typeConfig: Record<string, { icon: typeof FileText; label: string; color: string; border: string }> = {
-  evolucao_medica: { icon: Stethoscope, label: "Evolução Médica", color: "text-primary", border: "border-primary" },
-  evolucao_enfermagem: { icon: ClipboardPlus, label: "Evolução Enfermagem", color: "text-success", border: "border-success" },
-  sinais_vitais: { icon: Activity, label: "Sinais Vitais", color: "text-warning", border: "border-warning" },
-  prescricao: { icon: Pill, label: "Prescrição", color: "text-primary", border: "border-primary" },
-  exame: { icon: FlaskConical, label: "Exame", color: "text-success", border: "border-success" },
-  anexo: { icon: Paperclip, label: "Anexo", color: "text-muted-foreground", border: "border-muted-foreground" },
+  evolucao_medica:    { icon: Stethoscope,   label: "Evolução Médica",      color: "text-primary",          border: "border-primary" },
+  evolucao_enfermagem:{ icon: ClipboardPlus, label: "Evolução Enfermagem",  color: "text-success",          border: "border-success" },
+  sinais_vitais:      { icon: Activity,      label: "Sinais Vitais",        color: "text-warning",          border: "border-warning" },
+  prescricao:         { icon: Pill,          label: "Prescrição",           color: "text-primary",          border: "border-primary" },
+  exame:              { icon: FlaskConical,  label: "Exame",                color: "text-success",          border: "border-success" },
+  anexo:              { icon: Paperclip,     label: "Anexo",                color: "text-muted-foreground", border: "border-muted-foreground" },
 };
 
 function TimelineCard({ event, index }: { event: TimelineEvent; index: number }) {
@@ -88,16 +89,11 @@ function TimelineCard({ event, index }: { event: TimelineEvent; index: number })
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [evolucaoDialogOpen, setEvolucaoDialogOpen] = useState(false);
+  const [localEvents, setLocalEvents] = useState<TimelineEvent[]>([]);
 
-  const quickActionHandlers: Record<string, () => void> = {
-    "Sinais Vitais": () => navigate("/sinais-vitais"),
-    "Nova Evolução": () => toast.info("Abra o prontuário e clique em 'Adicionar Evolução'. Funcionalidade completa em breve."),
-    "Prescrever": () => navigate("/prescricoes"),
-    "Solicitar Exame": () => navigate("/exames"),
-    "Anexar Arquivo": () => toast.info("Funcionalidade de anexo de arquivos em breve."),
-  };
   const patient = getPatient(id || "");
-  const timeline = getPatientTimeline(id || "");
+  const baseTimeline = getPatientTimeline(id || "");
 
   if (!patient) {
     return (
@@ -106,6 +102,23 @@ export default function Prontuario() {
       </div>
     );
   }
+
+  const timeline = [...localEvents, ...baseTimeline].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const handleNovaEvolucao = (event: TimelineEvent) => {
+    setLocalEvents((prev) => [event, ...prev]);
+    toast.success("Evolução registrada e adicionada ao prontuário.");
+  };
+
+  const quickActionHandlers: Record<string, () => void> = {
+    "Sinais Vitais":  () => navigate("/sinais-vitais"),
+    "Nova Evolução":  () => setEvolucaoDialogOpen(true),
+    "Prescrever":     () => navigate("/prescricoes"),
+    "Solicitar Exame":() => navigate("/exames"),
+    "Anexar Arquivo": () => toast.info("Funcionalidade de anexo em breve."),
+  };
 
   // Group by date
   const grouped = timeline.reduce<Record<string, TimelineEvent[]>>((acc, ev) => {
@@ -117,6 +130,13 @@ export default function Prontuario() {
 
   return (
     <div className="max-w-5xl space-y-0">
+      <NovaEvolucaoDialog
+        open={evolucaoDialogOpen}
+        onOpenChange={setEvolucaoDialogOpen}
+        defaultPatientId={id}
+        onSave={handleNovaEvolucao}
+      />
+
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
@@ -180,25 +200,31 @@ export default function Prontuario() {
       <div className="flex gap-6">
         {/* Timeline */}
         <div className="flex-1 space-y-6">
-          {Object.entries(grouped).map(([date, events]) => (
-            <div key={date}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {date}
-                </div>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-              <div className="space-y-3 relative">
-                <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
-                {events.map((ev, i) => (
-                  <div key={ev.id} className="relative pl-10">
-                    <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
-                    <TimelineCard event={ev} index={i} />
-                  </div>
-                ))}
-              </div>
+          {Object.keys(grouped).length === 0 ? (
+            <div className="text-center py-14 text-muted-foreground text-sm">
+              Nenhum registro no prontuário deste paciente.
             </div>
-          ))}
+          ) : (
+            Object.entries(grouped).map(([date, events]) => (
+              <div key={date}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {date}
+                  </div>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="space-y-3 relative">
+                  <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
+                  {events.map((ev, i) => (
+                    <div key={ev.id} className="relative pl-10">
+                      <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
+                      <TimelineCard event={ev} index={i} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Quick Actions Sidebar */}
@@ -208,11 +234,11 @@ export default function Prontuario() {
               Ações Rápidas
             </h3>
             {[
-              { label: "Sinais Vitais", icon: Activity },
-              { label: "Nova Evolução", icon: FilePlus },
-              { label: "Prescrever", icon: Pill },
+              { label: "Sinais Vitais",   icon: Activity },
+              { label: "Nova Evolução",   icon: FilePlus },
+              { label: "Prescrever",      icon: Pill },
               { label: "Solicitar Exame", icon: FlaskConical },
-              { label: "Anexar Arquivo", icon: Paperclip },
+              { label: "Anexar Arquivo",  icon: Paperclip },
             ].map((action) => (
               <button
                 key={action.label}

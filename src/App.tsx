@@ -9,6 +9,7 @@ import Pacientes from "./pages/Pacientes";
 import Prontuario from "./pages/Prontuario";
 import Prontuarios from "./pages/Prontuarios";
 import SinaisVitais from "./pages/SinaisVitais";
+import Evolucoes from "./pages/Evolucoes";
 import Prescricoes from "./pages/Prescricoes";
 import Exames from "./pages/Exames";
 import Relatorios from "./pages/Relatorios";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/prontuarios" element={<Prontuarios />} />
             <Route path="/prontuario/:id" element={<Prontuario />} />
             <Route path="/sinais-vitais" element={<SinaisVitais />} />
+            <Route path="/evolucoes" element={<Evolucoes />} />
             <Route path="/prescricoes" element={<Prescricoes />} />
             <Route path="/exames" element={<Exames />} />
             <Route path="/relatorios" element={<Relatorios />} />

@@ -99,38 +99,68 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
 }
 
 function NovoExameDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: Exam) => void;
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: Exam[]) => void;
 }) {
-  const [form, setForm] = useState({
-    patientId: "", name: "", type: "laboratorial" as Exam["type"], notes: "",
-  });
+  const [patientId, setPatientId] = useState("");
+  const [exams, setExams] = useState<{ id: string; name: string; type: Exam["type"] }[]>(() => [
+    { id: crypto.randomUUID(), name: "", type: "laboratorial" }
+  ]);
+  const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (k: string, v: string) => {
-    setForm((f) => ({ ...f, [k]: v }));
+    if (k === "patientId") setPatientId(v);
+    if (k === "notes") setNotes(v);
     setErrors((e) => ({ ...e, [k]: "" }));
+  };
+
+  const addExam = () => {
+    setExams([...exams, { id: crypto.randomUUID(), name: "", type: "laboratorial" }]);
+  };
+
+  const removeExam = (id: string) => {
+    if (exams.length > 1) {
+      setExams(exams.filter((e) => e.id !== id));
+    }
+  };
+
+  const updateExam = (id: string, field: "name" | "type", value: any) => {
+    setExams(exams.map((e) => e.id === id ? { ...e, [field]: value } : e));
+    setErrors((en) => ({ ...en, exams: "" }));
   };
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.patientId) e.patientId = "Selecione um paciente";
-    if (!form.name.trim()) e.name = "Nome do exame obrigatório";
+    if (!patientId) e.patientId = "Selecione um paciente";
+    
+    const hasEmpty = exams.some(ex => !ex.name.trim());
+    if (hasEmpty) {
+      e.exams = "Todos os exames devem ter um nome";
+    }
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = () => {
     if (!validate()) return;
-    onSave({
+    
+    const newExams: Exam[] = exams.map(ex => ({
       id: crypto.randomUUID(),
-      patientId: form.patientId,
+      patientId: patientId,
       requestDate: new Date().toISOString(),
-      type: form.type,
-      name: form.name.trim(),
+      type: ex.type,
+      name: ex.name.trim(),
       status: "solicitado",
       professional: "Dr. Usuário Atual — CRM 00000/SP",
-    });
-    setForm({ patientId: "", name: "", type: "laboratorial", notes: "" });
+    }));
+
+    onSave(newExams);
+    
+    // Reset
+    setPatientId("");
+    setExams([{ id: crypto.randomUUID(), name: "", type: "laboratorial" }]);
+    setNotes("");
     setErrors({});
     onOpenChange(false);
   };
@@ -140,41 +170,67 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Solicitar Exame</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Paciente *</label>
-            <select value={form.patientId} onChange={(e) => set("patientId", e.target.value)} className={inp("patientId")}>
+            <select value={patientId} onChange={(e) => set("patientId", e.target.value)} className={inp("patientId")}>
               <option value="">Selecionar paciente...</option>
               {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             {errors.patientId && <p className="text-xs text-destructive mt-1">{errors.patientId}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className="text-xs font-medium text-muted-foreground">Nome do exame *</label>
-              <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp("name")} placeholder="Ex: Hemograma Completo" />
-              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
-            </div>
-            <div className="col-span-2">
-              <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-              <select value={form.type} onChange={(e) => set("type", e.target.value)} className={inp("")}>
-                <option value="laboratorial">Laboratorial</option>
-                <option value="imagem">Imagem</option>
-                <option value="funcional">Funcional</option>
-                <option value="outro">Outro</option>
-              </select>
-            </div>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground font-semibold">Exames *</label>
+            <button
+              onClick={addExam}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+            >
+              <Plus className="h-3 w-3" />
+              Adicionar exame
+            </button>
+          </div>
+
+          {errors.exams && <p className="text-xs text-destructive">{errors.exams}</p>}
+
+          <div className="space-y-3">
+            {exams.map((exam, index) => (
+              <div key={exam.id} className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border relative">
+                {exams.length > 1 && (
+                  <button
+                    onClick={() => removeExam(exam.id)}
+                    className="absolute right-2 top-2 text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Remover exame"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-muted-foreground">Nome do exame</label>
+                  <input value={exam.name} onChange={(e) => updateExam(exam.id, "name", e.target.value)} className={inp("name")} placeholder="Ex: Hemograma Completo" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+                  <select value={exam.type} onChange={(e) => updateExam(exam.id, "type", e.target.value as any)} className={inp("")}>
+                    <option value="laboratorial">Laboratorial</option>
+                    <option value="imagem">Imagem</option>
+                    <option value="funcional">Funcional</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted-foreground">Justificativa / Observações</label>
             <textarea
-              value={form.notes}
+              value={notes}
               onChange={(e) => set("notes", e.target.value)}
               className="w-full px-3 py-2 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               rows={3}
@@ -223,9 +279,9 @@ export default function Exames() {
     return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search) || e.name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const handleSave = (e: Exam) => {
-    setLocalExams((prev) => [e, ...prev]);
-    toast.success("Exame solicitado com sucesso.");
+  const handleSave = (newExams: Exam[]) => {
+    setLocalExams((prev) => [...newExams, ...prev]);
+    toast.success(`${newExams.length} exame(s) solicitado(s) com sucesso.`);
   };
 
   return (

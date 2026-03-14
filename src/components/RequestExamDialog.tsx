@@ -29,6 +29,7 @@ interface RequestExamDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientName?: string;
+  onSave?: (exams: any[]) => void;
 }
 
 const EXAM_TYPES = [

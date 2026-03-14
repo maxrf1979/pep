@@ -114,6 +114,11 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Usuário" : "Criar Novo Usuário"}</DialogTitle>
         </DialogHeader>
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+            <p className="text-xs font-medium text-destructive">Preencha todos os campos obrigatórios (*) para continuar</p>
+          </div>
+        )}
         <div className="space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Nome completo *</label>
@@ -183,7 +188,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
             Cancelar
           </button>
           <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Criar Usuário
+            {isEditing ? "Salvar Alterações" : "Criar Usuário"}
           </button>
         </DialogFooter>
       </DialogContent>

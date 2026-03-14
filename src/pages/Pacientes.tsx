@@ -2,7 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, UserPlus, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients } from "@/lib/mock-data";
+import { patients as initialPatients, Patient } from "@/lib/mock-data";
+import NovoPacienteDialog from "@/components/NovoPacienteDialog";
+import { toast } from "sonner";
 
 const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
 
@@ -10,6 +12,13 @@ export default function Pacientes() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [patientList, setPatientList] = useState<Patient[]>(initialPatients);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleNewPatient = (p: Patient) => {
+    setPatientList((prev) => [p, ...prev]);
+    toast.success(`Paciente ${p.name} cadastrado com sucesso!`);
+  };
 
   const filtered = patients.filter((p) => {
     const matchesQuery =

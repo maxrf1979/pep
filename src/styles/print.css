@@ -2,8 +2,7 @@
 
 @media print {
   /* Hide non-print elements */
-  .no-print,
-  .hidden.print\:block {
+  .no-print {
     display: none !important;
   }
 

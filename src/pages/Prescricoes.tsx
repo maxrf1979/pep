@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { patients, prescriptions, type Prescription, type PrescriptionMedication } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
+import { PrintableDocument } from "@/components/PrintableDocument";
+import { Printer } from "lucide-react";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -16,6 +18,7 @@ const statusConfig = {
 
 function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
   const [expanded, setExpanded] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const navigate = useNavigate();
   const patient = patients.find((p) => p.id === rx.patientId);
   if (!patient) return null;
@@ -77,14 +80,44 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
 
       <div className="mt-3 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{rx.professional}</span>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-xs text-primary font-medium"
-        >
-          {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          {expanded ? "Recolher" : "Ver detalhes"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setIsPrinting(true);
+              setTimeout(() => {
+                window.print();
+                setIsPrinting(false);
+              }, 100);
+            }}
+            className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+          >
+            <Printer className="h-3 w-3" />
+            Imprimir
+          </button>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-xs text-primary font-medium"
+          >
+            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {expanded ? "Recolher" : "Ver detalhes"}
+          </button>
+        </div>
       </div>
+
+      {isPrinting && (
+        <PrintableDocument
+          type="prescription"
+          patient={{
+            name: patient.name,
+            age: patient.age,
+            cpf: patient.cpf || "---",
+            sex: patient.sex,
+          }}
+          items={rx.medications}
+          notes={rx.notes}
+          professionalLabel={rx.professional}
+        />
+      )}
     </motion.div>
   );
 }

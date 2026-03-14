@@ -1,0 +1,180 @@
+/* Print Styles for Reports and Documents */
+
+@media print {
+  /* Hide non-print elements */
+  .no-print,
+  .hidden.print\:block {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 2cm;
+    margin-top: 3cm;
+    margin-bottom: 3cm;
+  }
+
+  /* Body styling */
+  body {
+    background: white;
+    color: black;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+      'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Headers and footers */
+  .print-header {
+    display: block;
+    page-break-after: avoid;
+    margin-bottom: 1.5cm;
+    padding-bottom: 1cm;
+    border-bottom: 2px solid #1B66E8;
+  }
+
+  .print-footer {
+    display: block;
+    page-break-before: avoid;
+    margin-top: 2cm;
+    padding-top: 1cm;
+    border-top: 2px solid #1B66E8;
+    font-size: 0.75rem;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Images and content */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  table th, table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+  }
+
+  table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+  /* Cards and containers */
+  .bg-card,
+  .rounded-lg,
+  .rounded-xl {
+    page-break-inside: avoid;
+    border: 1px solid #ddd;
+  }
+
+  /* Links */
+  a {
+    color: #1B66E8;
+    text-decoration: none;
+  }
+
+  a[href]:after {
+    content: none !important;
+  }
+
+  /* Avoid breaks inside important content */
+  .card,
+  .container,
+  .section {
+    page-break-inside: avoid;
+  }
+
+  /* Colors for print (convert to grayscale safe colors) */
+  .text-primary {
+    color: #333 !important;
+  }
+
+  .text-success {
+    color: #333 !important;
+  }
+
+  .text-warning {
+    color: #666 !important;
+  }
+
+  .bg-primary\/10,
+  .bg-success\/10,
+  .bg-warning\/10 {
+    background-color: #f5f5f5 !important;
+  }
+
+  /* Badge styling for print */
+  .badge-status {
+    border: 1px solid #999;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    display: inline-block;
+    margin: 0.125rem;
+  }
+
+  /* Charts and complex elements */
+  canvas,
+  svg {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure text is black on white */
+  * {
+    background-color: transparent !important;
+  }
+
+  body,
+  body * {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Spacing */
+  .mb-4, .mb-6, .my-4 {
+    margin-bottom: 0.5cm;
+  }
+
+  .mt-4, .mt-6 {
+    margin-top: 0.5cm;
+  }
+
+  /* Footer and header alignment */
+  .print-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+/* Screen only styles */
+@media screen {
+  .print-header,
+  .print-footer {
+    display: none;
+  }
+}

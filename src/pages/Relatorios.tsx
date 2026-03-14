@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  BarChart3, Users, FileText, Pill, FlaskConical, Activity, 
-  TrendingUp, TrendingDown, Printer, Search, Building2
+import {
+  BarChart3, Users, FileText, Pill, FlaskConical, Activity,
+  TrendingUp, TrendingDown, Printer, Search
 } from "lucide-react";
 import { patients, prescriptions, exams, vitalSigns, timelineEvents } from "@/lib/mock-data";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -136,7 +137,9 @@ export default function Relatorios() {
 
       {/* Sessão Oculta para Impressão */}
       {selectedPatient && (
-        <div id="print-section" className="hidden print:block text-black bg-white">
+        <div id="print-section" className="hidden print:block text-black bg-white p-8">
+          <ReportHeader />
+
           <div className="border-b-2 border-primary pb-6 mb-8 flex justify-between items-center text-primary">
             <div>
               <h1 className="text-2xl font-bold">Resumo Clínico do Paciente</h1>
@@ -229,10 +232,7 @@ export default function Relatorios() {
             </div>
           </div>
 
-          <div className="mt-20 pt-10 border-t flex justify-between text-xs opacity-50">
-            <p>Assinatura do Profissional Responsável</p>
-            <p>CRM/COREN: ____________________</p>
-          </div>
+          <ReportFooter />
         </div>
       )}
 

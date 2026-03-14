@@ -22,6 +22,7 @@ import { NovoSinalDialog } from "@/components/NovoSinalDialog";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
+import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -177,6 +178,44 @@ export default function Prontuario() {
 
   return (
     <div className="max-w-5xl space-y-0">
+      <style>{`
+        @media print {
+          body { background: white; color: black; }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          #prontuario-container { page-break-inside: avoid; }
+          .print-header, .print-footer { display: block; }
+          @page { margin: 1.5cm; }
+          body::before {
+            content: "";
+            display: block;
+            height: 2cm;
+            margin-bottom: 1cm;
+          }
+          body::after {
+            content: "";
+            display: block;
+            height: 2cm;
+            margin-top: 1cm;
+          }
+        }
+        @page {
+          margin-top: 3cm;
+          margin-bottom: 3cm;
+          @top-center {
+            content: "Pulse PEP - Sistema de Gerenciamento Eletrônico de Prontuário";
+          }
+          @bottom-center {
+            content: "Data: " string(page-data);
+          }
+        }
+      `}</style>
+
+      {/* Print Header - Hidden on screen, visible on print */}
+      <div className="hidden print:block print-header mb-8">
+        <ReportHeader />
+      </div>
+
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
@@ -328,6 +367,11 @@ export default function Prontuario() {
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />
       <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} />
+
+      {/* Print Footer - Hidden on screen, visible on print */}
+      <div className="hidden print:block print-footer mt-8">
+        <ReportFooter />
+      </div>
     </div>
   );
 }

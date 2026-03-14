@@ -14,6 +14,11 @@ export default function Login() {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
 
+  const clinicData = (() => {
+    const saved = localStorage.getItem("clinicSettings");
+    return saved ? JSON.parse(saved) : { name: "Pulse PEP", logo: null };
+  })();
+
   // Simulation of authentication
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,11 +112,15 @@ export default function Login() {
         {/* Content */}
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
-              <HeartPulse className="h-7 w-7 text-white" />
+            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl overflow-hidden">
+              {clinicData.logo ? (
+                <img src={clinicData.logo} alt="Logo" className="max-h-full max-w-full object-contain p-1.5" />
+              ) : (
+                <HeartPulse className="h-7 w-7 text-white" />
+              )}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Pulse PEP</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">{clinicData.name || "Pulse PEP"}</h1>
               <p className="text-white/70 text-sm font-medium">Prontuário Eletrônico do Paciente</p>
             </div>
           </div>
@@ -166,8 +175,12 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 relative">
         {/* Mobile Logo Only */}
         <div className="absolute top-8 left-8 flex items-center gap-2 md:hidden">
-          <HeartPulse className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Pulse PEP</span>
+          {clinicData.logo ? (
+            <img src={clinicData.logo} alt="Logo" className="h-6 w-6 object-contain" />
+          ) : (
+            <HeartPulse className="h-6 w-6 text-primary" />
+          )}
+          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">{clinicData.name || "Pulse PEP"}</span>
         </div>
 
         <motion.div 

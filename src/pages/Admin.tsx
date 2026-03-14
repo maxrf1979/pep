@@ -511,7 +511,8 @@ export default function Admin() {
             </thead>
             <tbody className="divide-y divide-border">
               {[
-                { feat: "Prontuários", medico: true, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: false },
+                { feat: "Evolução Médica", medico: true, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
+                { feat: "Evolução Enfermagem", medico: false, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: false },
                 { feat: "Prescrições", medico: true, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
                 { feat: "Solicitar Exames", medico: true, enfermeiro: false, tecnico_enfermagem: false, admin: true, recepcao: false },
                 { feat: "Sinais Vitais", medico: true, enfermeiro: true, tecnico_enfermagem: true, admin: true, recepcao: false },

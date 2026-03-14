@@ -79,11 +79,12 @@ export default function AlterarSenha() {
       toast.success("Senha atualizada com sucesso.");
       navigate("/");
     } else {
-      // Caso seja o admin master estático
-      if (session.email === "admin@admin.com") {
+      // Caso sejam os usuários estáticos de simulação
+      const staticEmails = ["admin@admin.com", "medico@medico.com", "enfermeiro@enfermeiro.com", "tecnico@tecnico.com"];
+      if (staticEmails.includes(session.email)) {
          const updatedSession = { ...session, mustChangePassword: false };
          localStorage.setItem("pulse-auth-session", JSON.stringify(updatedSession));
-         toast.success("Senha atualizada (Simulada).");
+         toast.success("Senha atualizada com sucesso.");
          navigate("/");
          return;
       }

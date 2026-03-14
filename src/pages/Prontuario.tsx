@@ -133,7 +133,10 @@ function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: 
 export default function Prontuario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isEnfermeiro, canFilterMedicalEvolution, canFilterNursingEvolution, isAdmin, isMedico, canCreateNursingEvolution } = usePermissions();
+  const { 
+    isEnfermeiro, canFilterMedicalEvolution, canFilterNursingEvolution, isAdmin, isMedico, 
+    canCreateNursingEvolution, canCreateMedicalEvolution, canCreatePrescription, canRequestExam, canCreateVitals 
+  } = usePermissions();
   const { user } = useAuth();
   const [typeFilter, setTypeFilter] = useState("todos");
 
@@ -410,11 +413,11 @@ export default function Prontuario() {
               Ações Rápidas
             </h3>
             {[
-              { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true), visible: true },
-              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true), visible: true },
+              { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true), visible: canCreateVitals() },
+              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true), visible: canCreateMedicalEvolution() },
               { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
-              { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: true },
-              { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: true },
+              { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: canCreatePrescription() },
+              { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: canRequestExam() },
               { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
             ].filter(action => action.visible).map((action) => (
               <button

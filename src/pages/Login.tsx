@@ -51,7 +51,8 @@ export default function Login() {
     const mockUsers = [
       { email: "admin@admin.com", password: "admin123", name: "Dr. Administrador", role: "admin" },
       { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos Médico", role: "medico" },
-      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana Cláudia", role: "enfermeiro" }
+      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana Cláudia", role: "enfermeiro" },
+      { email: "tecnico@tecnico.com", password: "tecnico123", name: "Téc. Pedro Almeida", role: "tecnico_enfermagem" }
     ];
 
     const mockUser = mockUsers.find(u => u.email === email && u.password === password);

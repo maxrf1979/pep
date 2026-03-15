@@ -1,4 +1,4 @@
-﻿import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -163,6 +163,8 @@ export default function Prontuario() {
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
 
+  const patient = getPatient(id || "");
+
   useEffect(() => {
     const saved = localStorage.getItem("pep-timeline");
     if (saved) {
@@ -173,7 +175,14 @@ export default function Prontuario() {
     }
   }, []);
 
-  const patient = getPatient(id || "");
+  useEffect(() => {
+    if (patient) {
+      document.title = `Prontuário: ${patient.name} (${patient.status.toUpperCase()}) | Pulse PEP`;
+    }
+    return () => {
+      document.title = "Pulse PEP Clinic";
+    };
+  }, [patient]);
   
   // Filter and sort patient timeline from local state
   const patientTimeline = localTimeline
@@ -316,7 +325,7 @@ export default function Prontuario() {
                     : "bg-success/10 text-success"
                 }`}
               >
-                {patient.status === "obito" ? "ÓBITO" : patient.status}
+                {patient.status === "obito" ? "ÓBITO" : patient.status.toUpperCase()}
               </span>
             </div>
             <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground flex-wrap">

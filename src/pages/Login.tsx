@@ -140,7 +140,7 @@ export default function Login() {
               transition={{ delay: 0.3 }}
               className="text-4xl lg:text-5xl font-extrabold text-white leading-[1.1]"
             >
-              Tecnologia de ponta para sua <span className="text-emerald-400">gestÃ£o clÃ­nica</span>.
+              Tecnologia de ponta para sua <span className="text-emerald-400">Gestão Clínica</span>.
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -148,7 +148,7 @@ export default function Login() {
               transition={{ delay: 0.4 }}
               className="text-lg text-white/80 leading-relaxed"
             >
-              Sistema seguro para gestÃ£o clÃ­nica e prontuÃ¡rio eletrÃ´nico. Desenvolvido para mÃ©dicos, enfermeiros e gestores hospitalares.
+              Sistema seguro para Gestão Clínica e prontuÃ¡rio eletrÃ´nico. Desenvolvido para mÃ©dicos, enfermeiros e gestores hospitalares.
             </motion.p>
           </div>
         </div>

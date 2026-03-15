@@ -29,7 +29,7 @@ export default function Login() {
 
     if (attempts >= 5) {
       setError("Limite de tentativas excedido. Tente novamente mais tarde.");
-      toast.error("Limite de seguranÃ§a atingido.");
+      toast.error("Limite de segurança atingido.");
       return;
     }
 
@@ -50,9 +50,9 @@ export default function Login() {
     // Suporte para administrador master 
     const mockUsers = [
       { email: "admin@admin.com", password: "admin123", name: "Dr. Administrador", role: "admin" },
-      { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos MÃ©dico", role: "medico" },
-      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana ClÃ¡udia", role: "enfermeiro" },
-      { email: "tecnico@tecnico.com", password: "tecnico123", name: "TÃ©c. Pedro Almeida", role: "tecnico_enfermagem" }
+      { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos Médico", role: "medico" },
+      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana Cláudia", role: "enfermeiro" },
+      { email: "tecnico@tecnico.com", password: "tecnico123", name: "Téc. Pedro Almeida", role: "tecnico_enfermagem" }
     ];
 
     const mockUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -75,7 +75,7 @@ export default function Login() {
 
     if (foundUser && (foundUser.password === password || (!foundUser.password && password === "admin123"))) {
       if (foundUser.status === "inativo") {
-        setError("UsuÃ¡rio inativo. Entre em contato com o suporte.");
+        setError("Usuário inativo. Entre em contato com o suporte.");
         toast.error("Acesso bloqueado.");
         setIsLoading(false);
         return;
@@ -95,8 +95,8 @@ export default function Login() {
       navigate("/");
     } else {
       setAttempts(prev => prev + 1);
-      setError("UsuÃ¡rio ou senha invÃ¡lidos");
-      toast.error("Falha na autenticaÃ§Ã£o");
+      setError("Usuário ou senha inválidos");
+      toast.error("Falha na autenticação");
     }
 
     setIsLoading(false);

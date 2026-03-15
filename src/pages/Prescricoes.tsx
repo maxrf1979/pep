@@ -53,7 +53,7 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right shrink-0 tabular-nums">
-          {new Date(rx.date).toLocaleDateString("pt-BR")}
+          {new Date(rx.date || rx.created_at).toLocaleDateString("pt-BR")}
         </div>
       </div>
 

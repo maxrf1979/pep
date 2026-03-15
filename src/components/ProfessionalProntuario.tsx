@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { type Patient, type VitalSign, type Prescription, type Exam, type TimelineEvent, patients, vitalSigns, prescriptions, exams, timelineEvents } from "@/lib/mock-data";
+import { type Patient, type VitalSign, type Prescription, type ExamRequest, type TimelineEvent, patients, vitalSigns, prescriptions, examRequests, timelineEvents } from "@/lib/mock-data";
 
 interface ProfessionalProntuarioProps {
   patientId: string;
@@ -49,7 +49,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
     const local = saved ? JSON.parse(saved) : [];
     return [...local, ...vitalSigns]
       .filter((v) => v.patientId === patientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
   // Carregamento e combinação de prescrições
@@ -58,16 +58,16 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
     const local = saved ? JSON.parse(saved) : [];
     return [...local, ...prescriptions]
       .filter((p) => p.patientId === patientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
   // Carregamento e combinação de exames
-  const combinedExams: Exam[] = (() => {
+  const combinedExams: ExamRequest[] = (() => {
     const saved = localStorage.getItem("localExams");
     const local = saved ? JSON.parse(saved) : [];
-    return [...local, ...exams]
+    return [...local, ...examRequests]
       .filter((e) => e.patientId === patientId)
-      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
   // Carregamento da timeline
@@ -79,6 +79,14 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
       .filter((ev) => ev.patientId === patientId)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   })();
+
+  // Agrupar prescrições por data de criação para exibição em blocos
+  const groupedPrescriptions = combinedPrescriptions.reduce<Record<string, Prescription[]>>((acc, px) => {
+    const key = px.created_at;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(px);
+    return acc;
+  }, {});
 
   // Extrair evoluções clínicas
   const clinicalEvolutions = combinedTimeline.filter((e) =>
@@ -394,7 +402,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                 {clinicData.logo ? (
                   <img src={clinicData.logo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 ) : (
-                  "ðŸ¥"
+                  "🩺"
                 )}
               </div>
               <div className="clinic-info">
@@ -477,7 +485,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
 
           {patient.allergies.length > 0 && (
             <div className="alert-box">
-              âš ï¸ ALERGIAS CONHECIDAS: {patient.allergies.join(", ")}
+              ⚠️ ALERGIAS CONHECIDAS: {patient.allergies.join(", ")}
             </div>
           )}
 
@@ -555,7 +563,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                   <th className="text-center">FC (bpm)</th>
                   <th className="text-center">PA (mmHg)</th>
                   <th className="text-center">FR (ipm)</th>
-                  <th className="text-center">SpOâ‚‚ (%)</th>
+                  <th className="text-center">SpO₂ (%)</th>
                   <th className="text-center">Peso (kg)</th>
                   <th className="text-center">Altura (cm)</th>
                   <th className="text-center">IMC</th>
@@ -566,17 +574,17 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                 {combinedVitals.map((v) => (
                   <tr key={v.id}>
                     <td className="font-mono">
-                      {new Date(v.date).toLocaleDateString("pt-BR")} {new Date(v.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(v.created_at).toLocaleDateString("pt-BR")} {new Date(v.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                     </td>
-                    <td className="text-center">{v.temperature.toFixed(1)}</td>
-                    <td className="text-center">{v.heartRate}</td>
-                    <td className="text-center">{v.bloodPressureSys}/{v.bloodPressureDia}</td>
-                    <td className="text-center">{v.respiratoryRate}</td>
-                    <td className="text-center">{v.oxygenSaturation}</td>
+                    <td className="text-center">{v.temperature ? v.temperature.toFixed(1) : "---"}</td>
+                    <td className="text-center">{v.heartRate || "---"}</td>
+                    <td className="text-center">{v.bloodPressure || "---"}</td>
+                    <td className="text-center">{v.respiratoryRate || "---"}</td>
+                    <td className="text-center">{v.oxygenSaturation || "---"}</td>
                     <td className="text-center">{v.weight ? v.weight.toFixed(1) : "---"}</td>
                     <td className="text-center">{v.height ? v.height : "---"}</td>
-                    <td className="text-center">{v.bmi ? v.bmi.toFixed(1) : getImc(v.weight, v.height)}</td>
-                    <td>{v.professional}</td>
+                    <td className="text-center">{getImc(v.weight, v.height)}</td>
+                    <td>Equipe</td>
                   </tr>
                 ))}
               </tbody>
@@ -602,7 +610,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
           </div>
 
           <div className="section">
-            <div className="section-title">4. EVOLUÇÃO CLÍNICA</div>
+            <div className="section-title">4. EVOLUÇÃO CLÍNICA</div>
             {clinicalEvolutions.map((ev) => (
               <div key={ev.id} className="evolution-block">
                 <div className="evolution-header">
@@ -637,37 +645,30 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
 
           <div className="section">
             <div className="section-title">5. PRESCRIÇÕES MÉDICAS</div>
-            {combinedPrescriptions.map((px) => (
-              <div key={px.id} style={{ marginBottom: "1.5rem", pageBreakInside: "avoid" }}>
+            {Object.entries(groupedPrescriptions).map(([dateKey, pxs]) => (
+              <div key={dateKey} style={{ marginBottom: "1.5rem", pageBreakInside: "avoid" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: 600, marginBottom: "0.5rem" }}>
-                  <span>Data: {new Date(px.date).toLocaleDateString("pt-BR")}</span>
-                  <span>Profissional: {px.professional}</span>
+                  <span>Data: {new Date(dateKey).toLocaleDateString("pt-BR")}</span>
+                  <span>Profissional: Dr. Responsável</span>
                 </div>
                 <table>
                   <thead>
                     <tr>
                       <th>Medicamento</th>
                       <th className="text-center">Dosagem</th>
-                      <th className="text-center">Via</th>
-                      <th className="text-center">Frequência</th>
-                      <th className="text-center">Duração</th>
-                      <th>Observações</th>
+                      <th>Instruções</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {px.medications.map((m, i) => (
-                      <tr key={i}>
-                        <td><strong>{m.name}</strong></td>
-                        <td className="text-center">{m.dose}</td>
-                        <td className="text-center">{m.route}</td>
-                        <td className="text-center">{m.frequency}</td>
-                        <td className="text-center">{m.duration}</td>
-                        <td>{m.observation || "---"}</td>
+                    {pxs.map((px) => (
+                      <tr key={px.id}>
+                        <td><strong>{px.medication}</strong></td>
+                        <td className="text-center">{px.dosage}</td>
+                        <td>{px.instructions || "---"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {px.notes && <div style={{ fontSize: "9px", color: "#666", marginTop: "0.4rem", fontStyle: "italic" }}>Observações: {px.notes}</div>}
               </div>
             ))}
           </div>
@@ -705,11 +706,11 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
               <tbody>
                 {combinedExams.map((e) => (
                   <tr key={e.id}>
-                    <td className="font-mono">{new Date(e.requestDate).toLocaleDateString("pt-BR")}</td>
-                    <td><strong>{e.name}</strong></td>
-                    <td className="text-center">{e.status}</td>
-                    <td>{e.notes || "---"}</td>
-                    <td>{e.professional}</td>
+                    <td className="font-mono">{new Date(e.created_at).toLocaleDateString("pt-BR")}</td>
+                    <td><strong>{e.examName}</strong></td>
+                    <td className="text-center">Solicitado</td>
+                    <td>{e.observations || "---"}</td>
+                    <td>Dr. Responsável</td>
                   </tr>
                 ))}
               </tbody>

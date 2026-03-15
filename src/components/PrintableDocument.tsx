@@ -1,4 +1,4 @@
-﻿import { Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { createPortal } from "react-dom";
 
 interface PrintableDocumentProps {
@@ -24,182 +24,167 @@ export function PrintableDocument({
   documentId = crypto.randomUUID(),
 }: PrintableDocumentProps) {
   const clinicData = (() => {
-    // ...
     const saved = localStorage.getItem("clinicSettings");
     return saved
       ? JSON.parse(saved)
       : {
-          name: "Aurea Dental",
+          name: "Pulse PEP Clinic",
           cnpj: "12.345.678/0001-90",
           phone: "(11) 3456-7890",
-          email: "contato@aureadental.com.br",
+          email: "contato@pulsepep.com.br",
           address: "Av. Paulista, 1000 - São Paulo, SP",
-          primaryColor: "#10B981",
+          primaryColor: "#1B66E8",
           logo: null,
         };
   })();
 
   const qrCodeData = `https://pulsepep.com/verify?id=${documentId}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
-    qrCodeData
-  )}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrCodeData)}`;
+  const now = new Date();
 
   return createPortal(
-    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content">
+    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content" style={{ padding: "2cm", fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "10pt", color: "#000" }}>
       {/* Header */}
-      <div
-        className="print-header flex justify-between items-start pb-4 mb-6 border-b-2"
-        style={{ borderBottomColor: clinicData.primaryColor }}
-      >
-        <div className="flex items-center gap-3">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: "12px", marginBottom: "20px", borderBottom: `3px solid ${clinicData.primaryColor}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {clinicData.logo ? (
-            <img
-              src={clinicData.logo}
-              alt={clinicData.name}
-              className="h-12 w-12 object-contain rounded-lg"
-            />
+            <img src={clinicData.logo} alt={clinicData.name} style={{ height: "48px", width: "48px", objectFit: "contain", borderRadius: "8px" }} />
           ) : (
-            <div
-              className="flex items-center justify-center h-12 w-12 rounded-lg text-white"
-              style={{ backgroundColor: clinicData.primaryColor }}
-            >
-              <Heart className="h-6 w-6" strokeWidth={2} fill="currentColor" />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "48px", width: "48px", borderRadius: "8px", backgroundColor: clinicData.primaryColor, color: "white" }}>
+              <Heart style={{ height: "24px", width: "24px" }} strokeWidth={2} fill="currentColor" />
             </div>
           )}
           <div>
-            <h1
-              className="text-xl font-bold"
-              style={{ color: clinicData.primaryColor }}
-            >
-              {clinicData.name}
-            </h1>
-            <p className="text-xs text-gray-600">CNPJ: {clinicData.cnpj}</p>
+            <h1 style={{ fontSize: "16pt", fontWeight: 700, color: clinicData.primaryColor, margin: 0 }}>{clinicData.name}</h1>
+            <p style={{ fontSize: "8pt", color: "#666", margin: "2px 0 0" }}>CNPJ: {clinicData.cnpj}</p>
           </div>
         </div>
-        <div className="text-right text-xs text-gray-600">
-          <p className="font-medium text-black">{clinicData.phone}</p>
-          <p>{clinicData.email}</p>
+        <div style={{ textAlign: "right", fontSize: "8pt", color: "#666", lineHeight: 1.8 }}>
+          <p style={{ fontWeight: 600, color: "#000", margin: 0 }}>{clinicData.phone}</p>
+          <p style={{ margin: 0 }}>{clinicData.email}</p>
+          <p style={{ margin: 0 }}>{clinicData.address}</p>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex-1">
-        <div className="text-center mb-6">
-          <h2 className="text-lg font-bold uppercase tracking-wider">
-            {type === "prescription" ? "Receituário Médico" : "Solicitação de Exame"}
-          </h2>
-        </div>
+      {/* Title */}
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <h2 style={{ fontSize: "14pt", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>
+          {type === "prescription" ? "Receituário Médico" : "Solicitação de Exame"}
+        </h2>
+        <p style={{ fontSize: "8pt", color: "#999", marginTop: "4px" }}>
+          Documento Nº {documentId.slice(0, 8).toUpperCase()}
+        </p>
+      </div>
 
-        {/* Patient Info */}
-        <div className="bg-gray-50 p-3 rounded-md border mb-6 text-sm">
-          <p>
-            <strong>Paciente:</strong> {patient.name}
-          </p>
-          <p>
-            <strong>CPF:</strong> {patient.cpf || "---"} | <strong>Idade:</strong>{" "}
-            {patient.age} anos | <strong>Sexo:</strong> {patient.sex === "M" ? "Masc." : "Fem."}
-          </p>
-          <p>
-            <strong>Data do Documento:</strong> {new Date().toLocaleDateString("pt-BR")}
-          </p>
-        </div>
+      {/* Patient Info */}
+      <div style={{ background: "#fafafa", padding: "12px", borderRadius: "4px", border: "1px solid #ddd", marginBottom: "24px", fontSize: "10pt" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", border: "none" }}>
+          <tbody>
+            <tr>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 600, color: "#555", width: "120px" }}>Paciente:</td>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 500 }}>{patient.name}</td>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 600, color: "#555", width: "80px" }}>Idade:</td>
+              <td style={{ border: "none", padding: "3px 0" }}>{patient.age} anos</td>
+            </tr>
+            <tr>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 600, color: "#555" }}>CPF:</td>
+              <td style={{ border: "none", padding: "3px 0", fontFamily: "monospace" }}>{patient.cpf || "---"}</td>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 600, color: "#555" }}>Sexo:</td>
+              <td style={{ border: "none", padding: "3px 0" }}>{patient.sex === "M" ? "Masculino" : "Feminino"}</td>
+            </tr>
+            <tr>
+              <td style={{ border: "none", padding: "3px 0", fontWeight: 600, color: "#555" }}>Data:</td>
+              <td colSpan={3} style={{ border: "none", padding: "3px 0" }}>{now.toLocaleDateString("pt-BR")} às {now.toLocaleTimeString("pt-BR")}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        {/* Items */}
-        <div className="mb-6">
-          <h3 className="text-sm font-bold border-b pb-1 mb-2">
-            {type === "prescription" ? "Medicamentos" : "Exames Solicitados"}
-          </h3>
+      {/* Items */}
+      <div style={{ marginBottom: "24px" }}>
+        <h3 style={{ fontSize: "11pt", fontWeight: 700, borderBottom: "2px solid #000", paddingBottom: "4px", marginBottom: "12px" }}>
+          {type === "prescription" ? "Medicamentos Prescritos" : "Exames Solicitados"}
+        </h3>
 
-          {type === "prescription" ? (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-2">Medicamento</th>
-                  <th className="p-2">Dose</th>
-                  <th className="p-2">Via</th>
-                  <th className="p-2">Frequência</th>
-                  <th className="p-2">Duração</th>
+        {type === "prescription" ? (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f0f0f0" }}>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Medicamento</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Dose</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Via</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Frequência</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Duração</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((med, i) => (
+                <tr key={i}>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px", fontWeight: 500 }}>{med.name}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px" }}>{med.dose}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px" }}>{med.route}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px" }}>{med.frequency}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px" }}>{med.duration || "---"}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {items.map((med, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="p-2 font-medium">{med.name}</td>
-                    <td className="p-2">{med.dose}</td>
-                    <td className="p-2">{med.route}</td>
-                    <td className="p-2">{med.frequency}</td>
-                    <td className="p-2">{med.duration || "---"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-2">Nome do Exame</th>
-                  <th className="p-2">Tipo</th>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f0f0f0" }}>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Nome do Exame</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px", textAlign: "left", fontSize: "9pt", fontWeight: 700 }}>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((exam, i) => (
+                <tr key={i}>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px", fontWeight: 500 }}>{exam.name}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "6px 8px", textTransform: "capitalize" }}>{exam.type}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {items.map((exam, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="p-2 font-medium">{exam.name}</td>
-                    <td className="p-2 capitalize">{exam.type}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Notes */}
-        {notes && (
-          <div className="mb-6 text-sm">
-            <h3 className="font-bold border-b pb-1 mb-1">
-              {type === "prescription" ? "Observações / Recomendações" : "Justificativa / Indicação Clínica"}
-            </h3>
-            <p className="whitespace-pre-wrap text-gray-700">{notes}</p>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {/* Signature and verification */}
-      <div className="mt-12 pt-8 flex justify-between items-end border-t border-gray-200">
+      {/* Notes */}
+      {notes && (
+        <div style={{ marginBottom: "24px" }}>
+          <h3 style={{ fontSize: "10pt", fontWeight: 700, borderBottom: "1px solid #ccc", paddingBottom: "4px", marginBottom: "8px" }}>
+            {type === "prescription" ? "Observações / Recomendações" : "Justificativa / Indicação Clínica"}
+          </h3>
+          <p style={{ whiteSpace: "pre-wrap", color: "#333", fontSize: "10pt", lineHeight: 1.6 }}>{notes}</p>
+        </div>
+      )}
+
+      {/* Signature and QR */}
+      <div style={{ marginTop: "60px", paddingTop: "24px", borderTop: "1px solid #ddd", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
         <div>
-          <p className="font-medium text-black">Profissional Responsável</p>
-          <div className="mt-8 pt-2 w-48 text-center border-t border-black">
-            <p className="font-semibold text-xs">{professionalLabel}</p>
-            <p className="text-[10px] text-gray-500">Assinatura Eletrônica</p>
+          <p style={{ fontWeight: 600, fontSize: "10pt", marginBottom: "48px" }}>Profissional Responsável</p>
+          <div style={{ width: "200px", textAlign: "center", borderTop: "1px solid #000", paddingTop: "8px" }}>
+            <p style={{ fontWeight: 600, fontSize: "9pt", margin: 0 }}>{professionalLabel}</p>
+            <p style={{ fontSize: "7pt", color: "#999", margin: "2px 0 0" }}>Assinatura e Carimbo</p>
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <img
-            src={qrCodeUrl}
-            alt="Código de Verificação"
-            className="h-20 w-20 object-contain"
-          />
-          <span className="text-[8px] text-gray-500 text-center">
-            Escaneie para verificar<br />a veracidade
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <img src={qrCodeUrl} alt="QR Verificação" style={{ height: "72px", width: "72px", objectFit: "contain" }} />
+          <span style={{ fontSize: "7pt", color: "#999", textAlign: "center" }}>
+            Escaneie para verificar<br />a autenticidade
           </span>
         </div>
       </div>
 
-      {/* Footer (Address) */}
-      <div
-        className="print-footer mt-8 pt-4 text-center text-xs text-gray-600 border-t"
-        style={{ borderTopColor: clinicData.primaryColor }}
-      >
-        <p className="font-medium">{clinicData.address}</p>
-        <p className="text-[10px] text-gray-500 mt-1">
-          Documento gerado eletronicamente por Pulse PEP Clinic em{" "}
-          {new Date().toLocaleDateString("pt-BR")} às{" "}
-          {new Date().toLocaleTimeString("pt-BR")}
+      {/* Footer */}
+      <div style={{ marginTop: "24px", paddingTop: "12px", borderTop: `2px solid ${clinicData.primaryColor}`, textAlign: "center" }}>
+        <p style={{ fontWeight: 500, fontSize: "8pt", color: "#666", margin: 0 }}>{clinicData.address}</p>
+        <p style={{ fontSize: "7pt", color: "#999", marginTop: "4px" }}>
+          Documento gerado eletronicamente por Pulse PEP Clinic em {now.toLocaleDateString("pt-BR")} às {now.toLocaleTimeString("pt-BR")}
         </p>
       </div>
     </div>,
     document.body
   );
 }
-

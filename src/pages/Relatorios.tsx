@@ -109,8 +109,14 @@ export default function Relatorios() {
         @media print {
           body * { visibility: hidden; }
           #print-section, #print-section * { visibility: visible; }
-          #print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          #print-section {
+            position: absolute; left: 0; top: 0; width: 100%;
+            padding: 2cm;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           .no-print { display: none !important; }
+          @page { size: A4; margin: 1.5cm 2cm; }
         }
       `}</style>
 
@@ -170,93 +176,87 @@ export default function Relatorios() {
 
       {/* Sessão Oculta para Impressão */}
       {selectedPatient && (
-        <div id="print-section" className="hidden print:block text-black bg-white p-8">
+        <div id="print-section" className="hidden print:block" style={{ color: "#000", background: "white", fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "10pt" }}>
           <ReportHeader />
 
-          <div className="border-b-2 border-primary pb-6 mb-8 flex justify-between items-center text-primary">
-            <div>
-              <h1 className="text-2xl font-bold">Resumo Clínico do Paciente</h1>
-              <p className="text-sm opacity-80">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
-            </div>
+          <div style={{ borderBottom: "2px solid #1B66E8", paddingBottom: "16px", marginBottom: "24px" }}>
+            <h1 style={{ fontSize: "18pt", fontWeight: 700, margin: 0 }}>Resumo Clínico do Paciente</h1>
+            <p style={{ fontSize: "9pt", color: "#666", marginTop: "4px" }}>Gerado em: {new Date().toLocaleString('pt-BR')}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold border-b border-muted pb-2">Informações Pessoais</h2>
-              <p><strong>Nome:</strong> {selectedPatient.name}</p>
-              <p><strong>Idade/Gênero:</strong> {selectedPatient.age} anos, {selectedPatient.sex === 'M' ? 'Masculino' : 'Feminino'}</p>
-              <p><strong>Status:</strong> {selectedPatient.status.toUpperCase()}</p>
-              <p><strong>Última Visita:</strong> {selectedPatient.lastVisit}</p>
-              <p><strong>CPF:</strong> {selectedPatient.cpf}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+            <div>
+              <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", marginBottom: "12px" }}>Informações Pessoais</h2>
+              <p style={{ margin: "4px 0" }}><strong>Nome:</strong> {selectedPatient.name}</p>
+              <p style={{ margin: "4px 0" }}><strong>Idade/Gênero:</strong> {selectedPatient.age} anos, {selectedPatient.sex === 'M' ? 'Masculino' : 'Feminino'}</p>
+              <p style={{ margin: "4px 0" }}><strong>Status:</strong> {selectedPatient.status.toUpperCase()}</p>
+              <p style={{ margin: "4px 0" }}><strong>Última Visita:</strong> {selectedPatient.lastVisit}</p>
+              <p style={{ margin: "4px 0" }}><strong>CPF:</strong> {selectedPatient.cpf}</p>
             </div>
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold border-b border-muted pb-2">Alergias</h2>
-              <p className="text-destructive font-medium">
+            <div>
+              <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", marginBottom: "12px" }}>Alergias</h2>
+              <p style={{ color: "#cc0000", fontWeight: 500, margin: "4px 0" }}>
                 {selectedPatient.allergies.join(", ") || "Nenhuma alergia registrada"}
               </p>
-              <h2 className="text-lg font-bold border-b border-muted pb-2 mt-4">Diagnóstico Recente</h2>
-              <p>
+              <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", margin: "16px 0 12px" }}>Diagnóstico Recente</h2>
+              <p style={{ margin: "4px 0" }}>
                 {timelineEvents.find(e => e.patientId === selectedPatient.id && e.type === 'evolucao_medica')?.summary || "Sem diagnóstico registrado recentemente."}
               </p>
             </div>
           </div>
 
-          <div className="space-y-8">
+          {/* Prescriptions */}
+          <div style={{ marginBottom: "24px" }}>
+            <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", marginBottom: "12px" }}>Prescrições Ativas</h2>
+            {prescriptions.filter(r => r.patientId === selectedPatient.id).length > 0 ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "9pt" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f0f0f0" }}>
+                    <th style={{ border: "1px solid #ccc", padding: "6px 8px", textAlign: "left", fontWeight: 700 }}>Medicamento</th>
+                    <th style={{ border: "1px solid #ccc", padding: "6px 8px", textAlign: "left", fontWeight: 700 }}>Dosagem</th>
+                    <th style={{ border: "1px solid #ccc", padding: "6px 8px", textAlign: "left", fontWeight: 700 }}>Instruções</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prescriptions.filter(r => r.patientId === selectedPatient.id).map((rx, idx) => (
+                    <tr key={idx}>
+                      <td style={{ border: "1px solid #ddd", padding: "5px 8px", fontWeight: 500 }}>{rx.medication}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "5px 8px" }}>{rx.dosage}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "5px 8px" }}>{rx.instructions || "---"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p style={{ fontSize: "9pt", fontStyle: "italic", color: "#999" }}>Nenhuma prescrição registrada.</p>
+            )}
+          </div>
+
+          {/* Vitals + Exams */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
             <div>
-              <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Prescrições Ativas</h2>
-              {prescriptions.filter(r => r.patientId === selectedPatient.id).length > 0 ? (
-                <div className="p-4 border rounded-lg bg-slate-50">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left border-b">
-                        <th className="pb-2">Medicamento</th>
-                        <th className="pb-2">Dosagem</th>
-                        <th className="pb-2">Instruções</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {prescriptions.filter(r => r.patientId === selectedPatient.id).map((rx, idx) => (
-                        <tr key={idx} className="border-b last:border-0">
-                          <td className="py-2 font-medium">{rx.medication}</td>
-                          <td className="py-2">{rx.dosage}</td>
-                          <td className="py-2">{rx.instructions || "---"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", marginBottom: "12px" }}>Últimos Sinais Vitais</h2>
+              {vitalSigns.filter(v => v.patientId === selectedPatient.id).slice(0, 3).map(vs => (
+                <div key={vs.id} style={{ marginBottom: "8px", fontSize: "9pt", display: "flex", justifyContent: "space-between", borderBottom: "1px solid #eee", paddingBottom: "6px" }}>
+                  <span style={{ color: "#666" }}>{new Date(vs.created_at).toLocaleString('pt-BR')}</span>
+                  <span style={{ fontWeight: 500, textAlign: "right" }}>{vs.temperature}°C | {vs.heartRate}bpm | {vs.bloodPressure}</span>
                 </div>
-              ) : (
-                <p className="text-sm italic text-muted-foreground">Nenhuma prescrição registrada.</p>
+              ))}
+              {vitalSigns.filter(v => v.patientId === selectedPatient.id).length === 0 && (
+                <p style={{ fontSize: "9pt", fontStyle: "italic", color: "#999" }}>Sem registros.</p>
               )}
             </div>
-
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Últimos Sinais Vitais</h2>
-                {vitalSigns.filter(v => v.patientId === selectedPatient.id).slice(0, 3).map(vs => (
-                  <div key={vs.id} className="mb-2 text-sm grid grid-cols-2 gap-x-4 border-b pb-2 last:border-0">
-                    <span className="text-muted-foreground">{new Date(vs.created_at).toLocaleString('pt-BR')}</span>
-                    <span className="font-medium text-right">{vs.temperature}°C | {vs.heartRate}bpm | {vs.bloodPressure}</span>
-                  </div>
-                ))}
-                {vitalSigns.filter(v => v.patientId === selectedPatient.id).length === 0 && (
-                  <p className="text-sm italic text-muted-foreground">Sem registros.</p>
-                )}
-              </div>
-              <div>
-                <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Exames Solicitados</h2>
-                <ul className="space-y-2">
-                  {exams.filter(e => e.patientId === selectedPatient.id).map(ex => (
-                    <li key={ex.id} className="text-sm flex justify-between">
-                      <span>{ex.examName}</span>
-                      <span className="text-xs uppercase px-2 py-0.5 rounded bg-muted">Solicitado</span>
-                    </li>
-                  ))}
-                  {exams.filter(e => e.patientId === selectedPatient.id).length === 0 && (
-                    <p className="text-sm italic text-muted-foreground">Sem exames pendentes.</p>
-                  )}
-                </ul>
-              </div>
+            <div>
+              <h2 style={{ fontSize: "12pt", fontWeight: 700, borderBottom: "1px solid #ddd", paddingBottom: "6px", marginBottom: "12px" }}>Exames Solicitados</h2>
+              {exams.filter(e => e.patientId === selectedPatient.id).map(ex => (
+                <div key={ex.id} style={{ fontSize: "9pt", display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <span>{ex.examName}</span>
+                  <span style={{ fontSize: "8pt", textTransform: "uppercase", padding: "2px 6px", background: "#f0f0f0", borderRadius: "3px" }}>Solicitado</span>
+                </div>
+              ))}
+              {exams.filter(e => e.patientId === selectedPatient.id).length === 0 && (
+                <p style={{ fontSize: "9pt", fontStyle: "italic", color: "#999" }}>Sem exames pendentes.</p>
+              )}
             </div>
           </div>
 

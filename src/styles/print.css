@@ -1,177 +1,200 @@
-/* Print Styles for Reports and Documents */
+/* ====================================
+   Print Styles — Pulse PEP Clinic
+   Global print rules for all documents
+   ==================================== */
 
 @media print {
-  /* Hide non-print elements */
-  .no-print {
+  /* ── Page Setup ── */
+  @page {
+    size: A4;
+    margin: 1.5cm 2cm;
+  }
+
+  /* ── Hide App Chrome ── */
+  .no-print,
+  nav,
+  aside,
+  header,
+  .sidebar,
+  .navigation,
+  [data-sidebar],
+  [role="navigation"],
+  button:not(.print-keep),
+  .tabs-filter,
+  .quick-actions,
+  .back-button,
+  .sticky {
     display: none !important;
   }
 
-  /* Show print-only elements */
-  .print\:block {
+  /* ── Show Print Elements ── */
+  .print\:block,
+  .print-only {
     display: block !important;
   }
 
-  /* Page setup */
-  @page {
-    size: A4;
-    margin: 1.5cm;
+  .print\:hidden {
+    display: none !important;
   }
 
-  /* Body styling */
-  body {
-    background: white;
-    color: black;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-      'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.5;
+  /* ── Body Reset ── */
+  html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    background: white !important;
+    color: #000 !important;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* Headers and footers */
+  /* ── Ensure printable content fills the page ── */
+  .printable-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: white !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+
+  /* ── Print Header / Footer ── */
   .print-header {
-    display: block;
+    display: block !important;
     page-break-after: avoid;
-    margin-bottom: 1.5cm;
-    padding-bottom: 1cm;
-    border-bottom: 2px solid #1B66E8;
+    margin-bottom: 1rem;
   }
 
   .print-footer {
-    display: block;
+    display: block !important;
     page-break-before: avoid;
-    margin-top: 2cm;
-    padding-top: 1cm;
-    border-top: 2px solid #1B66E8;
-    font-size: 0.75rem;
+    margin-top: 1.5rem;
   }
 
-  /* Typography */
+  /* ── Typography ── */
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
     page-break-inside: avoid;
+    color: #000 !important;
   }
 
-  /* Images and content */
+  p, span, div {
+    color: #000;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: auto;
+    font-size: 9pt;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  table th {
+    background-color: #f0f0f0 !important;
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 8pt;
+    color: #000 !important;
+  }
+
+  table td {
+    border: 1px solid #ddd;
+    padding: 5px 8px;
+    font-size: 9pt;
+    color: #000 !important;
+  }
+
+  /* ── Images ── */
   img {
     max-width: 100%;
     page-break-inside: avoid;
   }
 
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    page-break-inside: avoid;
-  }
-
-  table th, table td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-  }
-
-  table th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-  }
-
-  /* Cards and containers */
-  .bg-card,
-  .rounded-lg,
-  .rounded-xl {
-    page-break-inside: avoid;
-    border: 1px solid #ddd;
-  }
-
-  /* Links */
+  /* ── Links ── */
   a {
-    color: #1B66E8;
-    text-decoration: none;
+    color: #000 !important;
+    text-decoration: none !important;
   }
 
-  a[href]:after {
-    content: none !important;
-  }
+  /* ── Page Break Helpers ── */
+  .page-break-before { page-break-before: always; }
+  .page-break-after { page-break-after: always; }
+  .page-break-avoid { page-break-inside: avoid; }
 
-  /* Avoid breaks inside important content */
+  .section-block,
   .card,
   .container,
   .section {
     page-break-inside: avoid;
   }
 
-  /* Colors for print (convert to grayscale safe colors) */
-  .text-primary {
-    color: #333 !important;
+  /* ── Preserve specific backgrounds for print ── */
+  .bg-gray-50,
+  .bg-gray-100,
+  [class*="bg-slate-50"] {
+    background-color: #fafafa !important;
   }
 
-  .text-success {
-    color: #333 !important;
+  .bg-destructive\/5,
+  .bg-red-50 {
+    background-color: #fef2f2 !important;
   }
 
-  .text-warning {
-    color: #666 !important;
+  /* ── QR Code ── */
+  .qr-code-print {
+    page-break-inside: avoid;
   }
 
-  .bg-primary\/10,
-  .bg-success\/10,
-  .bg-warning\/10 {
-    background-color: #f5f5f5 !important;
-  }
-
-  /* Badge styling for print */
+  /* ── Badge Status ── */
   .badge-status {
     border: 1px solid #999;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+    padding: 2px 6px;
+    border-radius: 3px;
     display: inline-block;
-    margin: 0.125rem;
+    font-size: 8pt;
   }
 
-  /* Charts and complex elements */
-  canvas,
+  /* ── Charts/SVG (hide in print, they don't render well) ── */
+  canvas {
+    display: none !important;
+  }
+
   svg {
     page-break-inside: avoid;
   }
 
-  /* Ensure text is black on white */
-  * {
-    background-color: transparent !important;
-  }
-
-  body,
-  body * {
-    background-color: white !important;
-    color: black !important;
-  }
-
-  /* Spacing */
-  .mb-4, .mb-6, .my-4 {
-    margin-bottom: 0.5cm;
-  }
-
-  .mt-4, .mt-6 {
-    margin-top: 0.5cm;
-  }
-
-  /* Footer and header alignment */
-  .print-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .print-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+  /* ── Pre/Code blocks ── */
+  pre {
+    page-break-inside: avoid;
+    background: #f5f5f5 !important;
+    padding: 8px;
+    border: 1px solid #ddd;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 }
 
-/* Screen only styles */
+/* ── Screen-only: hide print elements ── */
 @media screen {
   .print-header,
-  .print-footer {
+  .print-footer,
+  .print-only {
     display: none;
   }
 }

@@ -1,4 +1,4 @@
-﻿import { createPortal } from "react-dom";
+import { createPortal } from "react-dom";
 import { type Patient, type VitalSign, type Prescription, type Exam, type TimelineEvent, patients, vitalSigns, prescriptions, exams, timelineEvents } from "@/lib/mock-data";
 
 interface ProfessionalProntuarioProps {
@@ -384,7 +384,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         }
       `}</style>
 
-      {/* PÍGINA 1 - CABEÇALHO E IDENTIFICAÇÍO */}
+      {/* PÍGINA 1 - CABEÇALHO E IDENTIFICAÇÃO */}
       <div className="page">
         {/* Cabeçalho Institucional */}
         <div className="document-header">
@@ -418,7 +418,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
 
         {/* Seção 1: Identificação do Paciente */}
         <div className="section">
-          <div className="section-title">1. IDENTIFICAÇÍO DO PACIENTE</div>
+          <div className="section-title">1. IDENTIFICAÇÃO DO PACIENTE</div>
 
           <div className="info-grid">
             <div className="info-item">
@@ -585,7 +585,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÍGINA 3+ - EVOLUÇÕES CLÍNICAS */}
+      {/* PÍGINA 3+ - EVOLUÇÕES CLÍNICAS */}
       {clinicalEvolutions.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -602,11 +602,11 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
           </div>
 
           <div className="section">
-            <div className="section-title">4. EVOLUÇÍO CLÍNICA</div>
+            <div className="section-title">4. EVOLUÇÃO CLÍNICA</div>
             {clinicalEvolutions.map((ev) => (
               <div key={ev.id} className="evolution-block">
                 <div className="evolution-header">
-                  <span className="evolution-type">{ev.type === "evolucao_medica" ? "EVOLUÇÍO MÉDICA" : "EVOLUÇÍO DE ENFERMAGEM"}</span>
+                  <span className="evolution-type">{ev.type === "evolucao_medica" ? "EVOLUÇÃO MÉDICA" : "EVOLUÇÃO DE ENFERMAGEM"}</span>
                   <span className="evolution-date">
                     {new Date(ev.date).toLocaleDateString("pt-BR")} às {new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                   </span>
@@ -734,7 +734,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
 
         <div className="section" style={{ marginTop: "2rem" }}>
-          <div className="section-title">7. RESPONSÍVEIS E ASSINATURAS</div>
+          <div className="section-title">7. RESPONSÁVEIS E ASSINATURAS</div>
 
           <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
             <div style={{ textAlign: "center" }}>

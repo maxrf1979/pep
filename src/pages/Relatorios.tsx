@@ -71,7 +71,7 @@ export default function Relatorios() {
       return ed.getMonth() === month && ed.getFullYear() === year;
     }).length;
     
-    return { mes: monthNames[month], atendimentos: count };
+    return { mes: `${monthNames[month]} ${year}`, atendimentos: count };
   });
 
   const examTypeData = [

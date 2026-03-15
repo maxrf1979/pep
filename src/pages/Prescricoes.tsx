@@ -72,9 +72,9 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
         )}
       </div>
 
-      {rx.notes && expanded && (
+      {(rx.notes || rx.instructions) && expanded && (
         <div className="mt-3 px-3 py-2 rounded-md bg-warning/5 border border-warning/20 text-xs text-muted-foreground">
-          <span className="font-medium text-warning">Observações:</span> {rx.notes}
+          <span className="font-medium text-warning">Observações:</span> {rx.notes || rx.instructions}
         </div>
       )}
 

@@ -292,7 +292,7 @@ export default function Prontuarios() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date || v.created_at, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional || "" }, v); }} />
       <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} onSave={(items: Prescription[]) => { const p = items[0]; if (p) onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.created_at, title: "Prescrição Médica", summary: p.medication, professional: p.doctorId }, p); }} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} type="evolucao_medica" onSave={onSaveEvent} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} type="evolucao_enfermagem" onSave={onSaveEvent} />

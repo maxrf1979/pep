@@ -1,5 +1,5 @@
-﻿import { createPortal } from "react-dom";
-import { type Patient, type VitalSign, type Prescription, type Exam, type TimelineEvent, patients, vitalSigns, prescriptions, exams, timelineEvents } from "@/lib/mock-data";
+import { createPortal } from "react-dom";
+import { type Patient, type VitalSign, type Prescription, type ExamRequest, type TimelineEvent, patients, vitalSigns, prescriptions, examRequests, timelineEvents } from "@/lib/mock-data";
 
 interface PrintableProntuarioProps {
   patientId: string;
@@ -33,7 +33,7 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
     const local = saved ? JSON.parse(saved) : [];
     return [...local, ...vitalSigns]
       .filter((v) => v.patientId === patientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
   const combinedPrescriptions: Prescription[] = (() => {
@@ -41,15 +41,15 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
     const local = saved ? JSON.parse(saved) : [];
     return [...local, ...prescriptions]
       .filter((p) => p.patientId === patientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
-  const combinedExams: Exam[] = (() => {
+  const combinedExams: ExamRequest[] = (() => {
     const saved = localStorage.getItem("localExams");
     const local = saved ? JSON.parse(saved) : [];
-    return [...local, ...exams]
+    return [...local, ...examRequests]
       .filter((e) => e.patientId === patientId)
-      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   })();
 
   const combinedTimeline: TimelineEvent[] = (() => {
@@ -122,20 +122,18 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
                 <th className="text-center py-1">FR (ipm)</th>
                 <th className="text-center py-1">SpO2</th>
                 <th className="text-center py-1">Peso (kg)</th>
-                <th className="text-center py-1">IMC</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {combinedVitals.map((v) => (
                 <tr key={v.id}>
-                  <td className="py-1 tabular-nums">{new Date(v.date).toLocaleDateString("pt-BR")} {new Date(v.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
+                  <td className="py-1 tabular-nums">{new Date(v.created_at).toLocaleDateString("pt-BR")} {new Date(v.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
                   <td className="text-center tabular-nums">{v.temperature.toFixed(1)}</td>
                   <td className="text-center tabular-nums">{v.heartRate}</td>
-                  <td className="text-center tabular-nums">{v.bloodPressureSys}/{v.bloodPressureDia}</td>
+                  <td className="text-center tabular-nums">{v.bloodPressure}</td>
                   <td className="text-center tabular-nums">{v.respiratoryRate}</td>
                   <td className="text-center tabular-nums">{v.oxygenSaturation}%</td>
                   <td className="text-center tabular-nums">{v.weight ? `${v.weight}kg` : "---"}</td>
-                  <td className="text-center tabular-nums">{v.bmi || "---"}</td>
                 </tr>
               ))}
             </tbody>
@@ -154,7 +152,7 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
                 <div key={ev.id} className="border-b border-gray-100 pb-2">
                   <div className="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
                     <span className="font-semibold text-primary">{ev.type === "evolucao_medica" ? "Médica" : "Enfermagem"}</span>
-                    <span className="tabular-nums">{new Date(ev.date).toLocaleDateString("pt-BR")} {new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="tabular-nums">{new Date(ev.date || (ev as any).created_at).toLocaleDateString("pt-BR")} {new Date(ev.date || (ev as any).created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
                   </div>
                   <pre className="text-xs text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">{ev.details || ev.summary}</pre>
                   <p className="text-[10px] text-gray-400 mt-1">Responsável: {ev.professional}</p>
@@ -168,37 +166,24 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
       {combinedPrescriptions.length > 0 && (
         <div className="section-block mb-5">
           <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. Prescrições Médicas</h3>
-          {combinedPrescriptions.map((px) => (
-            <div key={px.id} className="mb-3">
-              <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
-                <span>Data: {new Date(px.date).toLocaleDateString("pt-BR")}</span>
-                <span>Profissional: {px.professional}</span>
-              </div>
-              <table className="min-w-full text-[10px] border-collapse border border-gray-200">
-                <thead className="bg-gray-50">
-                  <tr className="border-b border-gray-200 text-gray-600">
-                    <th className="text-left py-1 px-2 border-r border-gray-200">Medicamento</th>
-                    <th className="text-left py-1 px-2 border-r border-gray-200">Dose</th>
-                    <th className="text-center py-1 px-2 border-r border-gray-200">Via</th>
-                    <th className="text-center py-1 px-2 border-r border-gray-200">Frequência</th>
-                    <th className="text-center py-1 px-2">Duração</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {px.medications.map((m, i) => (
-                    <tr key={i}>
-                      <td className="py-1 px-2 border-r border-gray-200 font-medium">{m.name}</td>
-                      <td className="py-1 px-2 border-r border-gray-200">{m.dose}</td>
-                      <td className="text-center py-1 px-2 border-r border-gray-200">{m.route}</td>
-                      <td className="text-center py-1 px-2 border-r border-gray-200">{m.frequency}</td>
-                      <td className="text-center py-1 px-2">{m.duration}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {px.notes && <p className="text-[9px] text-gray-500 italic mt-0.5">Obs: {px.notes}</p>}
-            </div>
-          ))}
+          <table className="min-w-full text-[10px] border-collapse border border-gray-200">
+            <thead className="bg-gray-50">
+              <tr className="border-b border-gray-200 text-gray-600">
+                <th className="text-left py-1 px-2 border-r border-gray-200">Medicamento</th>
+                <th className="text-left py-1 px-2 border-r border-gray-200">Dosagem</th>
+                <th className="text-left py-1 px-2">Instruções</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {combinedPrescriptions.map((px, i) => (
+                <tr key={i}>
+                  <td className="py-1 px-2 border-r border-gray-200 font-medium">{px.medication}</td>
+                  <td className="py-1 px-2 border-r border-gray-200">{px.dosage}</td>
+                  <td className="py-1 px-2">{px.instructions || "---"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -212,16 +197,14 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
                 <th className="text-left py-1">Data Solicitação</th>
                 <th className="text-left py-1">Exame</th>
                 <th className="text-center py-1">Status</th>
-                <th className="text-left py-1">Responsável</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {combinedExams.map((e) => (
                 <tr key={e.id}>
-                  <td className="py-1 tabular-nums">{new Date(e.requestDate).toLocaleDateString("pt-BR")}</td>
-                  <td className="py-1 font-medium">{e.name}</td>
-                  <td className="text-center py-1 text-gray-500 text-[9px]">{e.status}</td>
-                  <td className="py-1 text-gray-500 tabular-nums">{e.professional}</td>
+                  <td className="py-1 tabular-nums">{new Date(e.created_at).toLocaleDateString("pt-BR")}</td>
+                  <td className="py-1 font-medium">{e.examName}</td>
+                  <td className="text-center py-1 text-gray-500 text-[9px]">Solicitado</td>
                 </tr>
               ))}
             </tbody>

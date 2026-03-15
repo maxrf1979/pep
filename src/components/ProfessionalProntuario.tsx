@@ -52,7 +52,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   })();
 
-  // Carregamento e combinação de prescriçÃµes
+  // Carregamento e combinação de prescrições
   const combinedPrescriptions: Prescription[] = (() => {
     const saved = localStorage.getItem("localPrescriptions");
     const local = saved ? JSON.parse(saved) : [];
@@ -80,7 +80,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   })();
 
-  // Extrair evoluçÃµes clínicas
+  // Extrair evoluções clínicas
   const clinicalEvolutions = combinedTimeline.filter((e) =>
     e.type.startsWith("evolucao")
   );
@@ -202,7 +202,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
             page-break-inside: avoid;
           }
 
-          /* SeçÃµes */
+          /* Seções */
           .section {
             margin-bottom: 1.5rem;
             page-break-inside: avoid;
@@ -384,7 +384,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         }
       `}</style>
 
-      {/* PÃGINA 1 - CABEÃ‡ALHO E IDENTIFICAÃ‡ÃƒO */}
+      {/* PÍGINA 1 - CABEÇALHO E IDENTIFICAÇÍO */}
       <div className="page">
         {/* Cabeçalho Institucional */}
         <div className="document-header">
@@ -414,11 +414,11 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
 
         {/* Título do Documento */}
-        <div className="document-title">PRONTUÃRIO MÃ‰DICO DO PACIENTE</div>
+        <div className="document-title">PRONTUÍRIO MÉDICO DO PACIENTE</div>
 
         {/* Seção 1: Identificação do Paciente */}
         <div className="section">
-          <div className="section-title">1. IDENTIFICAÃ‡ÃƒO DO PACIENTE</div>
+          <div className="section-title">1. IDENTIFICAÇÍO DO PACIENTE</div>
 
           <div className="info-grid">
             <div className="info-item">
@@ -491,7 +491,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
               <span className="info-value font-mono">{patient.id}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">Ãšltimo Atendimento</span>
+              <span className="info-label">Último Atendimento</span>
               <span className="info-value">{patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString("pt-BR") : "Não informado"}</span>
             </div>
           </div>
@@ -529,7 +529,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         )}
       </div>
 
-      {/* PÃGINA 2 - SINAIS VITAIS */}
+      {/* PÍGINA 2 - SINAIS VITAIS */}
       {combinedVitals.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -585,7 +585,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÃGINA 3+ - EVOLUÃ‡Ã•ES CLÃNICAS */}
+      {/* PÍGINA 3+ - EVOLUÇÕES CLÍNICAS */}
       {clinicalEvolutions.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -602,11 +602,11 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
           </div>
 
           <div className="section">
-            <div className="section-title">4. EVOLUÃ‡ÃƒO CLÃNICA</div>
+            <div className="section-title">4. EVOLUÇÍO CLÍNICA</div>
             {clinicalEvolutions.map((ev) => (
               <div key={ev.id} className="evolution-block">
                 <div className="evolution-header">
-                  <span className="evolution-type">{ev.type === "evolucao_medica" ? "EVOLUÃ‡ÃƒO MÃ‰DICA" : "EVOLUÃ‡ÃƒO DE ENFERMAGEM"}</span>
+                  <span className="evolution-type">{ev.type === "evolucao_medica" ? "EVOLUÇÍO MÉDICA" : "EVOLUÇÍO DE ENFERMAGEM"}</span>
                   <span className="evolution-date">
                     {new Date(ev.date).toLocaleDateString("pt-BR")} às {new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                   </span>
@@ -619,7 +619,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÃGINA 4 - PRESCRIÃ‡Ã•ES */}
+      {/* PÍGINA 4 - PRESCRIÇÕES */}
       {combinedPrescriptions.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -636,7 +636,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
           </div>
 
           <div className="section">
-            <div className="section-title">5. PRESCRIÃ‡Ã•ES MÃ‰DICAS</div>
+            <div className="section-title">5. PRESCRIÇÕES MÉDICAS</div>
             {combinedPrescriptions.map((px) => (
               <div key={px.id} style={{ marginBottom: "1.5rem", pageBreakInside: "avoid" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontWeight: 600, marginBottom: "0.5rem" }}>
@@ -651,7 +651,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                       <th className="text-center">Via</th>
                       <th className="text-center">Frequência</th>
                       <th className="text-center">Duração</th>
-                      <th>ObservaçÃµes</th>
+                      <th>Observações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -667,14 +667,14 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                     ))}
                   </tbody>
                 </table>
-                {px.notes && <div style={{ fontSize: "9px", color: "#666", marginTop: "0.4rem", fontStyle: "italic" }}>ObservaçÃµes: {px.notes}</div>}
+                {px.notes && <div style={{ fontSize: "9px", color: "#666", marginTop: "0.4rem", fontStyle: "italic" }}>Observações: {px.notes}</div>}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* PÃGINA 5 - EXAMES SOLICITADOS */}
+      {/* PÍGINA 5 - EXAMES SOLICITADOS */}
       {combinedExams.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -698,7 +698,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
                   <th>Data Solicitação</th>
                   <th>Exame</th>
                   <th className="text-center">Status</th>
-                  <th>ObservaçÃµes</th>
+                  <th>Observações</th>
                   <th>Profissional</th>
                 </tr>
               </thead>
@@ -718,7 +718,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÃGINA FINAL - ASSINATURA E RODAPÃ‰ */}
+      {/* PÍGINA FINAL - ASSINATURA E RODAPÉ */}
       <div className="page">
         <div className="document-header">
           <div className="header-top">
@@ -734,7 +734,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
 
         <div className="section" style={{ marginTop: "2rem" }}>
-          <div className="section-title">7. RESPONSÃVEIS E ASSINATURAS</div>
+          <div className="section-title">7. RESPONSÍVEIS E ASSINATURAS</div>
 
           <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
             <div style={{ textAlign: "center" }}>
@@ -760,14 +760,14 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
             <p style={{ fontSize: "8px", color: "#999", marginTop: "1rem", fontStyle: "italic" }}>
               Este documento é um registro oficial do atendimento médico realizado na {clinicData.name}.<br />
               Deve ser arquivado de forma segura, conforme legislação vigente (Lei 12.842/2013 e Resolução CFM 1.638/2002).<br />
-              A cópia em meio eletrÃ´nico tem validade legal quando assinada digitalmente ou impressa e assinada.
+              A cópia em meio eletrônico tem validade legal quando assinada digitalmente ou impressa e assinada.
             </p>
           </div>
         </div>
 
         <div className="document-footer" style={{ marginTop: "3rem" }}>
           <p style={{ marginBottom: "1rem" }}>
-            <strong>FIM DO PRONTUÃRIO</strong>
+            <strong>FIM DO PRONTUÍRIO</strong>
           </p>
           <div className="footer-info" style={{ marginTop: "1rem" }}>
             <span>Paciente: {patient.name}</span>
@@ -775,7 +775,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
             <span>Clínica: {clinicData.name}</span>
           </div>
           <p style={{ marginTop: "1rem", fontSize: "8px", color: "#999" }}>
-            Gerado por: Pulse PEP Clinic - Sistema de Gerenciamento EletrÃ´nico de Prontuário<br />
+            Gerado por: Pulse PEP Clinic - Sistema de Gerenciamento Eletrônico de Prontuário<br />
             Data/Hora de Impressão: {printDate} às {printTime}
           </p>
         </div>

@@ -143,10 +143,10 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 3 â€“ EvoluçÃµes Clínicas */}
+      {/* 3 â€“ Evoluções Clínicas */}
       {combinedTimeline.filter(e => e.type.startsWith("evolucao")).length > 0 && (
         <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">2. EvoluçÃµes Clínicas</h3>
+          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">2. Evoluções Clínicas</h3>
           <div className="space-y-3">
             {combinedTimeline
               .filter(e => e.type.startsWith("evolucao"))
@@ -164,10 +164,10 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 5 â€“ PrescriçÃµes */}
+      {/* 5 â€“ Prescrições */}
       {combinedPrescriptions.length > 0 && (
         <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. PrescriçÃµes Médicas</h3>
+          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. Prescrições Médicas</h3>
           {combinedPrescriptions.map((px) => (
             <div key={px.id} className="mb-3">
               <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">

@@ -272,7 +272,7 @@ export default function Prontuario() {
     return acc;
   }, {});
 
-  // Tabs disponíveis baseado em permissÃµes
+  // Tabs disponíveis baseado em permissões
   const allTabs = [
     { id: "todos", label: "Todos", icon: FileText },
     { id: "evolucao_medica", label: "Evolução Médica", icon: Stethoscope, restricted: !canFilterMedicalEvolution },
@@ -319,7 +319,7 @@ export default function Prontuario() {
           margin-top: 3cm;
           margin-bottom: 3cm;
           @top-center {
-            content: "Pulse PEP Clinic - Sistema de Gerenciamento EletrÃ´nico de Prontuário";
+            content: "Pulse PEP Clinic - Sistema de Gerenciamento Eletrônico de Prontuário";
           }
           @bottom-center {
             content: "Data: " string(page-data);
@@ -460,7 +460,7 @@ export default function Prontuario() {
         <div className="hidden lg:block w-48 shrink-0">
           <div className="sticky top-24 space-y-2">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              AçÃµes Rápidas
+              Ações Rápidas
             </h3>
             {[
               { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true), visible: canCreateVitals() },

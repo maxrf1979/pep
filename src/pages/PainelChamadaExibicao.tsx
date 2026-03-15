@@ -56,7 +56,7 @@ export default function PainelChamadaExibicao() {
   useEffect(() => {
     loadCalls();
 
-    // Ouvir alteraçÃµes no localStorage de outras abas
+    // Ouvir alterações no localStorage de outras abas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "pep-calls") {
         loadCalls();
@@ -79,7 +79,7 @@ export default function PainelChamadaExibicao() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col md:flex-row overflow-hidden font-sans selection:bg-emerald-500">
-      {/* Elemento de Ãudio para o Beep */}
+      {/* Elemento de Íudio para o Beep */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
 
       {/* Main Panel: Chamada Atual */}
@@ -129,7 +129,7 @@ export default function PainelChamadaExibicao() {
         </AnimatePresence>
       </div>
 
-      {/* History Panel: Ãšltimas Chamadas */}
+      {/* History Panel: Últimas Chamadas */}
       <div className="w-full md:w-96 bg-slate-900/40 backdrop-blur-xl p-8 flex flex-col">
         <div className="mb-6 flex items-center gap-3 border-b border-slate-800/50 pb-4">
           <Clock className="h-5 w-5 text-slate-400" />

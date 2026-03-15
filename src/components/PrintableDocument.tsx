@@ -157,7 +157,7 @@ export function PrintableDocument({
         {notes && (
           <div className="mb-6 text-sm">
             <h3 className="font-bold border-b pb-1 mb-1">
-              {type === "prescription" ? "ObservaçÃµes / RecomendaçÃµes" : "Justificativa / Indicação Clínica"}
+              {type === "prescription" ? "Observações / Recomendações" : "Justificativa / Indicação Clínica"}
             </h3>
             <p className="whitespace-pre-wrap text-gray-700">{notes}</p>
           </div>
@@ -170,7 +170,7 @@ export function PrintableDocument({
           <p className="font-medium text-black">Profissional Responsável</p>
           <div className="mt-8 pt-2 w-48 text-center border-t border-black">
             <p className="font-semibold text-xs">{professionalLabel}</p>
-            <p className="text-[10px] text-gray-500">Assinatura EletrÃ´nica</p>
+            <p className="text-[10px] text-gray-500">Assinatura Eletrônica</p>
           </div>
         </div>
 

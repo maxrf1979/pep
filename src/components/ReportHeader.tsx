@@ -45,7 +45,7 @@ export function ReportHeader() {
           </div>
         </div>
 
-        {/* InformaçÃµes de Contato */}
+        {/* Informações de Contato */}
         <div className="text-right text-xs text-gray-600">
           <p className="font-medium text-black">{clinicData.phone}</p>
           <p>{clinicData.email}</p>
@@ -82,7 +82,7 @@ export function ReportFooter() {
         </div>
 
         <div className="text-center space-y-2">
-          <p className="font-medium text-black">InformaçÃµes do Documento</p>
+          <p className="font-medium text-black">Informações do Documento</p>
           <div className="text-xs text-gray-600">
             <p>
               <strong>Data:</strong> {new Date().toLocaleDateString("pt-BR")}
@@ -101,13 +101,13 @@ export function ReportFooter() {
           <p className="text-opacity-70 text-xs leading-tight">
             Sistema de<br />
             Gerenciamento<br />
-            EletrÃ´nico de<br />
+            Eletrônico de<br />
             Prontuário
           </p>
         </div>
       </div>
 
-      {/* Rodapé com informaçÃµes da clínica */}
+      {/* Rodapé com informações da clínica */}
       <div className="mt-4 pt-3 border-t border-gray-300 text-center text-xs text-gray-500">
         <p>
           © {new Date().getFullYear()} {clinicData.name}. Todos os direitos reservados. Documento confidencial.

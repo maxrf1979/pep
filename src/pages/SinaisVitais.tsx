@@ -57,10 +57,10 @@ function VitalCard({ vital, patient, index }: { vital: VitalSign; patient: Patie
         </div>
         <div className="text-right text-xs text-muted-foreground shrink-0">
           <div className="tabular-nums font-medium">
-            {new Date(vital.date).toLocaleDateString("pt-BR")}
+            {new Date(vital.date || vital.created_at).toLocaleDateString("pt-BR")}
           </div>
           <div className="tabular-nums">
-            {new Date(vital.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            {new Date(vital.date || vital.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
           </div>
         </div>
       </div>
@@ -68,8 +68,8 @@ function VitalCard({ vital, patient, index }: { vital: VitalSign; patient: Patie
       <div className="flex flex-wrap gap-2">
         <VitalBadge label="T" value={vital.temperature} unit="°C" icon={Thermometer} normal={[36, 37.5]} />
         <VitalBadge label="FC" value={vital.heartRate} unit="bpm" icon={Heart} normal={[60, 100]} />
-        <VitalBadge label="PAS" value={vital.bloodPressureSys} unit="mmHg" icon={Activity} normal={[90, 139]} />
-        <VitalBadge label="PAD" value={vital.bloodPressureDia} unit="mmHg" icon={Activity} normal={[60, 89]} />
+        <VitalBadge label="PAS" value={vital.bloodPressureSys ?? (vital.bloodPressure ? Number(vital.bloodPressure.split("/")[0]) : 0)} unit="mmHg" icon={Activity} normal={[90, 139]} />
+        <VitalBadge label="PAD" value={vital.bloodPressureDia ?? (vital.bloodPressure ? Number(vital.bloodPressure.split("/")[1]) : 0)} unit="mmHg" icon={Activity} normal={[60, 89]} />
         <VitalBadge label="FR" value={vital.respiratoryRate} unit="ipm" icon={Wind} normal={[12, 20]} />
         <VitalBadge label="SpO2" value={vital.oxygenSaturation} unit="%" icon={Droplets} normal={[95, 100]} />
         {vital.weight && (
@@ -77,14 +77,17 @@ function VitalCard({ vital, patient, index }: { vital: VitalSign; patient: Patie
             Peso: <span className="tabular-nums font-medium text-foreground">{vital.weight}kg</span>
           </div>
         )}
-        {vital.bmi && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted/50 text-xs text-muted-foreground">
-            IMC: <span className={`tabular-nums font-medium ${vital.bmi < 18.5 || vital.bmi >= 30 ? "text-destructive" : vital.bmi >= 25 ? "text-warning" : "text-success"}`}>{vital.bmi}</span>
-          </div>
-        )}
+        {(() => {
+          const bmi = vital.bmi ?? (vital.weight && vital.height ? Math.round((vital.weight / (vital.height * vital.height)) * 10) / 10 : undefined);
+          return bmi ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted/50 text-xs text-muted-foreground">
+              IMC: <span className={`tabular-nums font-medium ${bmi < 18.5 || bmi >= 30 ? "text-destructive" : bmi >= 25 ? "text-warning" : "text-success"}`}>{bmi}</span>
+            </div>
+          ) : null;
+        })()}
       </div>
 
-      <div className="mt-2 text-xs text-muted-foreground">{vital.professional}</div>
+      <div className="mt-2 text-xs text-muted-foreground">{vital.professional || ""}</div>
     </motion.div>
   );
 }

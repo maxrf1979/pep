@@ -17,8 +17,9 @@ import {
   Lock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getPatient, timelineEvents, type TimelineEvent, type VitalSign, type Prescription } from "@/lib/mock-data";
+import { getPatient, timelineEvents, type TimelineEvent, type VitalSign, type Prescription, type Patient } from "@/lib/mock-data";
 import { usePermissions } from "@/hooks/usePermissions";
+import { AlterarStatusDialog } from "@/components/AlterarStatusDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { RequestExamDialog } from "@/components/RequestExamDialog";
 import { NovoSinalDialog } from "@/components/NovoSinalDialog";
@@ -147,6 +148,7 @@ export default function Prontuario() {
   const [evolucaoEnfermagemOpen, setEvolucaoEnfermagemOpen] = useState(false);
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [currentPrintingEvent, setCurrentPrintingEvent] = useState<TimelineEvent | null>(null);
 
@@ -163,7 +165,19 @@ export default function Prontuario() {
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
 
-  const patient = getPatient(id || "");
+  const [patientData, setPatientData] = useState<Patient | null>(null);
+
+  useEffect(() => {
+    const p = getPatient(id || "");
+    if (p) {
+      const saved = localStorage.getItem("pep-patients");
+      const list = saved ? JSON.parse(saved) : [];
+      const override = list.find((item: Patient) => item.id === id);
+      setPatientData(override || p);
+    }
+  }, [id]);
+
+  const patient = patientData;
 
   useEffect(() => {
     const saved = localStorage.getItem("pep-timeline");
@@ -183,7 +197,6 @@ export default function Prontuario() {
       document.title = "Pulse PEP Clinic";
     };
   }, [patient]);
-  
   // Filter and sort patient timeline from local state
   const patientTimeline = localTimeline
     .filter(ev => ev.patientId === id)
@@ -217,6 +230,34 @@ export default function Prontuario() {
     }
 
     toast.success(`${typeConfig[ev.type]?.label || 'Registro'} adicionado com sucesso.`);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    if (!patientData) return;
+    const updated = { ...patientData, status: newStatus as "internado" | "ambulatorial" | "alta" | "obito" };
+    setPatientData(updated);
+    
+    const saved = localStorage.getItem("pep-patients");
+    const list = saved ? JSON.parse(saved) : [];
+    const index = list.findIndex((p: Patient) => p.id === patientData.id);
+    if (index >= 0) {
+      list[index] = updated;
+    } else {
+      list.push(updated);
+    }
+    localStorage.setItem("pep-patients", JSON.stringify(list));
+    
+    onSaveEvent({
+      id: `ev-status-${Date.now()}`,
+      patientId: id!,
+      type: "evolucao_medica",
+      date: new Date().toISOString(),
+      title: "Alteração de Status",
+      summary: `Status alterado para o paciente: ${newStatus.toUpperCase()}`,
+      professional: user?.name || "Profissional",
+    });
+    
+    toast.success("Status atualizado");
   };
 
   const filteredTimeline = typeFilter === "todos" 
@@ -428,6 +469,7 @@ export default function Prontuario() {
               { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: canCreatePrescription() },
               { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: canRequestExam() },
               { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
+              { label: "Alterar Status", icon: Stethoscope, onClick: () => setStatusOpen(true), visible: isMedico() || isAdmin() },
             ].filter(action => action.visible).map((action) => (
               <button
                 key={action.label}
@@ -449,6 +491,14 @@ export default function Prontuario() {
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />
       <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} />
+      {patient && (
+        <AlterarStatusDialog 
+          open={statusOpen} 
+          onOpenChange={setStatusOpen} 
+          currentStatus={patient.status} 
+          onSave={handleStatusChange} 
+        />
+      )}
 
       {/* Print Footer - Hidden on screen, visible on print */}
       <div className="hidden print:block print-footer mt-8">

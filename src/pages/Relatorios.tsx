@@ -4,7 +4,7 @@ import {
   BarChart3, Users, FileText, Pill, FlaskConical, Activity,
   TrendingUp, TrendingDown, Printer, Search
 } from "lucide-react";
-import { patients as mockPatients, prescriptions as mockPrescriptions, exams as mockExams, vitalSigns as mockVitalSigns, timelineEvents as mockTimelineEvents } from "@/lib/mock-data";
+import { patients as mockPatients, prescriptions as mockPrescriptions, examRequests as mockExams, vitalSigns as mockVitalSigns, timelineEvents as mockTimelineEvents } from "@/lib/mock-data";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
@@ -19,7 +19,7 @@ export default function Relatorios() {
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   const patients = (() => {
-    const saved = localStorage.getItem("pep-patients") || localStorage.getItem("patients");
+    const saved = localStorage.getItem("patients");
     return saved ? JSON.parse(saved) : mockPatients;
   })();
 
@@ -50,8 +50,8 @@ export default function Relatorios() {
   const alta = patients.filter((p) => p.status === "alta").length;
 
   const activeRx = prescriptions.filter((r) => r.status === "ativa").length;
-  const pendingExams = exams.filter((e) => e.status === "solicitado" || e.status === "coletado").length;
-  const availableResults = exams.filter((e) => e.status === "resultado_disponivel").length;
+  const pendingExams = timelineEvents.filter((e) => e.type === "exame").length;
+  const availableResults = 0; // Interface simplificada
 
   const statusData = [
     { name: "Internados", value: internados },
@@ -75,9 +75,9 @@ export default function Relatorios() {
   });
 
   const examTypeData = [
-    { name: "Laboratorial", value: exams.filter((e) => e.type === "laboratorial").length },
-    { name: "Imagem", value: exams.filter((e) => e.type === "imagem").length },
-    { name: "Funcional", value: exams.filter((e) => e.type === "funcional").length },
+    { name: "Laboratorial", value: timelineEvents.filter((e) => e.type === "exame" && e.summary.includes("Laboratorial")).length },
+    { name: "Imagem", value: timelineEvents.filter((e) => e.type === "exame" && e.summary.includes("Imagem")).length },
+    { name: "Outros", value: timelineEvents.filter((e) => e.type === "exame" && !e.summary.includes("Laboratorial") && !e.summary.includes("Imagem")).length },
   ];
 
   const allergiesFreq: Record<string, number> = {};
@@ -202,34 +202,29 @@ export default function Relatorios() {
           <div className="space-y-8">
             <div>
               <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Prescrições Ativas</h2>
-              {prescriptions.filter(r => r.patientId === selectedPatient.id && r.status === 'ativa').map(rx => (
-                <div key={rx.id} className="mb-4 p-4 border rounded-lg bg-slate-50">
-                  <p className="text-xs text-muted-foreground mb-2">Prescrito em: {new Date(rx.date).toLocaleDateString()} por {rx.professional}</p>
+              {prescriptions.filter(r => r.patientId === selectedPatient.id).length > 0 ? (
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left border-b">
                         <th className="pb-2">Medicamento</th>
-                        <th className="pb-2">Dose</th>
-                        <th className="pb-2">Via</th>
-                        <th className="pb-2">Freq.</th>
+                        <th className="pb-2">Dosagem</th>
+                        <th className="pb-2">Instruções</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {rx.medications.map((m, idx) => (
-                        <tr key={idx}>
-                          <td className="py-1 font-medium">{m.name}</td>
-                          <td className="py-1">{m.dose}</td>
-                          <td className="py-1">{m.route}</td>
-                          <td className="py-1">{m.frequency}</td>
+                      {prescriptions.filter(r => r.patientId === selectedPatient.id).map((rx, idx) => (
+                        <tr key={idx} className="border-b last:border-0">
+                          <td className="py-2 font-medium">{rx.medication}</td>
+                          <td className="py-2">{rx.dosage}</td>
+                          <td className="py-2">{rx.instructions || "---"}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  {rx.notes && <p className="mt-2 text-xs italic">Obs: {rx.notes}</p>}
                 </div>
-              ))}
-              {prescriptions.filter(r => r.patientId === selectedPatient.id && r.status === 'ativa').length === 0 && (
-                <p className="text-sm italic text-muted-foreground">Nenhuma prescrição ativa.</p>
+              ) : (
+                <p className="text-sm italic text-muted-foreground">Nenhuma prescrição registrada.</p>
               )}
             </div>
 
@@ -238,8 +233,8 @@ export default function Relatorios() {
                 <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Últimos Sinais Vitais</h2>
                 {vitalSigns.filter(v => v.patientId === selectedPatient.id).slice(0, 3).map(vs => (
                   <div key={vs.id} className="mb-2 text-sm grid grid-cols-2 gap-x-4 border-b pb-2 last:border-0">
-                    <span className="text-muted-foreground">{new Date(vs.date).toLocaleString('pt-BR')}</span>
-                    <span className="font-medium text-right">{vs.temperature}°C | {vs.heartRate}bpm | {vs.bloodPressureSys}/{vs.bloodPressureDia}</span>
+                    <span className="text-muted-foreground">{new Date(vs.created_at).toLocaleString('pt-BR')}</span>
+                    <span className="font-medium text-right">{vs.temperature}°C | {vs.heartRate}bpm | {vs.bloodPressure}</span>
                   </div>
                 ))}
                 {vitalSigns.filter(v => v.patientId === selectedPatient.id).length === 0 && (
@@ -247,15 +242,15 @@ export default function Relatorios() {
                 )}
               </div>
               <div>
-                <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Exames Pendentes</h2>
+                <h2 className="text-lg font-bold border-b border-muted pb-2 mb-4">Exames Solicitados</h2>
                 <ul className="space-y-2">
-                  {exams.filter(e => e.patientId === selectedPatient.id && e.status !== 'resultado_disponivel').map(ex => (
+                  {exams.filter(e => e.patientId === selectedPatient.id).map(ex => (
                     <li key={ex.id} className="text-sm flex justify-between">
-                      <span>{ex.name}</span>
-                      <span className="text-xs uppercase px-2 py-0.5 rounded bg-muted">{ex.status}</span>
+                      <span>{ex.examName}</span>
+                      <span className="text-xs uppercase px-2 py-0.5 rounded bg-muted">Solicitado</span>
                     </li>
                   ))}
-                  {exams.filter(e => e.patientId === selectedPatient.id && e.status !== 'resultado_disponivel').length === 0 && (
+                  {exams.filter(e => e.patientId === selectedPatient.id).length === 0 && (
                     <p className="text-sm italic text-muted-foreground">Sem exames pendentes.</p>
                   )}
                 </ul>

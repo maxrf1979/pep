@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { patients } from "@/lib/mock-data";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Notification {
   id: string;
@@ -46,6 +47,7 @@ const mockNotifications: Notification[] = [
 ];
 
 export function Topbar() {
+  const { user, getRoleLabel } = useAuth();
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -58,8 +60,13 @@ export function Topbar() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const allPatients = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
+
   const filtered = query.length > 1
-    ? patients.filter(
+    ? (allPatients as any[]).filter(
         (p) =>
           p.name.toLowerCase().includes(query.toLowerCase()) ||
           p.cpf.includes(query)
@@ -229,9 +236,9 @@ export function Topbar() {
           {showProfile && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-card rounded-lg shadow-overlay border border-border z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
-                <p className="text-sm font-semibold">Dr. Usuário Atual</p>
-                <p className="text-xs text-muted-foreground">usuario@pulse.med.br</p>
-                <span className="badge-status bg-primary/10 text-primary mt-1 inline-block">Médico(a)</span>
+                <p className="text-sm font-semibold">{user?.name || "Usuários"}</p>
+                <p className="text-xs text-muted-foreground">{user?.email || "anonimo@med.br"}</p>
+                <span className="badge-status bg-primary/10 text-primary mt-1 inline-block">{getRoleLabel()}</span>
               </div>
               <div className="py-1">
                 <button

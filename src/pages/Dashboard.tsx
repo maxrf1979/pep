@@ -66,24 +66,42 @@ export default function Dashboard() {
     return "Boa noite";
   };
 
-  const recentPatients = patients.slice(0, 5);
+  // Carregamento de dados dinâmicos sincronizados
+  const allPatients = (() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  })();
+
+  const combinedTimeline = (() => {
+    const saved = localStorage.getItem("pep-timeline");
+    const local = saved ? JSON.parse(saved) : [];
+    return saved ? local : [...local, ...timelineEvents];
+  })();
+
+  const combinedPrescriptions = (() => {
+    const saved = localStorage.getItem("localPrescriptions");
+    const local = saved ? JSON.parse(saved) : [];
+    return [...local, ...prescriptions];
+  })();
+
+  const recentPatients = allPatients.slice(0, 5);
   
-  const activePatientsCount = patients.filter(
-    p => p.status === "internado" || p.status === "ambulatorial"
+  const activePatientsCount = allPatients.filter(
+    (p: any) => p.status === "internado" || p.status === "ambulatorial"
   ).length;
 
   const todayStr = currentTime.toISOString().split("T")[0]; // "2026-03-15"
 
-  const atendimentosHoje = timelineEvents.filter(e => 
-    (e.type === "evolucao_medica" || e.type === "evolucao_enfermagem") && 
-    e.date.startsWith(todayStr)
+  const atendimentosHoje = combinedTimeline.filter((e: any) => 
+    (e.type === "evolucao_medica" || e.type === "evolucao_enfermagem" || e.type === "evolucao") && 
+    e.date && e.date.startsWith(todayStr)
   ).length;
 
-  const prescricoesHoje = prescriptions.filter(p => 
-    p.date.startsWith(todayStr)
+  const prescricoesHoje = combinedPrescriptions.filter((p: any) => 
+    (p.created_at && p.created_at.startsWith(todayStr)) || (p.date && p.date.startsWith(todayStr))
   ).length;
 
-  const alertasCriticos = patients.filter(p => p.status === "internado").length;
+  const alertasCriticos = allPatients.filter((p: any) => p.status === "internado").length;
 
   const kpis = [
     { label: "Pacientes Ativos", value: activePatientsCount.toString(), change: "+12%", icon: Users, color: "primary" },
@@ -96,7 +114,7 @@ export default function Dashboard() {
   const activityData = daysOfWeek.map((day, index) => {
     // Seg=1, Ter=2, ... Sáb=6, Dom=0
     const jsDay = index === 6 ? 0 : index + 1;
-    const count = timelineEvents.filter(e => {
+    const count = combinedTimeline.filter((e: any) => {
       const date = new Date(e.date);
       return date.getDay() === jsDay;
     }).length;

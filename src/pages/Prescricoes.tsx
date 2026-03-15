@@ -79,7 +79,7 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{rx.professional}</span>
+        <span className="text-xs text-muted-foreground">{rx.professional || rx.doctorId}</span>
         <div className="flex items-center gap-3">
           <button
             onClick={() => {

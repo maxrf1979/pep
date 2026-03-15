@@ -20,11 +20,16 @@ export interface VitalSign {
   patientId: string;
   temperature?: number;
   bloodPressure?: string; // "120/80"
+  bloodPressureSys?: number;
+  bloodPressureDia?: number;
   heartRate?: number;
   respiratoryRate?: number;
   oxygenSaturation?: number;
   weight?: number;
   height?: number;
+  bmi?: number;
+  date?: string;
+  professional?: string;
   created_at: string;
 }
 

@@ -131,10 +131,10 @@ export default function SinaisVitais() {
       id: crypto.randomUUID(),
       patientId: v.patientId,
       type: "sinais_vitais",
-      date: v.date,
+      date: v.date || v.created_at,
       title: "Sinais Vitais",
       summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`,
-      professional: v.professional
+      professional: v.professional || ""
     };
     localStorage.setItem("pep-timeline", JSON.stringify([ev, ...timeline]));
 

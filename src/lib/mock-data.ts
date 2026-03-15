@@ -42,6 +42,14 @@ export interface Evolution {
   created_at: string;
 }
 
+export interface PrescriptionMedication {
+  name: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  duration: string;
+}
+
 export interface Prescription {
   id: string;
   patientId: string;
@@ -50,8 +58,15 @@ export interface Prescription {
   dosage: string;
   instructions?: string;
   type: "normal" | "especial";
+  status?: "ativa" | "encerrada" | "suspensa";
+  date?: string;
+  medications?: PrescriptionMedication[];
+  notes?: string;
+  professional?: string;
   created_at: string;
 }
+
+export type Exam = ExamRequest;
 
 export interface Certificate {
   id: string;

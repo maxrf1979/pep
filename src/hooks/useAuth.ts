@@ -70,6 +70,7 @@ export function useAuth() {
       enfermeiro: "Enfermeiro(a)",
       admin: "Administrador",
       recepcao: "Recepção",
+      tecnico_enfermagem: "Técnico(a) de Enfermagem",
     };
     return roleLabels[user?.role ?? "recepcao"];
   };

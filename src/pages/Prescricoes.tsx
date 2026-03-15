@@ -113,9 +113,9 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
             cpf: patient.cpf || "---",
             sex: patient.sex,
           }}
-          items={rx.medications}
-          notes={rx.notes}
-          professionalLabel={rx.professional}
+          items={rx.medications || [{ name: rx.medication, dose: rx.dosage, route: "", frequency: "", duration: "" }]}
+          notes={rx.notes || rx.instructions}
+          professionalLabel={rx.professional || rx.doctorId}
         />
       )}
     </motion.div>

@@ -22,7 +22,7 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
   const navigate = useNavigate();
   const patient = patients.find((p) => p.id === rx.patientId);
   if (!patient) return null;
-  const st = statusConfig[rx.status];
+  const st = statusConfig[rx.status || "ativa"];
 
   return (
     <motion.div

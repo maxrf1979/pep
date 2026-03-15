@@ -23,12 +23,12 @@ export default function AlterarSenha() {
     }
 
     if (newPassword.length < 8) {
-      setError("A nova senha deve ter no mÃ­nimo 8 caracteres.");
+      setError("A nova senha deve ter no mínimo 8 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("As senhas nÃ£o conferem.");
+      setError("As senhas não conferem.");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function AlterarSenha() {
 
     const sessionString = localStorage.getItem("pulse-auth-session");
     if (!sessionString) {
-      toast.error("SessÃ£o expirada.");
+      toast.error("Sessão expirada.");
       navigate("/login");
       return;
     }
@@ -51,7 +51,7 @@ export default function AlterarSenha() {
     const savedUsers = localStorage.getItem("systemUsers");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
 
-    // Localizar na tabela de usuÃ¡rios
+    // Localizar na tabela de usuários
     const userIndex = users.findIndex((u: any) => u.email === session.email || u.login === session.login);
 
     if (userIndex !== -1) {
@@ -72,14 +72,14 @@ export default function AlterarSenha() {
       };
       localStorage.setItem("systemUsers", JSON.stringify(users));
 
-      // Atualizar a sessÃ£o ativa
+      // Atualizar a sessão ativa
       const updatedSession = { ...session, mustChangePassword: false };
       localStorage.setItem("pulse-auth-session", JSON.stringify(updatedSession));
 
       toast.success("Senha atualizada com sucesso.");
       navigate("/");
     } else {
-      // Caso sejam os usuÃ¡rios estÃ¡ticos de simulaÃ§Ã£o
+      // Caso sejam os usuários estáticos de simulação
       const staticEmails = ["admin@admin.com", "medico@medico.com", "enfermeiro@enfermeiro.com", "tecnico@tecnico.com"];
       if (staticEmails.includes(session.email)) {
          const updatedSession = { ...session, mustChangePassword: false };
@@ -88,7 +88,7 @@ export default function AlterarSenha() {
          navigate("/");
          return;
       }
-      toast.error("Erro ao atualizar senha. UsuÃ¡rio nÃ£o encontrado.");
+      toast.error("Erro ao atualizar senha. Usuário não encontrado.");
       setError("Falha interna ao sincronizar dados.");
     }
     setIsLoading(false);
@@ -108,9 +108,9 @@ export default function AlterarSenha() {
 
         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">AlteraÃ§Ã£o de Senha ObrigatÃ³ria</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Alteração de Senha Obrigatória</h1>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Por seguranÃ§a, Ã© necessÃ¡rio alterar sua senha antes de continuar utilizando o sistema no seu primeiro acesso.
+              Por segurança, é necessário alterar sua senha antes de continuar utilizando o sistema no seu primeiro acesso.
             </p>
           </div>
 
@@ -130,7 +130,7 @@ export default function AlterarSenha() {
                   value={currentPassword} 
                   onChange={e => setCurrentPassword(e.target.value)} 
                   className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" 
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" 
+                  placeholder="••••••••" 
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -145,7 +145,7 @@ export default function AlterarSenha() {
                 value={newPassword} 
                 onChange={e => setNewPassword(e.target.value)} 
                 className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" 
-                placeholder="MÃ­nimo 8 caracteres" 
+                placeholder="Mínimo 8 caracteres" 
               />
             </div>
 

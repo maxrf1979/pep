@@ -26,7 +26,7 @@ export default function PainelChamadaExibicao() {
       );
       setCalls(sorted);
 
-      // Verificar se hÃ¡ uma nova chamada para soar alerta e falar o nome
+      // Verificar se há uma nova chamada para soar alerta e falar o nome
       const latestCalled = sorted.find(c => c.status === 'called');
       if (latestCalled && latestCalled.id !== lastCalledId) {
         setLastCalledId(latestCalled.id);
@@ -49,14 +49,14 @@ export default function PainelChamadaExibicao() {
         speech.lang = 'pt-BR';
         speech.rate = 0.9;
         window.speechSynthesis.speak(speech);
-      }, 1000); // Aguardar 1 segundo apÃ³s o beep
+      }, 1000); // Aguardar 1 segundo após o beep
     }
   };
 
   useEffect(() => {
     loadCalls();
 
-    // Ouvir alteraÃ§Ãµes no localStorage de outras abas
+    // Ouvir alteraçÃµes no localStorage de outras abas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "pep-calls") {
         loadCalls();
@@ -65,7 +65,7 @@ export default function PainelChamadaExibicao() {
 
     window.addEventListener("storage", handleStorageChange);
     
-    // Intervalo de seguranÃ§a para pooling local
+    // Intervalo de segurança para pooling local
     const interval = setInterval(loadCalls, 2000);
 
     return () => {
@@ -123,7 +123,7 @@ export default function PainelChamadaExibicao() {
           ) : (
             <div className="text-slate-500 text-center">
               <Volume2 className="h-20 w-20 mx-auto mb-4 opacity-30 animate-pulse" />
-              <p className="text-xl font-medium">Aguardando prÃ³ximas chamadas...</p>
+              <p className="text-xl font-medium">Aguardando próximas chamadas...</p>
             </div>
           )}
         </AnimatePresence>
@@ -171,7 +171,7 @@ export default function PainelChamadaExibicao() {
 
           {previousCalls.length === 0 && (
             <div className="text-center text-slate-600 mt-10 text-sm">
-              Sem histÃ³rico recente.
+              Sem histórico recente.
             </div>
           )}
         </div>

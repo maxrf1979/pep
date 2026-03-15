@@ -8,7 +8,7 @@ export function ReportHeader() {
       cnpj: "12.345.678/0001-90",
       phone: "(11) 3456-7890",
       email: "contato@aureadental.com.br",
-      address: "Av. Paulista, 1000 - SÃ£o Paulo, SP",
+      address: "Av. Paulista, 1000 - São Paulo, SP",
       hoursStart: "08:00",
       hoursEnd: "18:00",
       primaryColor: "#10B981",
@@ -21,7 +21,7 @@ export function ReportHeader() {
   return (
     <div className="print-header" style={{ borderBottomColor: clinicData.primaryColor }}>
       <div className="flex justify-between items-start pb-4 mb-6" style={{ borderBottom: `2px solid ${clinicData.primaryColor}` }}>
-        {/* Logo e Nome da ClÃ­nica */}
+        {/* Logo e Nome da Clínica */}
         <div className="flex items-center gap-3">
           {clinicData.logo ? (
             <img
@@ -45,13 +45,13 @@ export function ReportHeader() {
           </div>
         </div>
 
-        {/* InformaÃ§Ãµes de Contato */}
+        {/* InformaçÃµes de Contato */}
         <div className="text-right text-xs text-gray-600">
           <p className="font-medium text-black">{clinicData.phone}</p>
           <p>{clinicData.email}</p>
           <p>{clinicData.address}</p>
           {clinicData.hoursStart && clinicData.hoursEnd && (
-            <p className="mt-1 text-opacity-70">HorÃ¡rio: {clinicData.hoursStart} - {clinicData.hoursEnd}</p>
+            <p className="mt-1 text-opacity-70">Horário: {clinicData.hoursStart} - {clinicData.hoursEnd}</p>
           )}
         </div>
       </div>
@@ -75,14 +75,14 @@ export function ReportFooter() {
     >
       <div className="flex justify-between items-end">
         <div>
-          <p className="font-medium mb-2 text-black">Profissional ResponsÃ¡vel</p>
+          <p className="font-medium mb-2 text-black">Profissional Responsável</p>
           <p className="pt-2 w-40 text-center" style={{ borderTop: `1px solid black` }}>
             Assinatura e Carimbo
           </p>
         </div>
 
         <div className="text-center space-y-2">
-          <p className="font-medium text-black">InformaÃ§Ãµes do Documento</p>
+          <p className="font-medium text-black">InformaçÃµes do Documento</p>
           <div className="text-xs text-gray-600">
             <p>
               <strong>Data:</strong> {new Date().toLocaleDateString("pt-BR")}
@@ -91,7 +91,7 @@ export function ReportFooter() {
               <strong>Hora:</strong> {new Date().toLocaleTimeString("pt-BR")}
             </p>
             <p>
-              <strong>InstituiÃ§Ã£o:</strong> {clinicData.name}
+              <strong>Instituição:</strong> {clinicData.name}
             </p>
           </div>
         </div>
@@ -102,15 +102,15 @@ export function ReportFooter() {
             Sistema de<br />
             Gerenciamento<br />
             EletrÃ´nico de<br />
-            ProntuÃ¡rio
+            Prontuário
           </p>
         </div>
       </div>
 
-      {/* RodapÃ© com informaÃ§Ãµes da clÃ­nica */}
+      {/* Rodapé com informaçÃµes da clínica */}
       <div className="mt-4 pt-3 border-t border-gray-300 text-center text-xs text-gray-500">
         <p>
-          Â© {new Date().getFullYear()} {clinicData.name}. Todos os direitos reservados. Documento confidencial.
+          © {new Date().getFullYear()} {clinicData.name}. Todos os direitos reservados. Documento confidencial.
         </p>
       </div>
     </div>

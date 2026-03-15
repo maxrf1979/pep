@@ -32,10 +32,10 @@ import { toast } from "sonner";
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
 const typeConfig: Record<string, { icon: typeof FileText; label: string; color: string; border: string }> = {
-  evolucao_medica: { icon: Stethoscope, label: "EvoluÃ§Ã£o MÃ©dica", color: "text-primary", border: "border-primary" },
-  evolucao_enfermagem: { icon: ClipboardPlus, label: "EvoluÃ§Ã£o Enfermagem", color: "text-success", border: "border-success" },
+  evolucao_medica: { icon: Stethoscope, label: "Evolução Médica", color: "text-primary", border: "border-primary" },
+  evolucao_enfermagem: { icon: ClipboardPlus, label: "Evolução Enfermagem", color: "text-success", border: "border-success" },
   sinais_vitais: { icon: Activity, label: "Sinais Vitais", color: "text-warning", border: "border-warning" },
-  prescricao: { icon: Pill, label: "PrescriÃ§Ã£o", color: "text-primary", border: "border-primary" },
+  prescricao: { icon: Pill, label: "Prescrição", color: "text-primary", border: "border-primary" },
   exame: { icon: FlaskConical, label: "Exame", color: "text-success", border: "border-success" },
   anexo: { icon: Paperclip, label: "Anexo", color: "text-muted-foreground", border: "border-muted-foreground" },
 };
@@ -183,7 +183,7 @@ export default function Prontuario() {
   if (!patient) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        Paciente nÃ£o encontrado.
+        Paciente não encontrado.
       </div>
     );
   }
@@ -222,18 +222,18 @@ export default function Prontuario() {
     return acc;
   }, {});
 
-  // Tabs disponÃ­veis baseado em permissÃµes
+  // Tabs disponíveis baseado em permissÃµes
   const allTabs = [
     { id: "todos", label: "Todos", icon: FileText },
-    { id: "evolucao_medica", label: "EvoluÃ§Ã£o MÃ©dica", icon: Stethoscope, restricted: !canFilterMedicalEvolution },
-    { id: "evolucao_enfermagem", label: "EvoluÃ§Ã£o Enfermagem", icon: ClipboardPlus, restricted: !canFilterNursingEvolution },
+    { id: "evolucao_medica", label: "Evolução Médica", icon: Stethoscope, restricted: !canFilterMedicalEvolution },
+    { id: "evolucao_enfermagem", label: "Evolução Enfermagem", icon: ClipboardPlus, restricted: !canFilterNursingEvolution },
     { id: "sinais_vitais", label: "Sinais Vitais", icon: Activity },
-    { id: "prescricao", label: "PrescriÃ§Ã£o", icon: Pill },
+    { id: "prescricao", label: "Prescrição", icon: Pill },
     { id: "exame", label: "Exame", icon: FlaskConical },
     { id: "anexo", label: "Anexo", icon: Paperclip },
   ];
 
-  // Filtrar abas: se enfermeiro e nÃ£o pode filtrar evoluÃ§Ã£o mÃ©dica, remover aba
+  // Filtrar abas: se enfermeiro e não pode filtrar evolução médica, remover aba
   const tabs = allTabs.filter(tab => {
     if (tab.id === "evolucao_medica" && !canFilterMedicalEvolution) {
       return false;
@@ -269,7 +269,7 @@ export default function Prontuario() {
           margin-top: 3cm;
           margin-bottom: 3cm;
           @top-center {
-            content: "Pulse PEP Clinic - Sistema de Gerenciamento EletrÃ´nico de ProntuÃ¡rio";
+            content: "Pulse PEP Clinic - Sistema de Gerenciamento EletrÃ´nico de Prontuário";
           }
           @bottom-center {
             content: "Data: " string(page-data);
@@ -316,16 +316,16 @@ export default function Prontuario() {
                     : "bg-success/10 text-success"
                 }`}
               >
-                {patient.status === "obito" ? "Ã“BITO" : patient.status}
+                {patient.status === "obito" ? "ÓBITO" : patient.status}
               </span>
             </div>
             <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground flex-wrap">
-              <span>{patient.age} anos â€¢ {patient.sex === "M" ? "Masculino" : "Feminino"}</span>
+              <span>{patient.age} anos • {patient.sex === "M" ? "Masculino" : "Feminino"}</span>
               <span className="tabular-nums">CPF: {patient.cpf}</span>
               {patient.sus && <span className="tabular-nums">SUS: {patient.sus}</span>}
               {patient.bloodType && <span>Tipo: {patient.bloodType}</span>}
               {patient.status === "obito" && patient.deathDate && (
-                <span className="text-destructive font-semibold">Ã“bito em: {new Date(patient.deathDate).toLocaleDateString("pt-BR")}</span>
+                <span className="text-destructive font-semibold">Óbito em: {new Date(patient.deathDate).toLocaleDateString("pt-BR")}</span>
               )}
             </div>
             {patient.allergies.length > 0 && (
@@ -348,7 +348,7 @@ export default function Prontuario() {
             className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors"
           >
             <FileDown className="h-4 w-4" strokeWidth={1.5} />
-            RelatÃ³rio PDF
+            Relatório PDF
           </button>
         </div>
       </motion.div>
@@ -410,12 +410,12 @@ export default function Prontuario() {
         <div className="hidden lg:block w-48 shrink-0">
           <div className="sticky top-24 space-y-2">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              AÃ§Ãµes RÃ¡pidas
+              AçÃµes Rápidas
             </h3>
             {[
               { label: "Sinais Vitais", icon: Activity, onClick: () => setSinaisOpen(true), visible: canCreateVitals() },
-              { label: "EvoluÃ§Ã£o MÃ©dica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true), visible: canCreateMedicalEvolution() },
-              { label: "EvoluÃ§Ã£o Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
+              { label: "Evolução Médica", icon: Stethoscope, onClick: () => setEvolucaoMedicaOpen(true), visible: canCreateMedicalEvolution() },
+              { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
               { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: canCreatePrescription() },
               { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: canRequestExam() },
               { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
@@ -434,8 +434,8 @@ export default function Prontuario() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}Â°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
-      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "PrescriÃ§Ã£o MÃ©dica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }, p); }} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }, p); }} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} initialPatientId={id} type="evolucao_medica" onSave={onSaveEvent} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />

@@ -4,7 +4,7 @@ import {
   BarChart3, Users, FileText, Pill, FlaskConical, Activity,
   TrendingUp, TrendingDown, Printer, Search
 } from "lucide-react";
-import { patients, prescriptions, exams, vitalSigns, timelineEvents } from "@/lib/mock-data";
+import { patients as mockPatients, prescriptions as mockPrescriptions, exams as mockExams, vitalSigns as mockVitalSigns, timelineEvents as mockTimelineEvents } from "@/lib/mock-data";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
@@ -17,6 +17,31 @@ const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning
 
 export default function Relatorios() {
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+
+  const patients = (() => {
+    const saved = localStorage.getItem("pep-patients") || localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : mockPatients;
+  })();
+
+  const prescriptions = (() => {
+    const saved = localStorage.getItem("localPrescriptions");
+    return saved ? JSON.parse(saved) : mockPrescriptions;
+  })();
+
+  const exams = (() => {
+    const saved = localStorage.getItem("localExams");
+    return saved ? JSON.parse(saved) : mockExams;
+  })();
+
+  const vitalSigns = (() => {
+    const saved = localStorage.getItem("localVitals");
+    return saved ? JSON.parse(saved) : mockVitalSigns;
+  })();
+
+  const timelineEvents = (() => {
+    const saved = localStorage.getItem("pep-timeline");
+    return saved ? JSON.parse(saved) : mockTimelineEvents;
+  })();
 
   // Computed data from mock-data
   const totalPatients = patients.length;
@@ -34,14 +59,20 @@ export default function Relatorios() {
     { name: "Alta", value: alta },
   ];
 
-  const atendimentosPorMes = [
-    { mes: "Out", atendimentos: 38 },
-    { mes: "Nov", atendimentos: 45 },
-    { mes: "Dez", atendimentos: 41 },
-    { mes: "Jan", atendimentos: 52 },
-    { mes: "Fev", atendimentos: 48 },
-    { mes: "Mar", atendimentos: 38 },
-  ];
+  const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const atendimentosPorMes = Array.from({ length: 6 }).map((_, idx) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - idx));
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    
+    const count = timelineEvents.filter(e => {
+      const ed = new Date(e.date);
+      return ed.getMonth() === month && ed.getFullYear() === year;
+    }).length;
+    
+    return { mes: monthNames[month], atendimentos: count };
+  });
 
   const examTypeData = [
     { name: "Laboratorial", value: exams.filter((e) => e.type === "laboratorial").length },

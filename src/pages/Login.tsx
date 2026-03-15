@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle2, AlertCircle, Loader2, HeartPulse } from "lucide-react";
@@ -29,7 +29,7 @@ export default function Login() {
 
     if (attempts >= 5) {
       setError("Limite de tentativas excedido. Tente novamente mais tarde.");
-      toast.error("Limite de segurança atingido.");
+      toast.error("Limite de seguranÃ§a atingido.");
       return;
     }
 
@@ -50,9 +50,9 @@ export default function Login() {
     // Suporte para administrador master 
     const mockUsers = [
       { email: "admin@admin.com", password: "admin123", name: "Dr. Administrador", role: "admin" },
-      { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos Médico", role: "medico" },
-      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana Cláudia", role: "enfermeiro" },
-      { email: "tecnico@tecnico.com", password: "tecnico123", name: "Téc. Pedro Almeida", role: "tecnico_enfermagem" }
+      { email: "medico@medico.com", password: "medico123", name: "Dr. Marcos MÃ©dico", role: "medico" },
+      { email: "enfermeiro@enfermeiro.com", password: "enfermeiro123", name: "Enf. Ana ClÃ¡udia", role: "enfermeiro" },
+      { email: "tecnico@tecnico.com", password: "tecnico123", name: "TÃ©c. Pedro Almeida", role: "tecnico_enfermagem" }
     ];
 
     const mockUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -65,7 +65,7 @@ export default function Login() {
         lastLogin: new Date().toISOString()
       };
       localStorage.setItem("pulse-auth-session", JSON.stringify(userData));
-      toast.success("Bem-vindo ao Pulse PEP!");
+      toast.success("Bem-vindo ao Pulse PEP Clinic!");
       navigate("/");
       setIsLoading(false);
       return;
@@ -75,7 +75,7 @@ export default function Login() {
 
     if (foundUser && (foundUser.password === password || (!foundUser.password && password === "admin123"))) {
       if (foundUser.status === "inativo") {
-        setError("Usuário inativo. Entre em contato com o suporte.");
+        setError("UsuÃ¡rio inativo. Entre em contato com o suporte.");
         toast.error("Acesso bloqueado.");
         setIsLoading(false);
         return;
@@ -91,12 +91,12 @@ export default function Login() {
       };
       
       localStorage.setItem("pulse-auth-session", JSON.stringify(userData));
-      toast.success("Bem-vindo ao Pulse PEP!");
+      toast.success("Bem-vindo ao Pulse PEP Clinic!");
       navigate("/");
     } else {
       setAttempts(prev => prev + 1);
-      setError("Usuário ou senha inválidos");
-      toast.error("Falha na autenticação");
+      setError("UsuÃ¡rio ou senha invÃ¡lidos");
+      toast.error("Falha na autenticaÃ§Ã£o");
     }
 
     setIsLoading(false);
@@ -128,8 +128,8 @@ export default function Login() {
               <HeartPulse className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Pulse PEP</h1>
-              <p className="text-white/70 text-sm font-medium">Prontuário Eletrônico do Paciente</p>
+              <h1 className="text-3xl font-bold text-white tracking-tight">Pulse PEP Clinic</h1>
+              <p className="text-white/70 text-sm font-medium">ProntuÃ¡rio EletrÃ´nico do Paciente</p>
             </div>
           </div>
 
@@ -140,7 +140,7 @@ export default function Login() {
               transition={{ delay: 0.3 }}
               className="text-4xl lg:text-5xl font-extrabold text-white leading-[1.1]"
             >
-              Tecnologia de ponta para sua <span className="text-emerald-400">gestão clínica</span>.
+              Tecnologia de ponta para sua <span className="text-emerald-400">gestÃ£o clÃ­nica</span>.
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -148,7 +148,7 @@ export default function Login() {
               transition={{ delay: 0.4 }}
               className="text-lg text-white/80 leading-relaxed"
             >
-              Sistema seguro para gestão clínica e prontuário eletrônico. Desenvolvido para médicos, enfermeiros e gestores hospitalares.
+              Sistema seguro para gestÃ£o clÃ­nica e prontuÃ¡rio eletrÃ´nico. Desenvolvido para mÃ©dicos, enfermeiros e gestores hospitalares.
             </motion.p>
           </div>
         </div>
@@ -167,11 +167,11 @@ export default function Login() {
               </div>
             </div>
             <div className="text-sm text-white/60">
-              <span className="block font-semibold text-white">Usuários ativos</span>
+              <span className="block font-semibold text-white">UsuÃ¡rios ativos</span>
               Em todo o Brasil
             </div>
           </div>
-          <p className="text-white/40 text-xs">© 2026 Sistema Pulse PEP • Todos os direitos reservados</p>
+          <p className="text-white/40 text-xs">Â© 2026 Sistema Pulse PEP Clinic â€¢ Todos os direitos reservados</p>
         </div>
 
         {/* Decorative elements */}
@@ -184,7 +184,7 @@ export default function Login() {
         {/* Mobile Logo Only */}
         <div className="absolute top-8 left-8 flex items-center gap-2 md:hidden">
           <HeartPulse className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Pulse PEP</span>
+          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Pulse PEP Clinic</span>
         </div>
 
         <motion.div 
@@ -208,7 +208,7 @@ export default function Login() {
 
             <div className="mb-10 text-center md:text-left pt-6">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Acesse sua conta</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Entre com suas credenciais para gerenciar o Pulse PEP.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Entre com suas credenciais para gerenciar o Pulse PEP Clinic.</p>
             </div>
 
 
@@ -229,7 +229,7 @@ export default function Login() {
               </AnimatePresence>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1">E-mail ou Usuário</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1">E-mail ou UsuÃ¡rio</label>
                 <div className="relative group/field">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/field:text-primary transition-colors">
                     <Mail className="h-4 w-4" />
@@ -258,7 +258,7 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     className="w-full h-12 pl-10 pr-12 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm"
                     required
                   />
@@ -299,7 +299,7 @@ export default function Login() {
                       animate={{ x: [0, 5, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                     >
-                      →
+                      â†’
                     </motion.span>
                   </>
                 )}
@@ -309,7 +309,7 @@ export default function Login() {
             <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-4">
               <div className="flex gap-4 items-center">
                 <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Segurança Pulse</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">SeguranÃ§a Pulse</span>
                 <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
               </div>
               <div className="flex gap-6">
@@ -335,3 +335,4 @@ export default function Login() {
     </div>
   );
 }
+

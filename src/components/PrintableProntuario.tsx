@@ -1,4 +1,4 @@
-import { createPortal } from "react-dom";
+﻿import { createPortal } from "react-dom";
 import { type Patient, type VitalSign, type Prescription, type Exam, type TimelineEvent, patients, vitalSigns, prescriptions, exams, timelineEvents } from "@/lib/mock-data";
 
 interface PrintableProntuarioProps {
@@ -11,11 +11,11 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
     return saved
       ? JSON.parse(saved)
       : {
-          name: "Pulse Clínica Médica",
+          name: "Pulse ClÃ­nica MÃ©dica",
           cnpj: "12.345.678/0001-90",
           phone: "(11) 3456-7890",
           email: "contato@pulsesecond.com.br",
-          address: "Av. Paulista, 1000 - São Paulo, SP",
+          address: "Av. Paulista, 1000 - SÃ£o Paulo, SP",
           logo: null,
         };
   })();
@@ -72,7 +72,7 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
           {clinicData.logo ? (
             <img src={clinicData.logo} alt="Logo" className="h-10 w-10 object-contain" />
           ) : (
-            <div className="text-xl">🏥</div>
+            <div className="text-xl">ðŸ¥</div>
           )}
           <div>
             <h1 className="text-sm font-bold">{clinicData.name}</h1>
@@ -82,33 +82,33 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         <div className="text-right text-[10px] text-gray-600">
           <p>{clinicData.address}</p>
           <p>Tel: {clinicData.phone} | {clinicData.email}</p>
-          <p>Impressão: {new Date().toLocaleDateString("pt-BR")} às {new Date().toLocaleTimeString("pt-BR")}</p>
+          <p>ImpressÃ£o: {new Date().toLocaleDateString("pt-BR")} Ã s {new Date().toLocaleTimeString("pt-BR")}</p>
         </div>
       </div>
 
       <div className="text-center mb-4">
-        <h2 className="text-base font-bold tracking-wider uppercase">Prontuário Médico do Paciente</h2>
+        <h2 className="text-base font-bold tracking-wider uppercase">ProntuÃ¡rio MÃ©dico do Paciente</h2>
       </div>
 
-      {/* Identificação do Paciente */}
+      {/* IdentificaÃ§Ã£o do Paciente */}
       <div className="bg-gray-50 p-3 rounded-md border border-gray-200 mb-5">
-        <h3 className="text-xs font-bold mb-2 border-b border-gray-300 pb-1">Identificação do Paciente</h3>
+        <h3 className="text-xs font-bold mb-2 border-b border-gray-300 pb-1">IdentificaÃ§Ã£o do Paciente</h3>
         <div className="grid grid-cols-3 gap-y-1.5 gap-x-4 text-[11px]">
           <div><span className="font-semibold text-gray-500">Nome:</span> <span className="font-medium text-gray-900">{patient.name}</span></div>
           <div><span className="font-semibold text-gray-500">Idade:</span> <span className="font-medium text-gray-900">{patient.age} anos</span></div>
           <div><span className="font-semibold text-gray-500">Sexo:</span> <span className="font-medium text-gray-900">{patient.sex === "M" ? "Masculino" : "Feminino"}</span></div>
           <div><span className="font-semibold text-gray-500">CPF:</span> <span className="font-medium text-gray-900 tabular-nums">{patient.cpf}</span></div>
           <div><span className="font-semibold text-gray-500">RG:</span> <span className="font-medium text-gray-900 tabular-nums">---</span></div>
-          <div><span className="font-semibold text-gray-500">Cartão SUS:</span> <span className="font-medium text-gray-900 tabular-nums">{patient.sus || "---"}</span></div>
+          <div><span className="font-semibold text-gray-500">CartÃ£o SUS:</span> <span className="font-medium text-gray-900 tabular-nums">{patient.sus || "---"}</span></div>
           <div><span className="font-semibold text-gray-500">Telefone:</span> <span className="font-medium text-gray-900">{patient.phone}</span></div>
-          <div className="col-span-2"><span className="font-semibold text-gray-500">Endereço:</span> <span className="font-medium text-gray-900">Av. Paulista, 1000 - São Paulo, SP</span></div>
+          <div className="col-span-2"><span className="font-semibold text-gray-500">EndereÃ§o:</span> <span className="font-medium text-gray-900">Av. Paulista, 1000 - SÃ£o Paulo, SP</span></div>
           <div className="col-span-3 text-red-600 font-semibold">
             {patient.allergies.length > 0 ? `Alergias: ${patient.allergies.join(", ")}` : "Sem alergias conhecidas"}
           </div>
         </div>
       </div>
 
-      {/* 2 – Sinais Vitais */}
+      {/* 2 â€“ Sinais Vitais */}
       {combinedVitals.length > 0 && (
         <div className="section-block mb-5">
           <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">1. Sinais Vitais</h3>
@@ -116,7 +116,7 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
             <thead>
               <tr className="border-b border-gray-300 text-gray-600">
                 <th className="text-left py-1">Data/Hora</th>
-                <th className="text-center py-1">Temp (°C)</th>
+                <th className="text-center py-1">Temp (Â°C)</th>
                 <th className="text-center py-1">FC (bpm)</th>
                 <th className="text-center py-1">PA (mmHg)</th>
                 <th className="text-center py-1">FR (ipm)</th>
@@ -143,31 +143,31 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 3 – Evoluções Clínicas */}
+      {/* 3 â€“ EvoluÃ§Ãµes ClÃ­nicas */}
       {combinedTimeline.filter(e => e.type.startsWith("evolucao")).length > 0 && (
         <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">2. Evoluções Clínicas</h3>
+          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">2. EvoluÃ§Ãµes ClÃ­nicas</h3>
           <div className="space-y-3">
             {combinedTimeline
               .filter(e => e.type.startsWith("evolucao"))
               .map((ev) => (
                 <div key={ev.id} className="border-b border-gray-100 pb-2">
                   <div className="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
-                    <span className="font-semibold text-primary">{ev.type === "evolucao_medica" ? "Médica" : "Enfermagem"}</span>
+                    <span className="font-semibold text-primary">{ev.type === "evolucao_medica" ? "MÃ©dica" : "Enfermagem"}</span>
                     <span className="tabular-nums">{new Date(ev.date).toLocaleDateString("pt-BR")} {new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
                   </div>
                   <pre className="text-xs text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">{ev.details || ev.summary}</pre>
-                  <p className="text-[10px] text-gray-400 mt-1">Responsável: {ev.professional}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">ResponsÃ¡vel: {ev.professional}</p>
                 </div>
               ))}
           </div>
         </div>
       )}
 
-      {/* 5 – Prescrições */}
+      {/* 5 â€“ PrescriÃ§Ãµes */}
       {combinedPrescriptions.length > 0 && (
         <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. Prescrições Médicas</h3>
+          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. PrescriÃ§Ãµes MÃ©dicas</h3>
           {combinedPrescriptions.map((px) => (
             <div key={px.id} className="mb-3">
               <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
@@ -180,8 +180,8 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
                     <th className="text-left py-1 px-2 border-r border-gray-200">Medicamento</th>
                     <th className="text-left py-1 px-2 border-r border-gray-200">Dose</th>
                     <th className="text-center py-1 px-2 border-r border-gray-200">Via</th>
-                    <th className="text-center py-1 px-2 border-r border-gray-200">Frequência</th>
-                    <th className="text-center py-1 px-2">Duração</th>
+                    <th className="text-center py-1 px-2 border-r border-gray-200">FrequÃªncia</th>
+                    <th className="text-center py-1 px-2">DuraÃ§Ã£o</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -202,17 +202,17 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 6 – Exames Solicitados */}
+      {/* 6 â€“ Exames Solicitados */}
       {combinedExams.length > 0 && (
         <div className="section-block mb-5">
           <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">4. Exames Solicitados</h3>
           <table className="min-w-full text-[10px] border-collapse">
             <thead>
               <tr className="border-b border-gray-300 text-gray-600">
-                <th className="text-left py-1">Data Solicitação</th>
+                <th className="text-left py-1">Data SolicitaÃ§Ã£o</th>
                 <th className="text-left py-1">Exame</th>
                 <th className="text-center py-1">Status</th>
-                <th className="text-left py-1">Responsável</th>
+                <th className="text-left py-1">ResponsÃ¡vel</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -229,13 +229,14 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* Rodapé fixo de impressão por página */}
+      {/* RodapÃ© fixo de impressÃ£o por pÃ¡gina */}
       <div className="print-footer fixed bottom-0 left-0 right-0 border-t border-gray-300 pt-2 text-[9px] text-gray-500 flex justify-between">
-        <div>Pulse PEP – Prontuário Médico</div>
+        <div>Pulse PEP Clinic â€“ ProntuÃ¡rio MÃ©dico</div>
         <div>Paciente: {patient.name}</div>
-        <div className="tabular-nums">Página <span className="print-page-number"></span></div>
+        <div className="tabular-nums">PÃ¡gina <span className="print-page-number"></span></div>
       </div>
     </div>,
     document.body
   );
 }
+

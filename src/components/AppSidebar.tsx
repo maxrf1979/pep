@@ -1,4 +1,4 @@
-import {
+﻿import {
   LayoutDashboard,
   Users,
   FileText,
@@ -33,20 +33,20 @@ import {
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Pacientes", url: "/pacientes", icon: Users },
-  { title: "Prontuários", url: "/prontuarios", icon: FileText },
+  { title: "ProntuÃ¡rios", url: "/prontuarios", icon: FileText },
 ];
 
 const clinicalNav = [
   { title: "Sinais Vitais", url: "/sinais-vitais", icon: Activity },
-  { title: "Prescrições", url: "/prescricoes", icon: Pill },
+  { title: "PrescriÃ§Ãµes", url: "/prescricoes", icon: Pill },
   { title: "Exames", url: "/exames", icon: FlaskConical },
 ];
 
 const adminNav = [
-  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "RelatÃ³rios", url: "/relatorios", icon: BarChart3 },
   { title: "Painel de Chamada", url: "/admin/painel", icon: Tv },
-  { title: "Administração", url: "/admin", icon: Shield },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { title: "AdministraÃ§Ã£o", url: "/admin", icon: Shield },
+  { title: "ConfiguraÃ§Ãµes", url: "/configuracoes", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -60,7 +60,7 @@ export function AppSidebar() {
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
   const filteredAdminNav = adminNav.filter(item => {
-    if (userRole === "medico" && ["Administração", "Configurações"].includes(item.title)) {
+    if (userRole === "medico" && ["AdministraÃ§Ã£o", "ConfiguraÃ§Ãµes"].includes(item.title)) {
       return false;
     }
     return true;
@@ -108,13 +108,13 @@ export function AppSidebar() {
         <Heart className="h-6 w-6 text-primary shrink-0" strokeWidth={2} fill="hsl(var(--primary))" />
         {!collapsed && (
           <span className="text-lg font-bold tracking-tight text-sidebar-foreground">
-            Pulse PEP
+            Pulse PEP Clinic
           </span>
         )}
       </div>
       <SidebarContent className="py-2">
         {renderGroup("Principal", mainNav)}
-        {renderGroup("Clínico", clinicalNav)}
+        {renderGroup("ClÃ­nico", clinicalNav)}
         {renderGroup("Sistema", filteredAdminNav)}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
@@ -144,3 +144,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+

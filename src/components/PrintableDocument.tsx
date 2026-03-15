@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+﻿import { Heart } from "lucide-react";
 import { createPortal } from "react-dom";
 
 interface PrintableDocumentProps {
@@ -33,7 +33,7 @@ export function PrintableDocument({
           cnpj: "12.345.678/0001-90",
           phone: "(11) 3456-7890",
           email: "contato@aureadental.com.br",
-          address: "Av. Paulista, 1000 - São Paulo, SP",
+          address: "Av. Paulista, 1000 - SÃ£o Paulo, SP",
           primaryColor: "#10B981",
           logo: null,
         };
@@ -86,7 +86,7 @@ export function PrintableDocument({
       <div className="flex-1">
         <div className="text-center mb-6">
           <h2 className="text-lg font-bold uppercase tracking-wider">
-            {type === "prescription" ? "Receituário Médico" : "Solicitação de Exame"}
+            {type === "prescription" ? "ReceituÃ¡rio MÃ©dico" : "SolicitaÃ§Ã£o de Exame"}
           </h2>
         </div>
 
@@ -117,8 +117,8 @@ export function PrintableDocument({
                   <th className="p-2">Medicamento</th>
                   <th className="p-2">Dose</th>
                   <th className="p-2">Via</th>
-                  <th className="p-2">Frequência</th>
-                  <th className="p-2">Duração</th>
+                  <th className="p-2">FrequÃªncia</th>
+                  <th className="p-2">DuraÃ§Ã£o</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +157,7 @@ export function PrintableDocument({
         {notes && (
           <div className="mb-6 text-sm">
             <h3 className="font-bold border-b pb-1 mb-1">
-              {type === "prescription" ? "Observações / Recomendações" : "Justificativa / Indicação Clínica"}
+              {type === "prescription" ? "ObservaÃ§Ãµes / RecomendaÃ§Ãµes" : "Justificativa / IndicaÃ§Ã£o ClÃ­nica"}
             </h3>
             <p className="whitespace-pre-wrap text-gray-700">{notes}</p>
           </div>
@@ -167,17 +167,17 @@ export function PrintableDocument({
       {/* Signature and verification */}
       <div className="mt-12 pt-8 flex justify-between items-end border-t border-gray-200">
         <div>
-          <p className="font-medium text-black">Profissional Responsável</p>
+          <p className="font-medium text-black">Profissional ResponsÃ¡vel</p>
           <div className="mt-8 pt-2 w-48 text-center border-t border-black">
             <p className="font-semibold text-xs">{professionalLabel}</p>
-            <p className="text-[10px] text-gray-500">Assinatura Eletrônica</p>
+            <p className="text-[10px] text-gray-500">Assinatura EletrÃ´nica</p>
           </div>
         </div>
 
         <div className="flex flex-col items-center gap-1">
           <img
             src={qrCodeUrl}
-            alt="Código de Verificação"
+            alt="CÃ³digo de VerificaÃ§Ã£o"
             className="h-20 w-20 object-contain"
           />
           <span className="text-[8px] text-gray-500 text-center">
@@ -193,8 +193,8 @@ export function PrintableDocument({
       >
         <p className="font-medium">{clinicData.address}</p>
         <p className="text-[10px] text-gray-500 mt-1">
-          Documento gerado eletronicamente por Pulse PEP em{" "}
-          {new Date().toLocaleDateString("pt-BR")} às{" "}
+          Documento gerado eletronicamente por Pulse PEP Clinic em{" "}
+          {new Date().toLocaleDateString("pt-BR")} Ã s{" "}
           {new Date().toLocaleTimeString("pt-BR")}
         </p>
       </div>
@@ -202,3 +202,4 @@ export function PrintableDocument({
     document.body
   );
 }
+

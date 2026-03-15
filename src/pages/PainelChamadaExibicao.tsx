@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { HeartPulse, Volume2, User, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -26,7 +26,7 @@ export default function PainelChamadaExibicao() {
       );
       setCalls(sorted);
 
-      // Verificar se há uma nova chamada para soar alerta e falar o nome
+      // Verificar se hÃ¡ uma nova chamada para soar alerta e falar o nome
       const latestCalled = sorted.find(c => c.status === 'called');
       if (latestCalled && latestCalled.id !== lastCalledId) {
         setLastCalledId(latestCalled.id);
@@ -49,14 +49,14 @@ export default function PainelChamadaExibicao() {
         speech.lang = 'pt-BR';
         speech.rate = 0.9;
         window.speechSynthesis.speak(speech);
-      }, 1000); // Aguardar 1 segundo após o beep
+      }, 1000); // Aguardar 1 segundo apÃ³s o beep
     }
   };
 
   useEffect(() => {
     loadCalls();
 
-    // Ouvir alterações no localStorage de outras abas
+    // Ouvir alteraÃ§Ãµes no localStorage de outras abas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "pep-calls") {
         loadCalls();
@@ -65,7 +65,7 @@ export default function PainelChamadaExibicao() {
 
     window.addEventListener("storage", handleStorageChange);
     
-    // Intervalo de segurança para pooling local
+    // Intervalo de seguranÃ§a para pooling local
     const interval = setInterval(loadCalls, 2000);
 
     return () => {
@@ -79,14 +79,14 @@ export default function PainelChamadaExibicao() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col md:flex-row overflow-hidden font-sans selection:bg-emerald-500">
-      {/* Elemento de Áudio para o Beep */}
+      {/* Elemento de Ãudio para o Beep */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
 
       {/* Main Panel: Chamada Atual */}
       <div className="flex-1 flex flex-col items-center justify-center p-12 border-r border-slate-900/80 relative">
         <div className="absolute top-8 left-8 flex items-center gap-2 opacity-60">
           <HeartPulse className="h-6 w-6 text-emerald-500 animate-pulse" />
-          <span className="font-bold tracking-tight text-xl">Pulse PEP</span>
+          <span className="font-bold tracking-tight text-xl">Pulse PEP Clinic</span>
         </div>
 
         <AnimatePresence mode="wait">
@@ -123,13 +123,13 @@ export default function PainelChamadaExibicao() {
           ) : (
             <div className="text-slate-500 text-center">
               <Volume2 className="h-20 w-20 mx-auto mb-4 opacity-30 animate-pulse" />
-              <p className="text-xl font-medium">Aguardando próximas chamadas...</p>
+              <p className="text-xl font-medium">Aguardando prÃ³ximas chamadas...</p>
             </div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* History Panel: Últimas Chamadas */}
+      {/* History Panel: Ãšltimas Chamadas */}
       <div className="w-full md:w-96 bg-slate-900/40 backdrop-blur-xl p-8 flex flex-col">
         <div className="mb-6 flex items-center gap-3 border-b border-slate-800/50 pb-4">
           <Clock className="h-5 w-5 text-slate-400" />
@@ -171,7 +171,7 @@ export default function PainelChamadaExibicao() {
 
           {previousCalls.length === 0 && (
             <div className="text-center text-slate-600 mt-10 text-sm">
-              Sem histórico recente.
+              Sem histÃ³rico recente.
             </div>
           )}
         </div>
@@ -179,3 +179,4 @@ export default function PainelChamadaExibicao() {
     </div>
   );
 }
+

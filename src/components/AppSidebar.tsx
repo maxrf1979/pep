@@ -1,4 +1,4 @@
-﻿import {
+import {
   LayoutDashboard,
   Users,
   FileText,
@@ -33,20 +33,20 @@ import {
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Pacientes", url: "/pacientes", icon: Users },
-  { title: "ProntuÃ¡rios", url: "/prontuarios", icon: FileText },
+  { title: "Prontuários", url: "/prontuarios", icon: FileText },
 ];
 
 const clinicalNav = [
   { title: "Sinais Vitais", url: "/sinais-vitais", icon: Activity },
-  { title: "PrescriÃ§Ãµes", url: "/prescricoes", icon: Pill },
+  { title: "Prescrições", url: "/prescricoes", icon: Pill },
   { title: "Exames", url: "/exames", icon: FlaskConical },
 ];
 
 const adminNav = [
-  { title: "RelatÃ³rios", url: "/relatorios", icon: BarChart3 },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Painel de Chamada", url: "/admin/painel", icon: Tv },
-  { title: "AdministraÃ§Ã£o", url: "/admin", icon: Shield },
-  { title: "ConfiguraÃ§Ãµes", url: "/configuracoes", icon: Settings },
+  { title: "Administração", url: "/admin", icon: Shield },
+  { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -60,7 +60,7 @@ export function AppSidebar() {
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
   const filteredAdminNav = adminNav.filter(item => {
-    if (userRole === "medico" && ["AdministraÃ§Ã£o", "ConfiguraÃ§Ãµes"].includes(item.title)) {
+    if (userRole === "medico" && ["Administração", "Configurações"].includes(item.title)) {
       return false;
     }
     return true;
@@ -114,7 +114,7 @@ export function AppSidebar() {
       </div>
       <SidebarContent className="py-2">
         {renderGroup("Principal", mainNav)}
-        {renderGroup("ClÃ­nico", clinicalNav)}
+        {renderGroup("Clínico", clinicalNav)}
         {renderGroup("Sistema", filteredAdminNav)}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">

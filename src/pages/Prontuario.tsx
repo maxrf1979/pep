@@ -489,31 +489,31 @@ export default function Prontuario() {
 
       {/* Individual Event Print View */}
       {isPrinting && currentPrintingEvent && (
-        <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-10 text-slate-800">
+        <div className="hidden print:block fixed inset-0 z-[9999]" style={{ padding: "2cm", fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "10pt", color: "#000", background: "white" }}>
           <ReportHeader />
-          <div className="my-6 border-b border-slate-200 pb-4">
-            <h2 className="text-xl font-bold text-slate-900">{typeConfig[currentPrintingEvent.type]?.label}</h2>
-            <div className="flex justify-between text-xs text-slate-500 mt-2">
+          <div style={{ margin: "20px 0", borderBottom: "2px solid #ddd", paddingBottom: "12px" }}>
+            <h2 style={{ fontSize: "16pt", fontWeight: 700, margin: 0 }}>{typeConfig[currentPrintingEvent.type]?.label}</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#666", marginTop: "8px" }}>
               <span>Data: {new Date(currentPrintingEvent.date).toLocaleString("pt-BR")}</span>
               <span>Profissional: {currentPrintingEvent.professional}</span>
             </div>
           </div>
-          <div className="text-sm font-sans leading-relaxed whitespace-pre-wrap text-slate-800">
-            <p className="font-bold text-base mb-2 text-slate-900">{currentPrintingEvent.title}</p>
-            <div className="mt-2 bg-slate-50 p-4 rounded-lg border border-slate-100">
-              <p className="font-semibold text-xs text-slate-500 mb-1">Resumo:</p>
-              <p>{currentPrintingEvent.summary}</p>
+          <div style={{ fontSize: "10pt", lineHeight: 1.6 }}>
+            <p style={{ fontWeight: 700, fontSize: "12pt", marginBottom: "8px" }}>{currentPrintingEvent.title}</p>
+            <div style={{ marginTop: "8px", background: "#fafafa", padding: "12px", borderRadius: "4px", border: "1px solid #eee" }}>
+              <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Resumo:</p>
+              <p style={{ margin: 0 }}>{currentPrintingEvent.summary}</p>
             </div>
             {currentPrintingEvent.details && (
-              <div className="mt-4">
-                <p className="font-semibold text-xs text-slate-500 mb-1">Detalhamento:</p>
-                <div className="mt-1 font-sans whitespace-pre-wrap bg-white p-3 rounded-lg border border-slate-100 text-slate-700">
+              <div style={{ marginTop: "16px" }}>
+                <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Detalhamento:</p>
+                <div style={{ whiteSpace: "pre-wrap", padding: "12px", border: "1px solid #eee", borderRadius: "4px", lineHeight: 1.6 }}>
                   {currentPrintingEvent.details}
                 </div>
               </div>
             )}
           </div>
-          <div className="mt-24">
+          <div style={{ marginTop: "80px" }}>
             <ReportFooter />
           </div>
         </div>

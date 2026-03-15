@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FlaskConical, Plus, Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients, exams, type Exam, type Patient } from "@/lib/mock-data";
+import { patients, examRequests, type ExamRequest, type Patient } from "@/lib/mock-data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { PrintableDocument } from "@/components/PrintableDocument";
@@ -23,13 +23,14 @@ const typeConfig = {
   outro: { label: "Outro", cls: "bg-muted text-muted-foreground" },
 };
 
-function ExameCard({ exam, index }: { exam: Exam; index: number }) {
+function ExameCard({ exam, index }: { exam: ExamRequest; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
   const patient = patients.find((p) => p.id === exam.patientId);
   if (!patient) return null;
-  const st = statusConfig[exam.status];
-  const tp = typeConfig[exam.type];
+  const examAny = exam as any;
+  const st = statusConfig[examAny.status || "solicitado"];
+  const tp = typeConfig[examAny.type || "laboratorial"];
 
   return (
     <motion.div
@@ -55,18 +56,18 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right shrink-0 tabular-nums">
-          {new Date(exam.requestDate).toLocaleDateString("pt-BR")}
+          {new Date(exam.created_at || examAny.requestDate).toLocaleDateString("pt-BR")}
         </div>
       </div>
 
       <div className="mt-3">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-4 w-4 text-primary shrink-0" strokeWidth={1.5} />
-          <span className="text-sm font-medium">{exam.name}</span>
+          <span className="text-sm font-medium">{exam.examName || examAny.name}</span>
         </div>
       </div>
 
-      {exam.result && (
+      {examAny.result && (
         <>
           {expanded && (
             <motion.div
@@ -76,7 +77,7 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
             >
               <p className="text-xs font-medium text-muted-foreground mb-1">Resultado:</p>
               <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed bg-muted/30 rounded-md p-3">
-                {exam.result}
+                {examAny.result}
               </pre>
             </motion.div>
           )}
@@ -84,8 +85,8 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{exam.professional}</span>
-        {exam.result && (
+        <span className="text-xs text-muted-foreground">{examAny.professional || "Dr. Administrador"}</span>
+        {examAny.result && (
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1 text-xs text-primary font-medium"
@@ -100,10 +101,10 @@ function ExameCard({ exam, index }: { exam: Exam; index: number }) {
 }
 
 function NovoExameDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: Exam[]) => void;
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: any[]) => void;
 }) {
   const [patientId, setPatientId] = useState("");
-  const [exams, setExams] = useState<{ id: string; name: string; type: Exam["type"] }[]>(() => [
+  const [exams, setExams] = useState<{ id: string; name: string; type: string }[]>(() => [
     { id: crypto.randomUUID(), name: "", type: "laboratorial" }
   ]);
   const [notes, setNotes] = useState("");
@@ -146,7 +147,7 @@ function NovoExameDialog({ open, onOpenChange, onSave }: {
   const handleSave = () => {
     if (!validate()) return;
     
-    const newExams: Exam[] = exams.map(ex => ({
+    const newExams: any[] = exams.map(ex => ({
       id: crypto.randomUUID(),
       patientId: patientId,
       requestDate: new Date().toISOString(),
@@ -288,7 +289,7 @@ export default function Exames() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [localExams, setLocalExams] = useState<Exam[]>(() => {
+  const [localExams, setLocalExams] = useState<any[]>(() => {
     const saved = localStorage.getItem("localExams");
     return saved ? JSON.parse(saved) : [];
   });
@@ -298,20 +299,22 @@ export default function Exames() {
     localStorage.setItem("localExams", JSON.stringify(localExams));
   }, [localExams]);
 
-  const allExams = [...localExams, ...exams].sort(
-    (a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime()
+  const allExams = [...localExams, ...examRequests].sort(
+    (a: any, b: any) => new Date(b.created_at || b.requestDate).getTime() - new Date(a.created_at || a.requestDate).getTime()
   );
 
-  const filtered = allExams.filter((e) => {
+  const filtered = allExams.filter((eAny: any) => {
+    const e = eAny;
     const p = allPatients.find((p) => p.id === e.patientId);
     if (!p) return false;
     if (typeFilter !== "all" && e.type !== typeFilter) return false;
     if (statusFilter !== "all" && e.status !== statusFilter) return false;
+    const name = e.examName || e.name || "";
     if (!search) return true;
-    return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search) || e.name.toLowerCase().includes(search.toLowerCase());
+    return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search) || name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const handleSave = (newExams: Exam[]) => {
+  const handleSave = (newExams: any[]) => {
     setLocalExams((prev) => [...newExams, ...prev]);
     toast.success(`${newExams.length} exame(s) solicitado(s) com sucesso.`);
   };

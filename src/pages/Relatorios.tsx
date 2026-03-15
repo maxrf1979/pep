@@ -51,12 +51,14 @@ export default function Relatorios() {
 
   const activeRx = prescriptions.filter((r) => r.status === "ativa").length;
   const pendingExams = timelineEvents.filter((e) => e.type === "exame").length;
+  const obito = patients.filter((p) => p.status === "obito" || p.status === "OBITO").length;
   const availableResults = 0; // Interface simplificada
 
   const statusData = [
     { name: "Internados", value: internados },
     { name: "Ambulatorial", value: ambulatoriais },
     { name: "Alta", value: alta },
+    { name: "Óbito", value: obito },
   ];
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];

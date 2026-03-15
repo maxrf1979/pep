@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, CheckCircle2, AlertCircle, Loader2, HeartPulse } from "lucide-react";
@@ -129,7 +129,7 @@ export default function Login() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">Pulse PEP Clinic</h1>
-              <p className="text-white/70 text-sm font-medium">ProntuÃ¡rio EletrÃ´nico do Paciente</p>
+              <p className="text-white/70 text-sm font-medium">Prontuário Eletrônico do Paciente</p>
             </div>
           </div>
 
@@ -148,7 +148,7 @@ export default function Login() {
               transition={{ delay: 0.4 }}
               className="text-lg text-white/80 leading-relaxed"
             >
-              Sistema seguro para Gestão Clínica e prontuÃ¡rio eletrÃ´nico. Desenvolvido para mÃ©dicos, enfermeiros e gestores hospitalares.
+              Sistema seguro para Gestão Clínica e prontuário eletrônico. Desenvolvido para médicos, enfermeiros e gestores hospitalares.
             </motion.p>
           </div>
         </div>
@@ -167,11 +167,11 @@ export default function Login() {
               </div>
             </div>
             <div className="text-sm text-white/60">
-              <span className="block font-semibold text-white">UsuÃ¡rios ativos</span>
+              <span className="block font-semibold text-white">Usuários ativos</span>
               Em todo o Brasil
             </div>
           </div>
-          <p className="text-white/40 text-xs">Â© 2026 Sistema Pulse PEP Clinic â€¢ Todos os direitos reservados</p>
+          <p className="text-white/40 text-xs">© 2026 Sistema Pulse PEP Clinic • Todos os direitos reservados</p>
         </div>
 
         {/* Decorative elements */}
@@ -229,7 +229,7 @@ export default function Login() {
               </AnimatePresence>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1">E-mail ou UsuÃ¡rio</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1">E-mail ou Usuário</label>
                 <div className="relative group/field">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/field:text-primary transition-colors">
                     <Mail className="h-4 w-4" />
@@ -258,7 +258,7 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                     className="w-full h-12 pl-10 pr-12 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm"
                     required
                   />

@@ -299,35 +299,11 @@ export default function Prontuario() {
     <div className={`max-w-5xl space-y-0 ${currentPrintingEvent ? "print:hidden" : ""}`}>
       <style>{`
         @media print {
-          body { background: white; color: black; }
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          #prontuario-container { page-break-inside: avoid; }
-          .print-header, .print-footer { display: block; }
-          .section-block { page-break-inside: avoid; }
-          @page { margin: 1.5cm; }
-          body::before {
-            content: "";
-            display: block;
-            height: 2cm;
-            margin-bottom: 1cm;
-          }
-          body::after {
-            content: "";
-            display: block;
-            height: 2cm;
-            margin-top: 1cm;
-          }
-        }
-        @page {
-          margin-top: 3cm;
-          margin-bottom: 3cm;
-          @top-center {
-            content: "Pulse PEP Clinic - Sistema de Gerenciamento Eletrônico de Prontuário";
-          }
-          @bottom-center {
-            content: "Data: " string(page-data);
-          }
+          /* Hide the app layout for prontuario printing */
+          [data-sidebar], aside, nav, header, .sticky, .no-print { display: none !important; }
+          .print\\:block { display: block !important; }
+          .print\\:hidden { display: none !important; }
+          @page { size: A4; margin: 1.5cm 2cm; }
         }
       `}</style>
 

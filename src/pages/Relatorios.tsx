@@ -109,8 +109,14 @@ export default function Relatorios() {
         @media print {
           body * { visibility: hidden; }
           #print-section, #print-section * { visibility: visible; }
-          #print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          #print-section {
+            position: absolute; left: 0; top: 0; width: 100%;
+            padding: 2cm;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           .no-print { display: none !important; }
+          @page { size: A4; margin: 1.5cm 2cm; }
         }
       `}</style>
 

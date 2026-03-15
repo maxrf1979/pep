@@ -111,7 +111,7 @@ export default function SinaisVitais() {
   }, [localVitals]);
 
   const allVitals = [...localVitals, ...vitalSigns].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime()
   );
 
   const filtered = allVitals.filter((v) => {

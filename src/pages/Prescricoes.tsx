@@ -176,7 +176,7 @@ export default function Prescricoes() {
       };
       timeline.push(ev);
     });
-    localStorage.setItem("pep-timeline", JSON.stringify([...timeline.slice(-rxList.length), ...existingTimeline]));
+    localStorage.setItem("pep-timeline", JSON.stringify(timeline));
 
     toast.success("Prescrição emitida com sucesso.");
   };

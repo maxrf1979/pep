@@ -299,7 +299,7 @@ export default function Login() {
                       animate={{ x: [0, 5, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                     >
-                      â†’
+                      →
                     </motion.span>
                   </>
                 )}
@@ -309,7 +309,7 @@ export default function Login() {
             <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-4">
               <div className="flex gap-4 items-center">
                 <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">SeguranÃ§a Pulse</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Segurança Pulse</span>
                 <div className="h-px w-8 bg-slate-200 dark:bg-slate-800" />
               </div>
               <div className="flex gap-6">

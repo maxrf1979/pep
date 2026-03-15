@@ -384,7 +384,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         }
       `}</style>
 
-      {/* PÍGINA 1 - CABEÇALHO E IDENTIFICAÇÃO */}
+      {/* PÁGINA 1 - CABEÇALHO E IDENTIFICAÇÃO */}
       <div className="page">
         {/* Cabeçalho Institucional */}
         <div className="document-header">
@@ -414,7 +414,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
 
         {/* Título do Documento */}
-        <div className="document-title">PRONTUÍRIO MÉDICO DO PACIENTE</div>
+        <div className="document-title">PRONTUÁRIO MÉDICO DO PACIENTE</div>
 
         {/* Seção 1: Identificação do Paciente */}
         <div className="section">
@@ -529,7 +529,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         )}
       </div>
 
-      {/* PÍGINA 2 - SINAIS VITAIS */}
+      {/* PÁGINA 2 - SINAIS VITAIS */}
       {combinedVitals.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -585,7 +585,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÍGINA 3+ - EVOLUÇÕES CLÍNICAS */}
+      {/* PÁGINA 3+ - EVOLUÇÕES CLÍNICAS */}
       {clinicalEvolutions.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -619,7 +619,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÍGINA 4 - PRESCRIÇÕES */}
+      {/* PÁGINA 4 - PRESCRIÇÕES */}
       {combinedPrescriptions.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -674,7 +674,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÍGINA 5 - EXAMES SOLICITADOS */}
+      {/* PÁGINA 5 - EXAMES SOLICITADOS */}
       {combinedExams.length > 0 && (
         <div className="page">
           <div className="document-header">
@@ -718,7 +718,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
         </div>
       )}
 
-      {/* PÍGINA FINAL - ASSINATURA E RODAPÉ */}
+      {/* PÁGINA FINAL - ASSINATURA E RODAPÉ */}
       <div className="page">
         <div className="document-header">
           <div className="header-top">
@@ -767,7 +767,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
 
         <div className="document-footer" style={{ marginTop: "3rem" }}>
           <p style={{ marginBottom: "1rem" }}>
-            <strong>FIM DO PRONTUÍRIO</strong>
+            <strong>FIM DO PRONTUÁRIO</strong>
           </p>
           <div className="footer-info" style={{ marginTop: "1rem" }}>
             <span>Paciente: {patient.name}</span>

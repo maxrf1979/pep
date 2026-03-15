@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, X, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { patients, type Prescription, type PrescriptionMedication } from "@/lib/mock-data";
+import { patients, type Prescription } from "@/lib/mock-data";
 import { PrintableDocument } from "./PrintableDocument";
 
 interface MedLine {
@@ -15,7 +15,7 @@ interface MedLine {
 interface NovaPrescricaoDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onSave: (p: Prescription) => void;
+  onSave: (p: Prescription[]) => void;
   initialPatientId?: string;
 }
 
@@ -44,15 +44,20 @@ export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatien
 
   const handleSave = () => {
     if (!validate()) return;
-    onSave({
+    
+    // Map list of medications in form to flat Prescription items
+    const flatItems: Prescription[] = meds.map((m) => ({
       id: crypto.randomUUID(),
       patientId,
-      date: new Date().toISOString(),
-      medications: meds.map((m) => ({ ...m })) as PrescriptionMedication[],
-      professional: "Dr. Usuário Atual — CRM 00000/SP",
-      status: "ativa",
-      notes: notes || undefined,
-    });
+      doctorId: "u-current", // Simulated doctor id
+      medication: m.name,
+      dosage: m.dose,
+      instructions: `${m.route} | ${m.frequency} | ${m.duration} | Obs: ${notes}`,
+      type: "normal",
+      created_at: new Date().toISOString(),
+    }));
+
+    onSave(flatItems);
     setPatientId(initialPatientId || ""); 
     setNotes(""); 
     setMeds([{ name: "", dose: "", route: "VO", frequency: "", duration: "" }]); 

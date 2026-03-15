@@ -99,91 +99,71 @@ CREATE TABLE patients (
 -- CLINICAL DATA TABLES
 -- ============================================================================
 
--- 6. Vital Signs
+-- ============================================================================
+-- CLINICAL DATA TABLES
+-- ============================================================================
+
+-- 6. Medical Records (Prontuário Root)
+CREATE TABLE medical_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. Vital Signs
 CREATE TABLE vital_signs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  recorded_by_id UUID NOT NULL REFERENCES system_users(id),
   temperature DECIMAL(5, 2), -- Celsius
+  blood_pressure TEXT, -- e.g., "120/80" or "12/8"
   heart_rate INTEGER, -- BPM
-  blood_pressure_sys INTEGER, -- mmHg
-  blood_pressure_dia INTEGER, -- mmHg
   respiratory_rate INTEGER, -- IPM
   oxygen_saturation DECIMAL(5, 2), -- SpO2 %
   weight DECIMAL(6, 2), -- kg
   height DECIMAL(4, 2), -- meters
-  bmi DECIMAL(5, 2), -- calculated
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. Medical Evolution (Evolução Médica)
-CREATE TABLE medical_evolutions (
+-- 8. Evolutions (Merged)
+CREATE TABLE evolutions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  doctor_id UUID NOT NULL REFERENCES system_users(id),
-  recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  summary TEXT NOT NULL,
-  details TEXT,
-  diagnosis TEXT,
-  treatment_plan TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  user_id UUID NOT NULL REFERENCES system_users(id),
+  type TEXT NOT NULL CHECK (type IN ('medica', 'enfermagem')),
+  description TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 8. Nursing Evolution (Evolução de Enfermagem)
-CREATE TABLE nursing_evolutions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  nurse_id UUID NOT NULL REFERENCES system_users(id),
-  recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  summary TEXT NOT NULL,
-  details TEXT,
-  care_plan TEXT,
-  observations TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 9. Prescriptions
+-- 9. Prescriptions (Flat)
 CREATE TABLE prescriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   doctor_id UUID NOT NULL REFERENCES system_users(id),
-  prescribed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status TEXT DEFAULT 'ativa' CHECK (status IN ('ativa', 'encerrada', 'suspensa')),
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 10. Prescription Medications (nested in prescriptions)
-CREATE TABLE prescription_medications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  prescription_id UUID NOT NULL REFERENCES prescriptions(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  dose TEXT NOT NULL, -- e.g., "1g", "500mg"
-  route TEXT NOT NULL, -- VO, EV, SC, IM, etc.
-  frequency TEXT NOT NULL, -- e.g., "12/12h", "6/6h SOS"
-  duration TEXT, -- e.g., "7 dias", "uso contínuo"
+  medication TEXT NOT NULL,
+  dosage TEXT NOT NULL,
+  instructions TEXT,
+  type TEXT NOT NULL CHECK (type IN ('normal', 'especial')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 11. Exams
-CREATE TABLE exams (
+-- 10. Certificates (Atestados)
+CREATE TABLE certificates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  requested_by_id UUID NOT NULL REFERENCES system_users(id),
-  type TEXT NOT NULL CHECK (type IN ('laboratorial', 'imagem', 'funcional', 'outro')),
-  name TEXT NOT NULL, -- e.g., "Hemograma Completo"
-  status TEXT DEFAULT 'solicitado' CHECK (status IN ('solicitado', 'coletado', 'resultado_disponivel', 'entregue')),
-  result TEXT,
-  requested_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  completed_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  doctor_id UUID NOT NULL REFERENCES system_users(id),
+  days_off INTEGER NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 11. Exam Requests
+CREATE TABLE exam_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id UUID NOT NULL REFERENCES system_users(id),
+  exam_name TEXT NOT NULL,
+  observations TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 12. Timeline Events (generic events for unified history)
@@ -360,28 +340,26 @@ CREATE INDEX idx_patients_created_at ON patients(created_at DESC);
 
 -- Vital signs indexes
 CREATE INDEX idx_vital_signs_patient_id ON vital_signs(patient_id);
-CREATE INDEX idx_vital_signs_recorded_at ON vital_signs(recorded_at DESC);
-CREATE INDEX idx_vital_signs_recorded_by ON vital_signs(recorded_by_id);
+CREATE INDEX idx_vital_signs_created_at ON vital_signs(created_at DESC);
 
--- Medical evolution indexes
-CREATE INDEX idx_medical_evolutions_patient_id ON medical_evolutions(patient_id);
-CREATE INDEX idx_medical_evolutions_doctor_id ON medical_evolutions(doctor_id);
-CREATE INDEX idx_medical_evolutions_recorded_at ON medical_evolutions(recorded_at DESC);
-
--- Nursing evolution indexes
-CREATE INDEX idx_nursing_evolutions_patient_id ON nursing_evolutions(patient_id);
-CREATE INDEX idx_nursing_evolutions_nurse_id ON nursing_evolutions(nurse_id);
-CREATE INDEX idx_nursing_evolutions_recorded_at ON nursing_evolutions(recorded_at DESC);
+-- Evolutions indexes
+CREATE INDEX idx_evolutions_patient_id ON evolutions(patient_id);
+CREATE INDEX idx_evolutions_user_id ON evolutions(user_id);
+CREATE INDEX idx_evolutions_type ON evolutions(type);
+CREATE INDEX idx_evolutions_created_at ON evolutions(created_at DESC);
 
 -- Prescription indexes
 CREATE INDEX idx_prescriptions_patient_id ON prescriptions(patient_id);
 CREATE INDEX idx_prescriptions_doctor_id ON prescriptions(doctor_id);
-CREATE INDEX idx_prescriptions_status ON prescriptions(status);
+CREATE INDEX idx_prescriptions_created_at ON prescriptions(created_at DESC);
 
--- Exam indexes
-CREATE INDEX idx_exams_patient_id ON exams(patient_id);
-CREATE INDEX idx_exams_requested_by ON exams(requested_by_id);
-CREATE INDEX idx_exams_status ON exams(status);
+-- Certificate indexes
+CREATE INDEX idx_certificates_patient_id ON certificates(patient_id);
+CREATE INDEX idx_certificates_doctor_id ON certificates(doctor_id);
+
+-- Exam Request indexes
+CREATE INDEX idx_exam_requests_patient_id ON exam_requests(patient_id);
+CREATE INDEX idx_exam_requests_doctor_id ON exam_requests(doctor_id);
 
 -- Timeline indexes
 CREATE INDEX idx_timeline_events_patient_id ON timeline_events(patient_id);
@@ -419,7 +397,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Apply timestamp trigger to all tables with updated_at
+-- Apply timestamp trigger to tables with updated_at
 CREATE TRIGGER update_clinics_timestamp
   BEFORE UPDATE ON clinics
   FOR EACH ROW
@@ -435,36 +413,6 @@ CREATE TRIGGER update_patients_timestamp
   FOR EACH ROW
   EXECUTE FUNCTION update_timestamp();
 
-CREATE TRIGGER update_vital_signs_timestamp
-  BEFORE UPDATE ON vital_signs
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
-CREATE TRIGGER update_medical_evolutions_timestamp
-  BEFORE UPDATE ON medical_evolutions
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
-CREATE TRIGGER update_nursing_evolutions_timestamp
-  BEFORE UPDATE ON nursing_evolutions
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
-CREATE TRIGGER update_prescriptions_timestamp
-  BEFORE UPDATE ON prescriptions
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
-CREATE TRIGGER update_exams_timestamp
-  BEFORE UPDATE ON exams
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
-CREATE TRIGGER update_timeline_events_timestamp
-  BEFORE UPDATE ON timeline_events
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp();
-
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================================
@@ -476,11 +424,11 @@ ALTER TABLE clinics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vital_signs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE medical_evolutions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE nursing_evolutions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE medical_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evolutions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prescriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE prescription_medications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exam_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE timeline_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attachments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patient_calls ENABLE ROW LEVEL SECURITY;
@@ -526,22 +474,20 @@ SELECT
   p.id,
   p.name,
   p.cpf,
-  p.age,
   p.sex,
   p.status,
-  p.blood_type,
   p.last_visit,
-  COUNT(DISTINCT ve.id) as medical_evolutions_count,
-  COUNT(DISTINCT ne.id) as nursing_evolutions_count,
+  COUNT(DISTINCT ev.id) as evolutions_count,
   COUNT(DISTINCT pr.id) as prescriptions_count,
-  COUNT(DISTINCT ex.id) as exams_count,
-  COUNT(DISTINCT vs.id) as vital_signs_count
+  COUNT(DISTINCT ex.id) as exam_requests_count,
+  COUNT(DISTINCT vs.id) as vital_signs_count,
+  COUNT(DISTINCT cr.id) as certificates_count
 FROM patients p
-LEFT JOIN medical_evolutions ve ON p.id = ve.patient_id
-LEFT JOIN nursing_evolutions ne ON p.id = ne.patient_id
+LEFT JOIN evolutions ev ON p.id = ev.patient_id
 LEFT JOIN prescriptions pr ON p.id = pr.patient_id
-LEFT JOIN exams ex ON p.id = ex.patient_id
+LEFT JOIN exam_requests ex ON p.id = ex.patient_id
 LEFT JOIN vital_signs vs ON p.id = vs.patient_id
+LEFT JOIN certificates cr ON p.id = cr.patient_id
 GROUP BY p.id;
 
 -- User Permissions View
@@ -563,41 +509,15 @@ LEFT JOIN permissions p ON rp.permission_id = p.id;
 -- Recent Activity View
 CREATE OR REPLACE VIEW recent_activity AS
 SELECT
-  'medical_evolution' as type,
-  me.id,
-  me.patient_id,
-  me.doctor_id as user_id,
+  'evolution' as type,
+  ev.id,
+  ev.patient_id,
+  ev.user_id,
   su.name as user_name,
-  me.recorded_at as activity_date,
-  me.summary as description
-FROM medical_evolutions me
-JOIN system_users su ON me.doctor_id = su.id
-
-UNION ALL
-
-SELECT
-  'nursing_evolution' as type,
-  ne.id,
-  ne.patient_id,
-  ne.nurse_id as user_id,
-  su.name as user_name,
-  ne.recorded_at as activity_date,
-  ne.summary as description
-FROM nursing_evolutions ne
-JOIN system_users su ON ne.nurse_id = su.id
-
-UNION ALL
-
-SELECT
-  'vital_signs' as type,
-  vs.id,
-  vs.patient_id,
-  vs.recorded_by_id as user_id,
-  su.name as user_name,
-  vs.recorded_at as activity_date,
-  CONCAT('Temperature: ', vs.temperature, '°C, HR: ', vs.heart_rate, ' bpm') as description
-FROM vital_signs vs
-JOIN system_users su ON vs.recorded_by_id = su.id
+  ev.created_at as activity_date,
+  ev.description as description
+FROM evolutions ev
+JOIN system_users su ON ev.user_id = su.id
 
 UNION ALL
 
@@ -607,23 +527,48 @@ SELECT
   pr.patient_id,
   pr.doctor_id as user_id,
   su.name as user_name,
-  pr.prescribed_at as activity_date,
-  'New prescription' as description
+  pr.created_at as activity_date,
+  CONCAT('Prescrição: ', pr.medication) as description
 FROM prescriptions pr
 JOIN system_users su ON pr.doctor_id = su.id
 
 UNION ALL
 
 SELECT
-  'exam' as type,
+  'vital_signs' as type,
+  vs.id,
+  vs.patient_id,
+  NULL as user_id,
+  'Sistema' as user_name,
+  vs.created_at as activity_date,
+  CONCAT('Temp: ', vs.temperature, '°C, FC: ', vs.heart_rate, ' bpm') as description
+FROM vital_signs vs
+
+UNION ALL
+
+SELECT
+  'exam_request' as type,
   ex.id,
   ex.patient_id,
-  ex.requested_by_id as user_id,
+  ex.doctor_id as user_id,
   su.name as user_name,
-  ex.requested_at as activity_date,
-  CONCAT('Exam: ', ex.name) as description
-FROM exams ex
-JOIN system_users su ON ex.requested_by_id = su.id
+  ex.created_at as activity_date,
+  CONCAT('Exame: ', ex.exam_name) as description
+FROM exam_requests ex
+JOIN system_users su ON ex.doctor_id = su.id
+
+UNION ALL
+
+SELECT
+  'certificate' as type,
+  cr.id,
+  cr.patient_id,
+  cr.doctor_id as user_id,
+  su.name as user_name,
+  cr.created_at as activity_date,
+  CONCAT('Atestado (Diferença: ', cr.days_off, ' dias)') as description
+FROM certificates cr
+JOIN system_users su ON cr.doctor_id = su.id
 
 ORDER BY activity_date DESC;
 

@@ -48,6 +48,7 @@ export function RequestExamDialog({
   open,
   onOpenChange,
   patientName = "",
+  onSave,
 }: RequestExamDialogProps) {
   const [exams, setExams] = useState<ExamField[]>([
     { id: "1", name: "", type: "Laboratorial" },
@@ -78,8 +79,9 @@ export function RequestExamDialog({
   };
 
   const handleSubmit = () => {
-    // TODO: Implement submit logic
-    console.log("Exames solicitados:", { exams, justification });
+    if (onSave) {
+      onSave(exams);
+    }
     onOpenChange(false);
     // Reset form
     setExams([{ id: "1", name: "", type: "Laboratorial" }]);

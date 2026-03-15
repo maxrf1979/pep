@@ -26,6 +26,7 @@ import { NovoSinalDialog } from "@/components/NovoSinalDialog";
 import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
+import { NovoAtestadoDialog } from "@/components/NovoAtestadoDialog";
 import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
 import { ProfessionalProntuario } from "@/components/ProfessionalProntuario";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ const typeConfig: Record<string, { icon: typeof FileText; label: string; color: 
   prescricao: { icon: Pill, label: "Prescrição", color: "text-primary", border: "border-primary" },
   exame: { icon: FlaskConical, label: "Exame", color: "text-success", border: "border-success" },
   anexo: { icon: Paperclip, label: "Anexo", color: "text-muted-foreground", border: "border-muted-foreground" },
+  atestado: { icon: FileText, label: "Atestado Médico", color: "text-primary", border: "border-primary" },
 };
 
 function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: number, onPrint?: (ev: TimelineEvent) => void }) {
@@ -148,6 +150,7 @@ export default function Prontuario() {
   const [evolucaoEnfermagemOpen, setEvolucaoEnfermagemOpen] = useState(false);
   const [exameOpen, setExameOpen] = useState(false);
   const [anexoOpen, setAnexoOpen] = useState(false);
+  const [atestadoOpen, setAtestadoOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [currentPrintingEvent, setCurrentPrintingEvent] = useState<TimelineEvent | null>(null);
@@ -281,6 +284,7 @@ export default function Prontuario() {
     { id: "prescricao", label: "Prescrição", icon: Pill },
     { id: "exame", label: "Exame", icon: FlaskConical },
     { id: "anexo", label: "Anexo", icon: Paperclip },
+    { id: "atestado", label: "Atestados", icon: FileText, restricted: !isMedico() && !isAdmin() },
   ];
 
   // Filtrar abas: se enfermeiro e não pode filtrar evolução médica, remover aba
@@ -468,6 +472,7 @@ export default function Prontuario() {
               { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
               { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: canCreatePrescription() },
               { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: canRequestExam() },
+              { label: "Atestado Médico", icon: FileText, onClick: () => setAtestadoOpen(true), visible: isMedico() || isAdmin() },
               { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
               { label: "Alterar Status", icon: Stethoscope, onClick: () => setStatusOpen(true), visible: isMedico() || isAdmin() },
             ].filter(action => action.visible).map((action) => (
@@ -485,12 +490,13 @@ export default function Prontuario() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.date, title: "Sinais Vitais", summary: `T ${v.temperature}°C | FC ${v.heartRate}bpm`, professional: v.professional }, v); }} />
-      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(p: Prescription) => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.date, title: "Prescrição Médica", summary: p.medications.map(m => m.name).join(", "), professional: p.professional }, p); }} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.created_at, title: "Sinais Vitais", summary: `T ${v.temperature || "--"}°C | FC ${v.heartRate || "--"}bpm | PA ${v.bloodPressure || "--"}`, professional: user?.name || "Equipe" }, v); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(items: Prescription[]) => { items.forEach(p => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.created_at, title: "Prescrição Médica", summary: `${p.medication} - ${p.dosage}`, professional: user?.name || "Dr. Profissional" }, p); }); }} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} initialPatientId={id} type="evolucao_medica" onSave={onSaveEvent} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} />
-      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} />
+      <NovoAtestadoDialog open={atestadoOpen} onOpenChange={setAtestadoOpen} onSave={(v: { daysOff: number; description: string }) => { onSaveEvent({ id: `at-${Date.now()}`, patientId: id!, type: "atestado" as any, date: new Date().toISOString(), title: "Atestado Médico Emitido", summary: `Afastamento de ${v.daysOff} dias.`, professional: user?.name || "Dr. Profissional", details: v.description }); }} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: crypto.randomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} />
       {patient && (
         <AlterarStatusDialog 
           open={statusOpen} 

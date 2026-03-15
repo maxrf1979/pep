@@ -67,17 +67,14 @@ export function NovoSinalDialog({ open, onOpenChange, onSave, initialPatientId }
     onSave({
       id: crypto.randomUUID(),
       patientId: form.patientId,
-      date: new Date().toISOString(),
       temperature: Number(form.temperature),
       heartRate: Number(form.heartRate),
-      bloodPressureSys: Number(form.bloodPressureSys),
-      bloodPressureDia: Number(form.bloodPressureDia),
+      bloodPressure: `${form.bloodPressureSys}/${form.bloodPressureDia}`,
       respiratoryRate: Number(form.respiratoryRate),
       oxygenSaturation: Number(form.oxygenSaturation),
       weight,
       height,
-      bmi,
-      professional: "Enf. Usuário Atual",
+      created_at: new Date().toISOString(),
     });
     
     setForm({ 

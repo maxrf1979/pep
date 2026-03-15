@@ -17,7 +17,8 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients } from "@/lib/mock-data";
+import { patients, timelineEvents, prescriptions } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AreaChart,
   Area,
@@ -30,22 +31,9 @@ import {
 
 const transition = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-const activityData = [
-  { day: "Seg", atendimentos: 32 },
-  { day: "Ter", atendimentos: 45 },
-  { day: "Qua", atendimentos: 38 },
-  { day: "Qui", atendimentos: 52 },
-  { day: "Sex", atendimentos: 48 },
-  { day: "Sáb", atendimentos: 25 },
-  { day: "Dom", atendimentos: 12 },
-];
+// activityData removido daqui para dentro do componente
 
-const kpis = [
-  { label: "Pacientes Ativos", value: "247", change: "+12%", icon: Users, color: "primary" },
-  { label: "Atendimentos Hoje", value: "38", change: "+5", icon: FileText, color: "success" },
-  { label: "Novas Prescrições", value: "14", change: "+2", icon: Pill, color: "warning" },
-  { label: "Alertas Críticos", value: "2", change: "", icon: AlertTriangle, color: "destructive" },
-];
+// kpis removidos daqui para dentro do componente
 
 const quickActions = [
   { label: "Novo Paciente", icon: UserPlus, url: "/pacientes", desc: "Cadastrar novos dados" },
@@ -63,6 +51,7 @@ const colorMap: Record<string, { bg: string; text: string; gradient: string }> =
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
@@ -78,6 +67,41 @@ export default function Dashboard() {
   };
 
   const recentPatients = patients.slice(0, 5);
+  
+  const activePatientsCount = patients.filter(
+    p => p.status === "internado" || p.status === "ambulatorial"
+  ).length;
+
+  const todayStr = currentTime.toISOString().split("T")[0]; // "2026-03-15"
+
+  const atendimentosHoje = timelineEvents.filter(e => 
+    (e.type === "evolucao_medica" || e.type === "evolucao_enfermagem") && 
+    e.date.startsWith(todayStr)
+  ).length;
+
+  const prescricoesHoje = prescriptions.filter(p => 
+    p.date.startsWith(todayStr)
+  ).length;
+
+  const alertasCriticos = patients.filter(p => p.status === "internado").length;
+
+  const kpis = [
+    { label: "Pacientes Ativos", value: activePatientsCount.toString(), change: "+12%", icon: Users, color: "primary" },
+    { label: "Atendimentos Hoje", value: atendimentosHoje.toString(), change: "+5", icon: FileText, color: "success" },
+    { label: "Novas Prescrições", value: prescricoesHoje.toString(), change: "+2", icon: Pill, color: "warning" },
+    { label: "Alertas Críticos", value: alertasCriticos.toString(), change: "", icon: AlertTriangle, color: "destructive" },
+  ];
+
+  const daysOfWeek = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const activityData = daysOfWeek.map((day, index) => {
+    // Seg=1, Ter=2, ... Sáb=6, Dom=0
+    const jsDay = index === 6 ? 0 : index + 1;
+    const count = timelineEvents.filter(e => {
+      const date = new Date(e.date);
+      return date.getDay() === jsDay;
+    }).length;
+    return { day, atendimentos: count };
+  });
 
   return (
     <div className="space-y-8 max-w-7xl animate-in fade-in duration-700 pb-10">
@@ -93,7 +117,7 @@ export default function Dashboard() {
             <span className="text-[10px] font-bold uppercase tracking-wider">Interface Premium Ativa</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-balance">
-            {getGreeting()}, <span className="text-primary">Dr. Silva</span>
+            {getGreeting()}, <span className="text-primary">{user?.name || "Usuário"}</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
             <Calendar className="h-4 w-4" />

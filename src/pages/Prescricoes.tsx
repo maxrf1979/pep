@@ -158,8 +158,8 @@ export default function Prescricoes() {
     return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search);
   });
 
-  const handleSave = (rx: Prescription) => {
-    setLocalPrescriptions((prev) => [rx, ...prev]);
+  const handleSave = (rxList: Prescription[]) => {
+    setLocalPrescriptions((prev) => [...rxList, ...prev]);
 
     // Also save to global timeline
     const savedTimeline = localStorage.getItem("pep-timeline");

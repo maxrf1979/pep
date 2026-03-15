@@ -58,7 +58,7 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
       </div>
 
       <div className="mt-3 space-y-2">
-        {rx.medications.slice(0, expanded ? undefined : 2).map((med, i) => (
+        {(rx.medications || [{ name: rx.medication, dose: rx.dosage, route: "", frequency: "", duration: "" }]).slice(0, expanded ? undefined : 2).map((med, i) => (
           <div key={i} className="flex items-start gap-2 text-sm">
             <Pill className="h-4 w-4 text-primary mt-0.5 shrink-0" strokeWidth={1.5} />
             <div>
@@ -67,8 +67,8 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
             </div>
           </div>
         ))}
-        {rx.medications.length > 2 && !expanded && (
-          <span className="text-xs text-muted-foreground">+{rx.medications.length - 2} medicamento(s)...</span>
+        {(rx.medications || []).length > 2 && !expanded && (
+          <span className="text-xs text-muted-foreground">+{(rx.medications || []).length - 2} medicamento(s)...</span>
         )}
       </div>
 

@@ -164,16 +164,19 @@ export default function Prescricoes() {
     // Also save to global timeline
     const savedTimeline = localStorage.getItem("pep-timeline");
     const timeline = savedTimeline ? JSON.parse(savedTimeline) : [];
-    const ev = {
-      id: rx.id,
-      patientId: rx.patientId,
-      type: "prescricao",
-      date: rx.date,
-      title: "Prescrição Médica",
-      summary: rx.medications.map(m => m.name).join(", "),
-      professional: rx.professional
-    };
-    localStorage.setItem("pep-timeline", JSON.stringify([ev, ...timeline]));
+    rxList.forEach((rx) => {
+      const ev = {
+        id: rx.id,
+        patientId: rx.patientId,
+        type: "prescricao",
+        date: rx.date || rx.created_at,
+        title: "Prescrição Médica",
+        summary: rx.medications ? rx.medications.map(m => m.name).join(", ") : rx.medication,
+        professional: rx.professional || rx.doctorId
+      };
+      timeline.push(ev);
+    });
+    localStorage.setItem("pep-timeline", JSON.stringify([...timeline.slice(-rxList.length), ...existingTimeline]));
 
     toast.success("Prescrição emitida com sucesso.");
   };

@@ -168,7 +168,12 @@ export default function Prontuario() {
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
 
-  const [patientData, setPatientData] = useState<Patient | null>(null);
+  const [patientData, setPatientData] = useState<Patient | null>(() => {
+    const saved = localStorage.getItem("patients");
+    const list = saved ? JSON.parse(saved) : [];
+    const p = list.find((item: Patient) => item.id === id) || getPatient(id || "");
+    return p || null;
+  });
 
   useEffect(() => {
     const saved = localStorage.getItem("patients");

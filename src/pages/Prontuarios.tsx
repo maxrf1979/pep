@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, FileText, ChevronRight, Activity, Pill, FlaskConical, Stethoscope, ClipboardPlus, Paperclip, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { patients, timelineEvents, type TimelineEvent, type VitalSign, type Prescription, type Exam } from "@/lib/mock-data";
+import { patients, timelineEvents, type TimelineEvent, type VitalSign, type Prescription, type Exam, type Patient } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 // New Dialog Components
@@ -56,6 +56,10 @@ export default function Prontuarios() {
 
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
+  const [patientList, setPatientList] = useState<Patient[]>(() => {
+    const saved = localStorage.getItem("patients");
+    return saved ? JSON.parse(saved) : patients;
+  });
 
   useEffect(() => {
     const saved = localStorage.getItem("pep-timeline");
@@ -71,7 +75,7 @@ export default function Prontuarios() {
   const totalTimeline = localTimeline.length > 0 ? localTimeline : timelineEvents;
 
   // Build list of patients that have timeline events
-  const processedPatients = patients.map((p) => {
+  const processedPatients = patientList.map((p) => {
     const events = totalTimeline
       .filter((e) => e.patientId === p.id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

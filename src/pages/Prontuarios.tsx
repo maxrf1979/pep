@@ -72,6 +72,15 @@ export default function Prontuarios() {
     }
   }, []);
 
+  // Atualizar lista de pacientes quando abrir algum diálogo de prescrição
+  useEffect(() => {
+    if (prescricaoOpen) {
+      const saved = localStorage.getItem("patients");
+      const updatedPatients = saved ? JSON.parse(saved) : patients;
+      setPatientList(updatedPatients);
+    }
+  }, [prescricaoOpen]);
+
   const totalTimeline = localTimeline.length > 0 ? localTimeline : timelineEvents;
 
   // Build list of patients that have timeline events

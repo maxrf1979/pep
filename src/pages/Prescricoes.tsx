@@ -131,10 +131,11 @@ export default function Prescricoes() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const allPatients: Patient[] = (() => {
+  const [allPatients, setAllPatients] = useState<Patient[]>(() => {
     const saved = localStorage.getItem("patients");
     return saved ? JSON.parse(saved) : patients;
-  })();
+  });
+
   const [localPrescriptions, setLocalPrescriptions] = useState<Prescription[]>(() => {
     const saved = localStorage.getItem("localPrescriptions");
     return saved ? JSON.parse(saved) : [];
@@ -144,6 +145,15 @@ export default function Prescricoes() {
   useEffect(() => {
     localStorage.setItem("localPrescriptions", JSON.stringify(localPrescriptions));
   }, [localPrescriptions]);
+
+  // Atualizar lista de pacientes quando o diálogo for aberto
+  useEffect(() => {
+    if (dialogOpen) {
+      const saved = localStorage.getItem("patients");
+      const updatedPatients = saved ? JSON.parse(saved) : patients;
+      setAllPatients(updatedPatients);
+    }
+  }, [dialogOpen]);
 
   const allRx = [...localPrescriptions, ...prescriptions].sort(
     (a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime()

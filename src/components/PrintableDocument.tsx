@@ -2,15 +2,22 @@ import { Heart } from "lucide-react";
 import { createPortal } from "react-dom";
 
 interface PrintableDocumentProps {
-  type: "prescription" | "exam";
+  type: "prescription" | "exam" | "evolucao";
   patient: {
     name: string;
     age: number;
     cpf: string;
     sex?: string;
   };
-  items: any[];
+  items?: any[];
   notes?: string;
+  evolucao?: {
+    type: string;
+    date: string;
+    title: string;
+    summary: string;
+    details: string;
+  };
   professionalLabel: string;
   documentId?: string;
 }
@@ -69,7 +76,7 @@ export function PrintableDocument({
       {/* Title */}
       <div style={{ textAlign: "center", marginBottom: "24px" }}>
         <h2 style={{ fontSize: "14pt", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>
-          {type === "prescription" ? "Receituário Médico" : "Solicitação de Exame"}
+          {type === "prescription" ? "Receituário Médico" : type === "exam" ? "Solicitação de Exame" : evolucao?.type || "Evolução"}
         </h2>
         <p style={{ fontSize: "8pt", color: "#999", marginTop: "4px" }}>
           Documento Nº {documentId.slice(0, 8).toUpperCase()}
@@ -101,12 +108,13 @@ export function PrintableDocument({
       </div>
 
       {/* Items */}
-      <div style={{ marginBottom: "24px" }}>
-        <h3 style={{ fontSize: "11pt", fontWeight: 700, borderBottom: "2px solid #000", paddingBottom: "4px", marginBottom: "12px" }}>
-          {type === "prescription" ? "Medicamentos Prescritos" : "Exames Solicitados"}
-        </h3>
+      {type !== "evolucao" && items && (
+        <div style={{ marginBottom: "24px" }}>
+          <h3 style={{ fontSize: "11pt", fontWeight: 700, borderBottom: "2px solid #000", paddingBottom: "4px", marginBottom: "12px" }}>
+            {type === "prescription" ? "Medicamentos Prescritos" : "Exames Solicitados"}
+          </h3>
 
-        {type === "prescription" ? (
+          {type === "prescription" ? (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ backgroundColor: "#f0f0f0" }}>
@@ -147,7 +155,43 @@ export function PrintableDocument({
             </tbody>
           </table>
         )}
-      </div>
+        </div>
+      )}
+
+      {/* Evolução Content */}
+      {type === "evolucao" && evolucao && (
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "10pt", fontWeight: 700, borderBottom: "1px solid #ccc", paddingBottom: "4px", marginBottom: "8px" }}>
+              Data e Hora
+            </h3>
+            <p style={{ fontSize: "10pt", lineHeight: 1.6, color: "#333" }}>{evolucao.date}</p>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "10pt", fontWeight: 700, borderBottom: "1px solid #ccc", paddingBottom: "4px", marginBottom: "8px" }}>
+              Título
+            </h3>
+            <p style={{ fontSize: "10pt", lineHeight: 1.6, color: "#333" }}>{evolucao.title}</p>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "10pt", fontWeight: 700, borderBottom: "1px solid #ccc", paddingBottom: "4px", marginBottom: "8px" }}>
+              Resumo
+            </h3>
+            <p style={{ fontSize: "10pt", lineHeight: 1.6, color: "#333" }}>{evolucao.summary}</p>
+          </div>
+
+          {evolucao.details && (
+            <div style={{ marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "10pt", fontWeight: 700, borderBottom: "1px solid #ccc", paddingBottom: "4px", marginBottom: "8px" }}>
+                Descrição Completa
+              </h3>
+              <p style={{ whiteSpace: "pre-wrap", fontSize: "10pt", lineHeight: 1.6, color: "#333" }}>{evolucao.details}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Notes */}
       {notes && (

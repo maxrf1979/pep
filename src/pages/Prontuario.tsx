@@ -28,6 +28,7 @@ import { NovaPrescricaoDialog } from "@/components/NovaPrescricaoDialog";
 import { NovaEvolucaoDialog } from "@/components/NovaEvolucaoDialog";
 import { NovoAnexoDialog } from "@/components/NovoAnexoDialog";
 import { NovoAtestadoDialog } from "@/components/NovoAtestadoDialog";
+import { VisualizarEvolucaoDialog } from "@/components/VisualizarEvolucaoDialog";
 import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
 import { ProfessionalProntuario } from "@/components/ProfessionalProntuario";
 import { toast } from "sonner";
@@ -44,10 +45,19 @@ const typeConfig: Record<string, { icon: typeof FileText; label: string; color: 
   atestado: { icon: FileText, label: "Atestado Médico", color: "text-primary", border: "border-primary" },
 };
 
-function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: number, onPrint?: (ev: TimelineEvent) => void }) {
+function TimelineCard({ event, index, onPrint, onViewEvolucao }: { event: TimelineEvent; index: number, onPrint?: (ev: TimelineEvent) => void, onViewEvolucao?: (ev: TimelineEvent) => void }) {
   const [expanded, setExpanded] = useState(false);
   const config = typeConfig[event.type];
   const Icon = config.icon;
+
+  const handleClick = () => {
+    // Se for evolução médica ou de enfermagem, abre o diálogo de visualização
+    if ((event.type === "evolucao_medica" || event.type === "evolucao_enfermagem") && onViewEvolucao) {
+      onViewEvolucao(event);
+    } else {
+      setExpanded(!expanded);
+    }
+  };
 
   return (
     <motion.div
@@ -55,7 +65,7 @@ function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: 
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...transition, delay: index * 0.04 }}
       className={`bg-card rounded-lg p-4 shadow-card border-subtle border-l-4 ${config.border} hover:translate-y-[-1px] hover:shadow-overlay transition-all cursor-pointer`}
-      onClick={() => event.details && setExpanded(!expanded)}
+      onClick={handleClick}
     >
       <div className="flex items-start gap-3">
         <div className={`mt-0.5 ${config.color}`}>
@@ -99,14 +109,12 @@ function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: 
           <p className="text-xs text-muted-foreground mt-2">{event.professional}</p>
 
           <div className="mt-3 flex items-center gap-4 border-t border-border pt-2">
-            {event.details && (
-              <button className="flex items-center gap-1 text-xs text-primary font-semibold">
-                {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                {expanded ? "Recolher" : "Ver detalhes"}
-              </button>
-            )}
+            <button className="flex items-center gap-1 text-xs text-primary font-semibold">
+              {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {expanded ? "Recolher" : "Ver detalhes"}
+            </button>
 
-            {["evolucao_medica", "evolucao_enfermagem", "sinais_vitais"].includes(event.type) && onPrint && (
+            {onPrint && (
               <button 
                 onClick={(e) => { e.stopPropagation(); onPrint(event); }}
                 className="flex items-center gap-1 text-xs text-slate-500 hover:text-primary font-semibold transition-colors"
@@ -117,14 +125,14 @@ function TimelineCard({ event, index, onPrint }: { event: TimelineEvent; index: 
             )}
           </div>
 
-          {event.details && expanded && (
+          {expanded && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               className="mt-2 pt-2"
             >
               <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                {event.details}
+                {event.details || "Sem descrição detalhada."}
               </pre>
             </motion.div>
           )}
@@ -155,6 +163,8 @@ export default function Prontuario() {
   const [statusOpen, setStatusOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [currentPrintingEvent, setCurrentPrintingEvent] = useState<TimelineEvent | null>(null);
+  const [visualizarEvolucaoOpen, setVisualizarEvolucaoOpen] = useState(false);
+  const [evolucaoSelecionada, setEvolucaoSelecionada] = useState<TimelineEvent | null>(null);
 
   const handlePrintIndividual = (event: TimelineEvent) => {
     setCurrentPrintingEvent(event);
@@ -164,6 +174,11 @@ export default function Prontuario() {
       setIsPrinting(false);
       setCurrentPrintingEvent(null);
     }, 150);
+  };
+
+  const handleViewEvolucao = (event: TimelineEvent) => {
+    setEvolucaoSelecionada(event);
+    setVisualizarEvolucaoOpen(true);
   };
 
   // Persistence logic for Timeline
@@ -433,7 +448,7 @@ export default function Prontuario() {
                   {events.map((ev, i) => (
                     <div key={ev.id} className="relative pl-10">
                       <div className="absolute left-[11px] top-5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card z-10" />
-                      <TimelineCard event={ev} index={i} onPrint={handlePrintIndividual} />
+                      <TimelineCard event={ev} index={i} onPrint={handlePrintIndividual} onViewEvolucao={handleViewEvolucao} />
                     </div>
                   ))}
                 </div>
@@ -471,13 +486,19 @@ export default function Prontuario() {
       </div>
 
       {/* Dialogs */}
-      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.created_at, title: "Sinais Vitais", summary: `T ${v.temperature || "--"}°C | FC ${v.heartRate || "--"}bpm | PA ${v.bloodPressure || "--"}`, professional: user?.name || "Equipe" }, v); }} />
-      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(items: Prescription[]) => { items.forEach(p => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.created_at, title: "Prescrição Médica", summary: `${p.medication} - ${p.dosage}`, professional: user?.name || "Dr. Profissional" }, p); }); }} patients={[patient]} />
+      <NovoSinalDialog open={sinaisOpen} onOpenChange={setSinaisOpen} initialPatientId={id} onSave={(v: VitalSign) => { onSaveEvent({ id: v.id, patientId: v.patientId, type: "sinais_vitais", date: v.created_at, title: "Sinais Vitais", summary: `T ${v.temperature || "--"}°C | FC ${v.heartRate || "--"}bpm | PA ${v.bloodPressure || "--"}`, professional: user?.name || "Equipe", details: `Temperatura: ${v.temperature || "--"}°C\nFrequência Cardíaca: ${v.heartRate || "--"}bpm\nPressão Arterial: ${v.bloodPressure || "--"}\nFrequência Respiratória: ${v.respiratoryRate || "--"}rpm\nSaturação de Oxigênio: ${v.oxygenSaturation || "--"}%` }, v); }} />
+      <NovaPrescricaoDialog open={prescricaoOpen} onOpenChange={setPrescricaoOpen} initialPatientId={id} onSave={(items: Prescription[]) => { items.forEach(p => { onSaveEvent({ id: p.id, patientId: p.patientId, type: "prescricao", date: p.created_at, title: "Prescrição Médica", summary: `${p.medication} - ${p.dosage}`, professional: user?.name || "Dr. Profissional", details: `Medicamento: ${p.medication}\nDose: ${p.dosage}\nInstruções: ${p.instructions || "--"}` }, p); }); }} patients={[patient]} />
       <NovaEvolucaoDialog open={evolucaoMedicaOpen} onOpenChange={setEvolucaoMedicaOpen} initialPatientId={id} type="evolucao_medica" onSave={onSaveEvent} patients={[patient]} />
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} patients={[patient]} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} patients={[patient]} />
       <NovoAtestadoDialog open={atestadoOpen} onOpenChange={setAtestadoOpen} onSave={(v: { daysOff: number; description: string }) => { onSaveEvent({ id: `at-${Date.now()}`, patientId: id!, type: "atestado" as any, date: new Date().toISOString(), title: "Atestado Médico Emitido", summary: `Afastamento de ${v.daysOff} dias.`, professional: user?.name || "Dr. Profissional", details: v.description }); }} />
-      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: getRandomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} patients={[patient]} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: getRandomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional", details: `Exame: ${ex.name}\nTipo: ${ex.type}` }); }); }} patients={[patient]} />
+      <VisualizarEvolucaoDialog
+        open={visualizarEvolucaoOpen}
+        onOpenChange={setVisualizarEvolucaoOpen}
+        evolucao={evolucaoSelecionada}
+        patient={patient}
+      />
       {patient && (
         <AlterarStatusDialog 
           open={statusOpen} 

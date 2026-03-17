@@ -119,7 +119,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
       login: form.login.trim(),
       roles: selectedRoles,
       crm: form.roles.medico ? form.crm : undefined,
-      coren: form.roles.enfermeiro ? form.coren : undefined,
+      coren: (form.roles.enfermeiro || form.roles.tecnico_enfermagem) ? form.coren : undefined,
       status: editingUser ? editingUser.status : "ativo",
       password: form.password || (editingUser ? editingUser.password : "admin123"),
       mustChangePassword: editingUser ? editingUser.mustChangePassword : true,
@@ -235,7 +235,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
               {errors.crm && <p className="text-xs text-destructive mt-1">{errors.crm}</p>}
             </div>
           )}
-          {form.roles.enfermeiro && (
+          {(form.roles.enfermeiro || form.roles.tecnico_enfermagem) && (
             <div>
               <label className="text-xs font-medium text-muted-foreground">COREN *</label>
               <input value={form.coren} onChange={(e) => set("coren", e.target.value)} className={inp("coren")} placeholder="Ex: 54321/SP" />

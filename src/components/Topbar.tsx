@@ -69,7 +69,7 @@ export function Topbar() {
     ? (allPatients as any[]).filter(
         (p) =>
           p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.cpf.includes(query)
+          p.cpf.replace(/\D/g, "").includes(query.replace(/\D/g, ""))
       )
     : [];
 

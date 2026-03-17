@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getRandomUUID } from "@/lib/utils";
 import {
   ArrowLeft,
   AlertTriangle,
@@ -168,20 +169,14 @@ export default function Prontuario() {
   // Persistence logic for Timeline
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
 
-  const [patientData, setPatientData] = useState<Patient | null>(() => {
-    const saved = localStorage.getItem("patients");
-    const list = saved ? JSON.parse(saved) : [];
-    const p = list.find((item: Patient) => item.id === id) || getPatient(id || "");
-    return p || null;
-  });
+  const [patientData, setPatientData] = useState<Patient | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     const saved = localStorage.getItem("patients");
     const list = saved ? JSON.parse(saved) : [];
-    const p = list.find((item: Patient) => item.id === id) || getPatient(id || "");
-    if (p) {
-      setPatientData(p);
-    }
+    const p = list.find((item: Patient) => item.id === id) || getPatient(id);
+    setPatientData(p || null);
   }, [id]);
 
   const patient = patientData;
@@ -476,7 +471,7 @@ export default function Prontuario() {
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} patients={[patient]} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} patients={[patient]} />
       <NovoAtestadoDialog open={atestadoOpen} onOpenChange={setAtestadoOpen} onSave={(v: { daysOff: number; description: string }) => { onSaveEvent({ id: `at-${Date.now()}`, patientId: id!, type: "atestado" as any, date: new Date().toISOString(), title: "Atestado Médico Emitido", summary: `Afastamento de ${v.daysOff} dias.`, professional: user?.name || "Dr. Profissional", details: v.description }); }} />
-      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: crypto.randomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} patients={[patient]} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: getRandomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} patients={[patient]} />
       {patient && (
         <AlterarStatusDialog 
           open={statusOpen} 

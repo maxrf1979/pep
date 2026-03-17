@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Patient } from "@/lib/mock-data";
+import { getRandomUUID } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -53,7 +54,7 @@ export default function NovoPacienteDialog({ open, onOpenChange, onSave }: Props
   const handleSave = () => {
     if (!validate()) return;
     const patient: Patient = {
-      id: crypto.randomUUID(),
+      id: getRandomUUID(),
       name: form.name.trim(),
       cpf: form.cpf,
       sus: form.sus || undefined,

@@ -81,6 +81,31 @@ export default function Prontuarios() {
     }
   }, [prescricaoOpen]);
 
+  // Listener para atualizar pacientes quando houver mudanças
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "patients" && e.newValue) {
+        setPatientList(JSON.parse(e.newValue));
+      }
+    };
+
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("patients");
+      if (saved) {
+        const updatedPatients = JSON.parse(saved);
+        if (updatedPatients.length !== patientList.length) {
+          setPatientList(updatedPatients);
+        }
+      }
+    }, 1000);
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [patientList.length]);
+
   const totalTimeline = localTimeline.length > 0 ? localTimeline : timelineEvents;
 
   // Build list of patients that have timeline events

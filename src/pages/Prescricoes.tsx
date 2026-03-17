@@ -155,6 +155,33 @@ export default function Prescricoes() {
     }
   }, [dialogOpen]);
 
+  // Listener para atualizar pacientes quando houver mudanças em outras abas/componentes
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "patients" && e.newValue) {
+        setAllPatients(JSON.parse(e.newValue));
+      }
+    };
+
+    // Também verificar periodicamente se há mudanças
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("patients");
+      if (saved) {
+        const updatedPatients = JSON.parse(saved);
+        // Só atualizar se houver mudança no número de pacientes
+        if (updatedPatients.length !== allPatients.length) {
+          setAllPatients(updatedPatients);
+        }
+      }
+    }, 1000);
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [allPatients.length]);
+
   const allRx = [...localPrescriptions, ...prescriptions].sort(
     (a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime()
   );

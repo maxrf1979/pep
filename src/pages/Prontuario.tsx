@@ -171,12 +171,11 @@ export default function Prontuario() {
   const [patientData, setPatientData] = useState<Patient | null>(null);
 
   useEffect(() => {
-    const p = getPatient(id || "");
+    const saved = localStorage.getItem("patients");
+    const list = saved ? JSON.parse(saved) : [];
+    const p = list.find((item: Patient) => item.id === id) || getPatient(id || "");
     if (p) {
-      const saved = localStorage.getItem("pep-patients");
-      const list = saved ? JSON.parse(saved) : [];
-      const override = list.find((item: Patient) => item.id === id);
-      setPatientData(override || p);
+      setPatientData(p);
     }
   }, [id]);
 
@@ -240,7 +239,7 @@ export default function Prontuario() {
     const updated = { ...patientData, status: newStatus as "internado" | "ambulatorial" | "alta" | "obito" };
     setPatientData(updated);
     
-    const saved = localStorage.getItem("pep-patients");
+    const saved = localStorage.getItem("patients");
     const list = saved ? JSON.parse(saved) : [];
     const index = list.findIndex((p: Patient) => p.id === patientData.id);
     if (index >= 0) {
@@ -248,7 +247,7 @@ export default function Prontuario() {
     } else {
       list.push(updated);
     }
-    localStorage.setItem("pep-patients", JSON.stringify(list));
+    localStorage.setItem("patients", JSON.stringify(list));
     
     onSaveEvent({
       id: `ev-status-${Date.now()}`,

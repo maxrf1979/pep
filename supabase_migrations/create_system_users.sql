@@ -1,8 +1,9 @@
 -- Criar tabela system_users para gerenciamento de usuários do sistema
 CREATE TABLE IF NOT EXISTS system_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
+  username TEXT NOT NULL UNIQUE,  -- Nome de usuário (pode ser email ou nome simples)
+  name TEXT,  -- Nome completo (opcional)
+  email TEXT,  -- Email (opcional)
   role TEXT NOT NULL CHECK (role IN ('medico', 'enfermeiro', 'admin', 'recepcao')),
   crm TEXT,
   coren TEXT,
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS system_users (
 );
 
 -- Criar índices para melhorar performance
+CREATE INDEX IF NOT EXISTS idx_system_users_username ON system_users(username);
 CREATE INDEX IF NOT EXISTS idx_system_users_email ON system_users(email);
 CREATE INDEX IF NOT EXISTS idx_system_users_role ON system_users(role);
 CREATE INDEX IF NOT EXISTS idx_system_users_status ON system_users(status);
@@ -31,15 +33,15 @@ CREATE TRIGGER update_system_users_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Inserir dados iniciais
-INSERT INTO system_users (id, name, email, role, crm, coren, status) VALUES
-  ('u-001', 'Dr. Ricardo Almeida', 'ricardo.almeida@pulse.med.br', 'medico', '12345/SP', NULL, 'ativo'),
-  ('u-002', 'Dra. Juliana Moreira', 'juliana.moreira@pulse.med.br', 'medico', '98765/SP', NULL, 'ativo'),
-  ('u-003', 'Dr. André Costa', 'andre.costa@pulse.med.br', 'medico', '54321/RJ', NULL, 'ativo'),
-  ('u-004', 'Enf. Carla Souza', 'carla.souza@pulse.med.br', 'enfermeiro', NULL, '54321/SP', 'ativo'),
-  ('u-005', 'Enf. Paulo Martins', 'paulo.martins@pulse.med.br', 'enfermeiro', NULL, '65432/SP', 'ativo'),
-  ('u-006', 'Ana Gestora', 'ana.gestora@pulse.med.br', 'admin', NULL, NULL, 'ativo'),
-  ('u-007', 'Beatriz Recepção', 'beatriz@pulse.med.br', 'recepcao', NULL, NULL, 'inativo')
-ON CONFLICT (email) DO NOTHING;
+INSERT INTO system_users (id, username, name, email, role, crm, coren, status) VALUES
+  ('u-001', 'ricardo.almeida', 'Dr. Ricardo Almeida', 'ricardo.almeida@pulse.med.br', 'medico', '12345/SP', NULL, 'ativo'),
+  ('u-002', 'juliana.moreira', 'Dra. Juliana Moreira', 'juliana.moreira@pulse.med.br', 'medico', '98765/SP', NULL, 'ativo'),
+  ('u-003', 'andre.costa', 'Dr. André Costa', 'andre.costa@pulse.med.br', 'medico', '54321/RJ', NULL, 'ativo'),
+  ('u-004', 'carla.souza', 'Enf. Carla Souza', 'carla.souza@pulse.med.br', 'enfermeiro', NULL, '54321/SP', 'ativo'),
+  ('u-005', 'paulo.martins', 'Enf. Paulo Martins', 'paulo.martins@pulse.med.br', 'enfermeiro', NULL, '65432/SP', 'ativo'),
+  ('u-006', 'ana.admin', 'Ana Gestora', 'ana.gestora@pulse.med.br', 'admin', NULL, NULL, 'ativo'),
+  ('u-007', 'beatriz.recepcao', 'Beatriz Recepção', 'beatriz@pulse.med.br', 'recepcao', NULL, NULL, 'inativo')
+ON CONFLICT (username) DO NOTHING;
 
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE system_users ENABLE ROW LEVEL SECURITY;

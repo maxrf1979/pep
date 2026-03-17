@@ -9,11 +9,12 @@ const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
 interface SystemUser {
   id: string;
-  name: string;
-  email: string;
+  username: string;  // Nome de usuário (pode ser email ou nome simples)
+  name?: string | null;  // Nome completo (opcional)
+  email?: string | null;  // Email (opcional)
   role: "medico" | "enfermeiro" | "admin" | "recepcao";
-  crm?: string;
-  coren?: string;
+  crm?: string | null;
+  coren?: string | null;
   status: "ativo" | "inativo";
 }
 
@@ -29,7 +30,7 @@ const roleConfig = {
 function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void;
 }) {
-  const [form, setForm] = useState({ name: "", email: "", role: "medico" as SystemUser["role"], crm: "", coren: "" });
+  const [form, setForm] = useState({ username: "", name: "", email: "", role: "medico" as SystemUser["role"], crm: "", coren: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (k: string, v: string) => {
@@ -39,8 +40,9 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Nome obrigatório";
-    if (!form.email.trim() || !form.email.includes("@")) e.email = "E-mail inválido";
+    if (!form.username.trim()) e.username = "Nome de usuário obrigatório";
+    // Email é opcional, mas se fornecido, deve ser válido
+    if (form.email.trim() && !form.email.includes("@")) e.email = "E-mail inválido";
     if (form.role === "medico" && !form.crm.trim()) e.crm = "CRM obrigatório para médico";
     if (form.role === "enfermeiro" && !form.coren.trim()) e.coren = "COREN obrigatório para enfermeiro";
     setErrors(e);
@@ -51,14 +53,15 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
     if (!validate()) return;
     onSave({
       id: crypto.randomUUID(),
-      name: form.name.trim(),
-      email: form.email.trim(),
+      username: form.username.trim(),
+      name: form.name.trim() || null,
+      email: form.email.trim() || null,
       role: form.role,
-      crm: form.role === "medico" ? form.crm : undefined,
-      coren: form.role === "enfermeiro" ? form.coren : undefined,
+      crm: form.role === "medico" ? form.crm : null,
+      coren: form.role === "enfermeiro" ? form.coren : null,
       status: "ativo",
     });
-    setForm({ name: "", email: "", role: "medico", crm: "", coren: "" });
+    setForm({ username: "", name: "", email: "", role: "medico", crm: "", coren: "" });
     setErrors({});
     onOpenChange(false);
   };
@@ -74,12 +77,18 @@ function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Nome completo *</label>
-            <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp("name")} placeholder="Nome do usuário" />
+            <label className="text-xs font-medium text-muted-foreground">Nome de Usuário *</label>
+            <input value={form.username} onChange={(e) => set("username", e.target.value)} className={inp("username")} placeholder="usuario123 ou email@exemplo.com" />
+            {errors.username && <p className="text-xs text-destructive mt-1">{errors.username}</p>}
+            <p className="text-xs text-muted-foreground mt-1">Pode ser um nome de usuário ou e-mail</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Nome Completo (opcional)</label>
+            <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp("name")} placeholder="Dr. João Silva" />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">E-mail *</label>
+            <label className="text-xs font-medium text-muted-foreground">E-mail (opcional)</label>
             <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inp("email")} placeholder="email@pulse.med.br" />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
           </div>
@@ -135,16 +144,24 @@ export default function Admin() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Iniciando carregamento de usuários...');
+
       const { data, error } = await supabase
         .from('system_users')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('📊 Resposta do Supabase:', { data, error });
 
+      if (error) {
+        console.error('❌ Erro do Supabase:', error);
+        throw error;
+      }
+
+      console.log(`✅ ${data?.length || 0} usuários carregados`);
       setUserList(data || []);
     } catch (error) {
-      console.error('Erro ao carregar usuários:', error);
+      console.error('❌ Erro ao carregar usuários:', error);
       toast.error('Erro ao carregar usuários do sistema');
     } finally {
       setLoading(false);
@@ -154,7 +171,12 @@ export default function Admin() {
   const filtered = userList.filter((u) => {
     if (roleFilter !== "all" && u.role !== roleFilter) return false;
     if (!search) return true;
-    return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+    const searchLower = search.toLowerCase();
+    return (
+      u.username.toLowerCase().includes(searchLower) ||
+      (u.name && u.name.toLowerCase().includes(searchLower)) ||
+      (u.email && u.email.toLowerCase().includes(searchLower))
+    );
   });
 
   const toggleStatus = async (id: string) => {
@@ -203,8 +225,9 @@ export default function Admin() {
       const { data, error } = await supabase
         .from('system_users')
         .insert([{
-          name: u.name,
-          email: u.email,
+          username: u.username,
+          name: u.name || null,
+          email: u.email || null,
           role: u.role,
           crm: u.crm || null,
           coren: u.coren || null,
@@ -220,7 +243,7 @@ export default function Admin() {
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);
       if (error.code === '23505') {
-        toast.error('Este e-mail já está cadastrado');
+        toast.error('Este nome de usuário já está cadastrado');
       } else {
         toast.error('Erro ao criar usuário');
       }
@@ -334,7 +357,13 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center text-sm text-muted-foreground py-10">
+                    Carregando usuários...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-sm text-muted-foreground py-10">
                     Nenhum usuário encontrado.
@@ -348,13 +377,16 @@ export default function Admin() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                            {u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                            {(u.name || u.username).split(" ").map((n) => n[0]).slice(0, 2).join("")}
                           </div>
-                          <span className="text-sm font-medium">{u.name}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{u.name || u.username}</span>
+                            {u.name && <span className="text-xs text-muted-foreground">@{u.username}</span>}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-sm text-muted-foreground">{u.email}</span>
+                        <span className="text-sm text-muted-foreground">{u.email || "—"}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`badge-status ${role.cls}`}>{role.label}</span>

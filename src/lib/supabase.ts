@@ -16,8 +16,9 @@ export interface Database {
       system_users: {
         Row: {
           id: string;
-          name: string;
-          email: string;
+          username: string;
+          name: string | null;
+          email: string | null;
           role: 'medico' | 'enfermeiro' | 'admin' | 'recepcao';
           crm: string | null;
           coren: string | null;
@@ -27,8 +28,9 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          name: string;
-          email: string;
+          username: string;
+          name?: string | null;
+          email?: string | null;
           role: 'medico' | 'enfermeiro' | 'admin' | 'recepcao';
           crm?: string | null;
           coren?: string | null;
@@ -38,8 +40,9 @@ export interface Database {
         };
         Update: {
           id?: string;
-          name?: string;
-          email?: string;
+          username?: string;
+          name?: string | null;
+          email?: string | null;
           role?: 'medico' | 'enfermeiro' | 'admin' | 'recepcao';
           crm?: string | null;
           coren?: string | null;

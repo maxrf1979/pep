@@ -99,70 +99,61 @@ function ExameCard({ exam, index, patient }: { exam: ExamRequest; index: number;
   );
 }
 
+interface ExamLine {
+  id: string;
+  name: string;
+  type: string;
+}
+
+const emptyLine = (): ExamLine => ({ id: crypto.randomUUID(), name: "", type: "laboratorial" });
+
 function NovoExameDialog({ open, onOpenChange, onSave, patients }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: any[]) => void; patients: Patient[];
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (exams: any[]) => void; patients: Patient[];
 }) {
   const [patientId, setPatientId] = useState("");
-  const [exams, setExams] = useState<{ id: string; name: string; type: string }[]>(() => [
-    { id: crypto.randomUUID(), name: "", type: "laboratorial" }
-  ]);
+  const [exams, setExams] = useState<ExamLine[]>([emptyLine()]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: string) => {
-    if (k === "patientId") setPatientId(v);
-    if (k === "notes") setNotes(v);
-    setErrors((e) => ({ ...e, [k]: "" }));
-  };
+  const addLine = () => setExams((l) => [...l, emptyLine()]);
 
-  const addExam = () => {
-    setExams([...exams, { id: crypto.randomUUID(), name: "", type: "laboratorial" }]);
-  };
+  const removeLine = (id: string) =>
+    setExams((l) => { if (l.length > 1) return l.filter((e) => e.id !== id); return l; });
 
-  const removeExam = (id: string) => {
-    if (exams.length > 1) {
-      setExams(exams.filter((e) => e.id !== id));
-    }
-  };
-
-  const updateExam = (id: string, field: "name" | "type", value: any) => {
-    setExams(exams.map((e) => e.id === id ? { ...e, [field]: value } : e));
-    setErrors((en) => ({ ...en, exams: "" }));
+  const setLine = (id: string, k: keyof ExamLine, v: string) => {
+    setExams((l) => l.map((ex) => (ex.id === id ? { ...ex, [k]: v } : ex)));
+    setErrors((e) => { const next = { ...e }; delete next[`name_${id}`]; return next; });
   };
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!patientId) e.patientId = "Selecione um paciente";
-    
-    const hasEmpty = exams.some(ex => !ex.name.trim());
-    if (hasEmpty) {
-      e.exams = "Todos os exames devem ter um nome";
-    }
-    
+    exams.forEach((ex) => {
+      if (!ex.name.trim()) e[`name_${ex.id}`] = "Obrigatório";
+    });
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSave = () => {
     if (!validate()) return;
-    
-    const newExams: any[] = exams.map(ex => ({
+    const now = new Date().toISOString();
+    const result = exams.map((l) => ({
       id: crypto.randomUUID(),
-      patientId: patientId,
-      requestDate: new Date().toISOString(),
-      type: ex.type,
-      name: ex.name.trim(),
+      patientId,
+      requestDate: now,
+      type: l.type,
+      name: l.name.trim(),
       status: "solicitado",
       professional: "Dr. Usuário Atual — CRM 00000/SP",
     }));
 
-    onSave(newExams);
-    
-    // Reset
-    setPatientId("");
-    setExams([{ id: crypto.randomUUID(), name: "", type: "laboratorial" }]);
-    setNotes("");
-    setErrors({});
+    onSave(result);
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setPatientId(""); setNotes(""); setExams([emptyLine()]); setErrors({});
     onOpenChange(false);
   };
 
@@ -178,86 +169,98 @@ function NovoExameDialog({ open, onOpenChange, onSave, patients }: {
     `w-full h-9 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 ${errors[field] ? "border-destructive" : "border-border"}`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Solicitar Exame</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Paciente *</label>
-            <select value={patientId} onChange={(e) => set("patientId", e.target.value)} className={inp("patientId")}>
+            <select
+              value={patientId}
+              onChange={(e) => { setPatientId(e.target.value); setErrors((er) => ({ ...er, patientId: "" })); }}
+              className={inp("patientId")}
+            >
               <option value="">Selecionar paciente...</option>
               {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             {errors.patientId && <p className="text-xs text-destructive mt-1">{errors.patientId}</p>}
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-muted-foreground font-semibold">Exames *</label>
-            <button
-              onClick={addExam}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
-            >
-              <Plus className="h-3 w-3" />
-              Adicionar exame
-            </button>
-          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Exames solicitados *
+                <span className="ml-1.5 text-muted-foreground/60 font-normal">
+                  ({exams.length} {exams.length === 1 ? "exame" : "exames"})
+                </span>
+              </label>
+              <button type="button" onClick={addLine} className="flex items-center gap-1 text-xs text-primary font-medium hover:underline">
+                <Plus className="h-3.5 w-3.5" strokeWidth={2} /> Adicionar exame
+              </button>
+            </div>
 
-          {errors.exams && <p className="text-xs text-destructive">{errors.exams}</p>}
-
-          <div className="space-y-3">
-            {exams.map((exam, index) => (
-              <div key={exam.id} className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border relative">
-                {exams.length > 1 && (
-                  <button
-                    onClick={() => removeExam(exam.id)}
-                    className="absolute right-2 top-2 text-muted-foreground hover:text-destructive transition-colors"
-                    aria-label="Remover exame"
+            <div className="space-y-2">
+              {exams.map((line, i) => (
+                <div key={line.id} className="flex items-start gap-2">
+                  <span className="text-xs text-muted-foreground mt-2.5 w-5 shrink-0 tabular-nums text-right">{i+1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <input
+                      value={line.name}
+                      onChange={(e) => setLine(line.id, "name", e.target.value)}
+                      className={inp(`name_${line.id}`)}
+                      placeholder="Nome do exame"
+                    />
+                    {errors[`name_${line.id}`] && <p className="text-xs text-destructive mt-0.5">{errors[`name_${line.id}`]}</p>}
+                  </div>
+                  <select
+                    value={line.type}
+                    onChange={(e) => setLine(line.id, "type", e.target.value)}
+                    className="h-9 px-2 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0 w-36"
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-                
-                <div className="col-span-2">
-                  <label className="text-xs font-medium text-muted-foreground">Nome do exame</label>
-                  <input value={exam.name} onChange={(e) => updateExam(exam.id, "name", e.target.value)} className={inp("name")} placeholder="Ex: Hemograma Completo" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-                  <select value={exam.type} onChange={(e) => updateExam(exam.id, "type", e.target.value as any)} className={inp("")}>
                     <option value="laboratorial">Laboratorial</option>
                     <option value="imagem">Imagem</option>
                     <option value="funcional">Funcional</option>
                     <option value="outro">Outro</option>
                   </select>
+                  <button
+                    type="button"
+                    onClick={() => removeLine(line.id)}
+                    disabled={exams.length === 1}
+                    className="mt-1.5 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-25"
+                  >
+                    <X className="h-4 w-4" strokeWidth={1.5} />
+                  </button>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted-foreground">Justificativa / Observações</label>
             <textarea
               value={notes}
-              onChange={(e) => set("notes", e.target.value)}
+              onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3 py-2 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-              rows={3}
+              rows={2}
               placeholder="Indicação clínica, urgência..."
             />
           </div>
         </div>
-        <DialogFooter className="mt-2">
-          <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+
+        <DialogFooter className="mt-2 text-xs">
+          <button onClick={handleClose} className="px-4 py-2 rounded-md font-medium text-muted-foreground hover:bg-muted transition-colors">
             Cancelar
           </button>
-          <button onClick={handleSave} className="px-4 py-2 rounded-md text-sm font-medium hover:bg-muted transition-colors">
+          <button onClick={handleSave} className="px-4 py-2 rounded-md font-medium hover:bg-muted transition-colors">
             Apenas Solicitar
           </button>
-          <button onClick={handleEmitirEImprimir} className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+          <button onClick={handleEmitirEImprimir} className="px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
             Solicitar e Imprimir
           </button>
         </DialogFooter>
+
         {patients.find(p => p.id === patientId) && (
           <PrintableDocument
             type="exam"
@@ -267,7 +270,7 @@ function NovoExameDialog({ open, onOpenChange, onSave, patients }: {
               cpf: patients.find(p => p.id === patientId)!.cpf || "---",
               sex: patients.find(p => p.id === patientId)!.sex,
             }}
-            items={exams}
+            items={exams.map(e => ({ name: e.name, type: e.type }))}
             notes={notes}
             professionalLabel="Dr. Usuário Atual — CRM 00000/SP"
           />
@@ -293,7 +296,6 @@ export default function Exames() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Salvar exames no localStorage sempre que a lista mudar
   useEffect(() => {
     localStorage.setItem("localExams", JSON.stringify(localExams));
   }, [localExams]);
@@ -315,7 +317,11 @@ export default function Exames() {
 
   const handleSave = (newExams: any[]) => {
     setLocalExams((prev) => [...newExams, ...prev]);
-    toast.success(`${newExams.length} exame(s) solicitado(s) com sucesso.`);
+    toast.success(
+      newExams.length === 1
+        ? "Exame solicitado com sucesso."
+        : `${newExams.length} exames solicitados com sucesso.`
+    );
   };
 
   return (

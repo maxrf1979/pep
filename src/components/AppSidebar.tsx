@@ -3,12 +3,12 @@ import {
   Users,
   FileText,
   Activity,
+  Stethoscope,
   Pill,
   FlaskConical,
   BarChart3,
   Settings,
   Shield,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
   Heart,
@@ -38,8 +38,9 @@ const mainNav = [
 
 const clinicalNav = [
   { title: "Sinais Vitais", url: "/sinais-vitais", icon: Activity },
-  { title: "Prescrições", url: "/prescricoes", icon: Pill },
-  { title: "Exames", url: "/exames", icon: FlaskConical },
+  { title: "Evoluções",     url: "/evolucoes",     icon: Stethoscope },
+  { title: "Prescrições",   url: "/prescricoes",   icon: Pill },
+  { title: "Exames",        url: "/exames",         icon: FlaskConical },
 ];
 
 const adminNav = [

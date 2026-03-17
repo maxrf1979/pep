@@ -151,6 +151,10 @@ export default function Prescricoes() {
     if (dialogOpen) {
       const saved = localStorage.getItem("patients");
       const updatedPatients = saved ? JSON.parse(saved) : patients;
+      console.log("🔄 Prescricoes - Atualizando pacientes ao abrir diálogo");
+      console.log("📦 localStorage 'patients':", saved);
+      console.log("👥 Total de pacientes carregados:", updatedPatients.length);
+      console.log("👥 Pacientes:", updatedPatients.map((p: Patient) => p.name));
       setAllPatients(updatedPatients);
     }
   }, [dialogOpen]);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, X, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { type Prescription, type Patient } from "@/lib/mock-data";
@@ -25,6 +25,14 @@ export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatien
   const [notes, setNotes] = useState("");
   const [meds, setMeds] = useState<MedLine[]>([{ name: "", dose: "", route: "VO", frequency: "", duration: "" }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Debug: Log quando a lista de pacientes muda
+  useEffect(() => {
+    if (open) {
+      console.log("📋 NovaPrescricaoDialog - Total de pacientes:", patients.length);
+      console.log("📋 Pacientes:", patients.map(p => p.name));
+    }
+  }, [open, patients]);
 
   const addMed = () => setMeds((m) => [...m, { name: "", dose: "", route: "VO", frequency: "", duration: "" }]);
   const removeMed = (i: number) => setMeds((m) => m.filter((_, idx) => idx !== i));

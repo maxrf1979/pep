@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Patient } from "@/lib/mock-data";
+import { getRandomUUID } from "@/lib/utils";
 
 interface Props {
   open: boolean;

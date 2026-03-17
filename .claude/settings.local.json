@@ -7,7 +7,12 @@
       "Bash(npx tsc --noEmit)",
       "Bash(git add -A)",
       "Bash(git reset HEAD .claude/settings.local.json)",
-      "Bash(git add src/pages/Prescricoes.tsx src/pages/Prontuarios.tsx src/components/NovaPrescricaoDialog.tsx)"
+      "Bash(git add src/pages/Prescricoes.tsx src/pages/Prontuarios.tsx src/components/NovaPrescricaoDialog.tsx)",
+      "Bash(git commit -m \"fix: Atualizar lista de pacientes em prescrições automaticamente\n\n- Adicionar listeners de storage para detectar mudanças\n- Atualizar pacientes quando diálogo é aberto\n- Adicionar polling para sincronização\n- Adicionar logs de debug\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Atualizar lista de pacientes em prescrições automaticamente\n\n- Adicionar listeners de storage para detectar mudanças\n- Atualizar pacientes quando diálogo é aberto\n- Adicionar polling para sincronização\n- Adicionar logs de debug\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push origin main)",
+      "Bash(git add src/components/VisualizarEvolucaoDialog.tsx src/components/PrintableDocument.tsx src/pages/Prontuario.tsx)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Adicionar visualização completa de evoluções com impressão\n\n- Criar componente VisualizarEvolucaoDialog para mostrar todos os campos\n- Adicionar suporte a evoluções no PrintableDocument\n- Implementar impressão com cabeçalho e rodapé profissional\n- Integrar visualização ao clicar em evoluções médicas e de enfermagem\n- Mostrar data/hora, título, resumo e descrição completa\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ]
   }
 }

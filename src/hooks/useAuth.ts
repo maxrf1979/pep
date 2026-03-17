@@ -31,8 +31,8 @@ export function useAuth() {
       try {
         const parsedUser = JSON.parse(sessionData) as AuthUser;
 
-        // Validar que o usuário tem os campos obrigatórios
-        if (parsedUser.name && parsedUser.email && parsedUser.role) {
+        // Validar que o usuário tem os campos obrigatórios (nome e perfil)
+        if (parsedUser.name && parsedUser.role) {
           setUser(parsedUser);
           setIsAuthenticated(true);
         } else {

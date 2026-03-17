@@ -31,6 +31,7 @@ import { NovoAtestadoDialog } from "@/components/NovoAtestadoDialog";
 import { VisualizarEvolucaoDialog } from "@/components/VisualizarEvolucaoDialog";
 import { ReportHeader, ReportFooter } from "@/components/ReportHeader";
 import { ProfessionalProntuario } from "@/components/ProfessionalProntuario";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
@@ -168,12 +169,75 @@ export default function Prontuario() {
 
   const handlePrintIndividual = (event: TimelineEvent) => {
     setCurrentPrintingEvent(event);
-    setIsPrinting(true);
     setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-      setCurrentPrintingEvent(null);
-    }, 150);
+      const content = document.getElementById("print-area-individual")?.innerHTML;
+      if (!content) {
+        console.error("Conteúdo de impressão individual não encontrado!");
+        return;
+      }
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        alert("Por favor, permita pop-ups para este site para imprimir.");
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Impressão - Pulse PEP</title>
+            <style>
+              body { font-family: 'Segoe UI', Arial, sans-serif; padding: 2cm; color: #000; background: white; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              h2 { font-size: 16pt; font-weight: 700; margin-bottom: 12px; }
+              p { margin: 4px 0; }
+            </style>
+          </head>
+          <body>${content}</body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+        setCurrentPrintingEvent(null);
+      }, 500);
+    }, 300); // Aguarda o React atualizar o state com currentPrintingEvent
+  };
+
+  const handlePrintFull = () => {
+    const content = document.getElementById("print-area-full")?.innerHTML;
+    if (!content) {
+      alert("Erro ao carregar conteúdo do prontuário.");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Por favor, permita pop-ups para este site para imprimir.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Prontuário Completo - Pulse PEP</title>
+          <style>
+            body { margin: 0; padding: 0; }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `);
+    printWindow.document.close();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   const handleViewEvolucao = (event: TimelineEvent) => {
@@ -181,30 +245,72 @@ export default function Prontuario() {
     setVisualizarEvolucaoOpen(true);
   };
 
-  // Persistence logic for Timeline
+  // Persistence logic for Timeline - Fetching from Supabase
   const [localTimeline, setLocalTimeline] = useState<TimelineEvent[]>([]);
-
   const [patientData, setPatientData] = useState<Patient | null>(null);
 
+  // 1. Carregar Dados do Paciente
   useEffect(() => {
     if (!id) return;
-    const saved = localStorage.getItem("patients");
-    const list = saved ? JSON.parse(saved) : [];
-    const p = list.find((item: Patient) => item.id === id) || getPatient(id);
-    setPatientData(p || null);
+    
+    const fetchPatient = async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        setPatientData(data as Patient);
+      } else {
+        // Fallback para mock se o Supabase falhar ou estiver vazio
+        const p = getPatient(id);
+        if (p) setPatientData(p);
+      }
+    };
+
+    fetchPatient();
   }, [id]);
 
   const patient = patientData;
 
+  // 2. Carregar Histórico da Timeline
   useEffect(() => {
-    const saved = localStorage.getItem("pep-timeline");
-    if (saved) {
-      setLocalTimeline(JSON.parse(saved));
-    } else {
-      localStorage.setItem("pep-timeline", JSON.stringify(timelineEvents));
-      setLocalTimeline(timelineEvents);
-    }
-  }, []);
+    if (!id) return;
+
+    const fetchTimeline = async () => {
+      const { data, error } = await supabase
+        .from('timeline_events')
+        .select('*')
+        .eq('patient_id', id)
+        .order('occurred_at', { ascending: false });
+
+      if (!error && data) {
+        // Converte os dados do Supabase para o formato TimelineEvent esperado pelo front
+        const formattedEvents = data.map((ev: any) => ({
+          id: ev.id,
+          patientId: ev.patient_id,
+          type: ev.event_type,
+          title: ev.title,
+          summary: ev.summary,
+          details: ev.details,
+          professional: 'Equipe', // TODO: Fazer JOIN com system_users futuramente
+          date: ev.occurred_at
+        }));
+        setLocalTimeline(formattedEvents);
+      } else {
+        // Fallback para localStorage/mock se falhar
+        const saved = localStorage.getItem("pep-timeline");
+        if (saved) {
+          setLocalTimeline(JSON.parse(saved));
+        } else {
+          setLocalTimeline(timelineEvents);
+        }
+      }
+    };
+
+    fetchTimeline();
+  }, [id]);
 
   useEffect(() => {
     if (patient) {
@@ -227,40 +333,89 @@ export default function Prontuario() {
     );
   }
 
-  const onSaveEvent = (ev: TimelineEvent, rawData?: any) => {
-    // 1. Save to Timeline
-    const updatedTimeline = [ev, ...localTimeline];
-    
+  const onSaveEvent = async (ev: TimelineEvent, rawData?: any) => {
+    if (!id) return;
+
+    // 1. Salvar no Supabase (timeline_events)
+    const { data, error } = await supabase
+      .from('timeline_events')
+      .insert([{
+        patient_id: id,
+        event_type: ev.type,
+        title: ev.title,
+        summary: ev.summary,
+        details: ev.details,
+        occurred_at: ev.date || new Date().toISOString()
+      }])
+      .select();
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      toast.error("Erro ao salvar no banco de dados.");
+      return;
+    }
+
+    // 2. Atualizar estado local com o ID gerado pelo banco
+    const insertedId = data && data[0] ? data[0].id : ev.id;
+    const newEvent = { ...ev, id: insertedId };
+    setLocalTimeline([newEvent, ...localTimeline]);
+
+    // 3. Salvar em tabelas específicas se necessário
     try {
-      localStorage.setItem("pep-timeline", JSON.stringify(updatedTimeline));
-      setLocalTimeline(updatedTimeline);
-    } catch (error) {
-      console.error("Storage error:", error);
-      toast.error("Erro ao salvar: Espaço de armazenamento local esgotado (arquivo muito grande).");
-      return; // Do not update view if save fails
-    }
+      if (ev.type === "sinais_vitais" && rawData) {
+        await supabase.from('vital_signs').insert([{
+          patient_id: id,
+          temperature: rawData.temperature ? parseFloat(rawData.temperature) : null,
+          blood_pressure: rawData.bloodPressure,
+          heart_rate: rawData.heartRate ? parseInt(rawData.heartRate) : null,
+          respiratory_rate: rawData.respiratoryRate ? parseInt(rawData.respiratoryRate) : null,
+          oxygen_saturation: rawData.oxygenSaturation ? parseFloat(rawData.oxygenSaturation) : null
+        }]);
+      }
 
-    // 2. Save to specific stores if needed
-    if (ev.type === "sinais_vitais" && rawData) {
-      const savedVitals = localStorage.getItem("localVitals");
-      const currentVitals = savedVitals ? JSON.parse(savedVitals) : [];
-      localStorage.setItem("localVitals", JSON.stringify([rawData, ...currentVitals]));
-    }
+      if (ev.type === "prescricao" && rawData) {
+        // Encontra o doctor_id logado
+        const savedSession = localStorage.getItem("pulse-auth-session");
+        const session = savedSession ? JSON.parse(savedSession) : null;
+        const doctorId = session?.id;
 
-    if (ev.type === "prescricao" && rawData) {
-      const savedRx = localStorage.getItem("localPrescriptions");
-      const currentRx = savedRx ? JSON.parse(savedRx) : [];
-      localStorage.setItem("localPrescriptions", JSON.stringify([rawData, ...currentRx]));
+        await supabase.from('prescriptions').insert([{
+          patient_id: id,
+          medication: rawData.medication,
+          dosage: rawData.dosage,
+          instructions: rawData.instructions,
+          type: rawData.type || 'normal',
+          doctor_id: doctorId || '00000000-0000-0000-0000-000000000000' // fallback placeholder UUID if needed
+        }]);
+      }
+    } catch (subtableError) {
+      console.error("Erro ao salvar na sub-tabela:", subtableError);
+      // Não bloqueia o fluxo, pois na timeline já salvou
     }
 
     toast.success(`${typeConfig[ev.type]?.label || 'Registro'} adicionado com sucesso.`);
   };
 
-  const handleStatusChange = (newStatus: string) => {
-    if (!patientData) return;
+  const handleStatusChange = async (newStatus: string) => {
+    if (!patientData || !id) return;
     const updated = { ...patientData, status: newStatus as "internado" | "ambulatorial" | "alta" | "obito" };
+    
+    // 1. Atualizar no Supabase
+    const { error } = await supabase
+      .from('patients')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error("Erro ao atualizar status do paciente:", error);
+      toast.error("Erro ao atualizar status no banco de dados.");
+      return;
+    }
+
+    // 2. Atualizar estado local
     setPatientData(updated);
     
+    // Fallback sync para mock local se houver
     const saved = localStorage.getItem("patients");
     const list = saved ? JSON.parse(saved) : [];
     const index = list.findIndex((p: Patient) => p.id === patientData.id);
@@ -389,13 +544,7 @@ export default function Prontuario() {
             )}
           </div>
           <button
-            onClick={() => {
-              setIsPrinting(true);
-              setTimeout(() => {
-                window.print();
-                setIsPrinting(false);
-              }, 100);
-            }}
+            onClick={handlePrintFull}
             className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors"
           >
             <FileDown className="h-4 w-4" strokeWidth={1.5} />
@@ -508,44 +657,44 @@ export default function Prontuario() {
         />
       )}
 
-      {/* Print Footer - Hidden on screen, visible on print */}
-      <div className="hidden print:block print-footer mt-8">
-        <ReportFooter />
+      {/* Área de Impressão Isolada - Individual (Invisível na Tela) */}
+      <div id="print-area-individual" style={{ display: "none" }}>
+        {currentPrintingEvent && (
+          <div>
+            <ReportHeader />
+            <div style={{ margin: "20px 0", borderBottom: "2px solid #ddd", paddingBottom: "12px" }}>
+              <h2 style={{ fontSize: "16pt", fontWeight: 700, margin: 0 }}>{typeConfig[currentPrintingEvent.type]?.label}</h2>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#666", marginTop: "8px" }}>
+                <span>Data: {new Date(currentPrintingEvent.date).toLocaleString("pt-BR")}</span>
+                <span>Profissional: {currentPrintingEvent.professional}</span>
+              </div>
+            </div>
+            <div style={{ fontSize: "10pt", lineHeight: 1.6 }}>
+              <p style={{ fontWeight: 700, fontSize: "12pt", marginBottom: "8px" }}>{currentPrintingEvent.title}</p>
+              <div style={{ marginTop: "8px", background: "#fafafa", padding: "12px", borderRadius: "4px", border: "1px solid #eee" }}>
+                <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Resumo:</p>
+                <p style={{ margin: 0 }}>{currentPrintingEvent.summary}</p>
+              </div>
+              {currentPrintingEvent.details && (
+                <div style={{ marginTop: "16px" }}>
+                  <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Detalhamento:</p>
+                  <div style={{ whiteSpace: "pre-wrap", padding: "12px", border: "1px solid #eee", borderRadius: "4px", lineHeight: 1.6 }}>
+                    {currentPrintingEvent.details}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: "60px" }}>
+              <ReportFooter />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Individual Event Print View */}
-      {isPrinting && currentPrintingEvent && (
-        <div className="hidden print:block fixed inset-0 z-[9999]" style={{ padding: "2cm", fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "10pt", color: "#000", background: "white" }}>
-          <ReportHeader />
-          <div style={{ margin: "20px 0", borderBottom: "2px solid #ddd", paddingBottom: "12px" }}>
-            <h2 style={{ fontSize: "16pt", fontWeight: 700, margin: 0 }}>{typeConfig[currentPrintingEvent.type]?.label}</h2>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#666", marginTop: "8px" }}>
-              <span>Data: {new Date(currentPrintingEvent.date).toLocaleString("pt-BR")}</span>
-              <span>Profissional: {currentPrintingEvent.professional}</span>
-            </div>
-          </div>
-          <div style={{ fontSize: "10pt", lineHeight: 1.6 }}>
-            <p style={{ fontWeight: 700, fontSize: "12pt", marginBottom: "8px" }}>{currentPrintingEvent.title}</p>
-            <div style={{ marginTop: "8px", background: "#fafafa", padding: "12px", borderRadius: "4px", border: "1px solid #eee" }}>
-              <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Resumo:</p>
-              <p style={{ margin: 0 }}>{currentPrintingEvent.summary}</p>
-            </div>
-            {currentPrintingEvent.details && (
-              <div style={{ marginTop: "16px" }}>
-                <p style={{ fontWeight: 600, fontSize: "8pt", color: "#666", marginBottom: "4px" }}>Detalhamento:</p>
-                <div style={{ whiteSpace: "pre-wrap", padding: "12px", border: "1px solid #eee", borderRadius: "4px", lineHeight: 1.6 }}>
-                  {currentPrintingEvent.details}
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{ marginTop: "80px" }}>
-            <ReportFooter />
-          </div>
-        </div>
-      )}
-
-      {isPrinting && !currentPrintingEvent && <ProfessionalProntuario patientId={id!} />}
+      {/* Área de Impressão Isolada - Prontuário Completo (Invisível na Tela) */}
+      <div id="print-area-full" style={{ display: "none" }}>
+        {id && <ProfessionalProntuario patientId={id} />}
+      </div>
     </div>
   );
 }

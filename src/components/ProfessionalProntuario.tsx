@@ -1,11 +1,11 @@
-import { createPortal } from "react-dom";
 import { type Patient, type VitalSign, type Prescription, type ExamRequest, type TimelineEvent, patients, vitalSigns, prescriptions, examRequests, timelineEvents } from "@/lib/mock-data";
 
 interface ProfessionalProntuarioProps {
   patientId: string;
+  onClose?: () => void;
 }
 
-export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProps) {
+export function ProfessionalProntuario({ patientId, onClose }: ProfessionalProntuarioProps) {
   // Obter usuário logado (para assinatura/responsável)
   const getLoggedUser = (): string => {
     const saved = localStorage.getItem("pulse-auth-session");
@@ -118,34 +118,27 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
   const printDate = currentDate.toLocaleDateString("pt-BR");
   const printTime = currentDate.toLocaleTimeString("pt-BR");
 
-  return createPortal(
-    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content font-sans text-xs">
+  return (
+    <div className="printable-content font-sans text-xs">
       <style>{`
-        @media print {
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
+        /* Estilos de impressão e quebra de páginas */
+        body {
+          background: white;
+          color: #000;
+          line-height: 1.4;
+        }
 
-          body {
-            background: white;
-            color: #000;
-            line-height: 1.4;
-          }
+        .page {
+          page-break-after: always;
+          padding: 2cm;
+          min-height: 29.7cm;
+          position: relative;
+          background: white;
+        }
 
-          .page {
-            page-break-after: always;
-            page-break-inside: avoid;
-            padding: 2cm;
-            min-height: 29.7cm;
-            position: relative;
-            background: white;
-          }
-
-          .page:last-child {
-            page-break-after: avoid;
-          }
+        .page:last-child {
+          page-break-after: avoid;
+        }
 
           /* Cabeçalho */
           .document-header {
@@ -389,7 +382,6 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
             font-size: 10px;
             font-style: italic;
           }
-        }
       `}</style>
 
       {/* PÁGINA 1 - CABEÇALHO E IDENTIFICAÇÃO */}
@@ -781,8 +773,7 @@ export function ProfessionalProntuario({ patientId }: ProfessionalProntuarioProp
           </p>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
 

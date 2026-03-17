@@ -575,3 +575,16 @@ ORDER BY activity_date DESC;
 -- ============================================================================
 -- END OF SCHEMA
 -- ============================================================================
+
+-- ============================================================================
+-- 19. Configuracoes (General System Settings/AI)
+-- ============================================================================
+CREATE TABLE configuracoes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chave TEXT UNIQUE NOT NULL,
+  valor JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for config
+CREATE INDEX idx_configuracoes_chave ON configuracoes(chave);

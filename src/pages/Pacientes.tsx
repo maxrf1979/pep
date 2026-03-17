@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { patients as initialPatients, Patient } from "@/lib/mock-data";
 import NovoPacienteDialog from "@/components/NovoPacienteDialog";
 import ChamarPacienteDialog from "@/components/ChamarPacienteDialog";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const transition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const };
@@ -13,27 +14,122 @@ export default function Pacientes() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [patientList, setPatientList] = useState<Patient[]>(() => {
-    const saved = localStorage.getItem("patients");
-    return saved ? JSON.parse(saved) : initialPatients;
-  });
+  const [patientList, setPatientList] = useState<Patient[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [callDialogOpen, setCallDialogOpen] = useState(false);
   const [selectedPatientForCall, setSelectedPatientForCall] = useState<{ id: string; name: string } | null>(null);
+  const [clinicId, setClinicId] = useState<string | null>(null);
 
-  // Salvar pacientes no localStorage sempre que a lista mudar
+  // 1. Carregar Clínica (Clinic ID) para salvar no Supabase
   useEffect(() => {
-    localStorage.setItem("patients", JSON.stringify(patientList));
-  }, [patientList]);
+    const fetchClinic = async () => {
+      const { data, error } = await supabase.from('clinics').select('id').limit(1);
+      if (data && data.length > 0) {
+        setClinicId(data[0].id);
+      } else {
+        // Se não houver clínicas, cria uma default
+        const { data: nClinic, error: createError } = await supabase
+          .from('clinics')
+          .insert([{ name: 'Clínica Geral', cnpj: '00000000000' }])
+          .select();
+        
+        if (!createError && nClinic && nClinic.length > 0) {
+          setClinicId(nClinic[0].id);
+        }
+      }
+    };
+    fetchClinic();
+  }, []);
+
+  // 2. Carregar Pacientes do Supabase
+  useEffect(() => {
+    const fetchPatients = async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (!error && data) {
+        // Formatar os dados para o formato Patient do front
+        const formatted = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          cpf: p.cpf,
+          sus: p.sus,
+          birthDate: p.birth_date,
+          sex: p.sex,
+          phone: p.phone,
+          email: p.email,
+          bloodType: p.blood_type,
+          allergies: p.allergies || [],
+          status: p.status,
+          lastVisit: p.last_visit || new Date().toISOString().split("T")[0],
+          age: p.birth_date ? calcAge(p.birth_date) : 0
+        }));
+        setPatientList(formatted);
+      } else {
+        // Fallback para localStorage/mock
+        const saved = localStorage.getItem("patients");
+        setPatientList(saved ? JSON.parse(saved) : initialPatients);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  const calcAge = (birth: string) => {
+    const d = new Date(birth);
+    const now = new Date();
+    let age = now.getFullYear() - d.getFullYear();
+    if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
+    return age;
+  };
 
   const handleTriggerCall = (p: Patient) => {
     setSelectedPatientForCall({ id: p.id, name: p.name });
     setCallDialogOpen(true);
   };
 
-  const handleNewPatient = (p: Patient) => {
-    setPatientList((prev) => [p, ...prev]);
+  const handleNewPatient = async (p: Patient) => {
+    if (!clinicId) {
+      toast.error("Não foi possível salvar: ID da clínica não encontrado.");
+      return;
+    }
+
+    // 1. Salvar no Supabase
+    const { data, error } = await supabase
+      .from('patients')
+      .insert([{
+        clinic_id: clinicId,
+        name: p.name,
+        cpf: p.cpf,
+        sus: p.sus || null,
+        birth_date: p.birthDate,
+        sex: p.sex,
+        phone: p.phone,
+        email: p.email || null,
+        blood_type: p.bloodType || null,
+        allergies: p.allergies,
+        status: p.status
+      }])
+      .select();
+
+    if (error) {
+      console.error("Erro ao inserir paciente no Supabase:", error);
+      toast.error(`Erro ao salvar no banco de dados: ${error.message}`);
+      return;
+    }
+
+    // 2. Atualizar estado local com o ID do banco
+    const insertedId = data && data[0] ? data[0].id : p.id;
+    const newPatient = { ...p, id: insertedId };
+    setPatientList((prev) => [newPatient, ...prev]);
     toast.success(`Paciente ${p.name} cadastrado com sucesso!`);
+
+    // Sync localStorage para fallback
+    const saved = localStorage.getItem("patients");
+    const currentList = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("patients", JSON.stringify([newPatient, ...currentList]));
   };
 
   const filtered = patientList.filter((p) => {

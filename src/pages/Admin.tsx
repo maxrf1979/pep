@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Shield, Users, Plus, Search, X, Edit2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -23,15 +24,7 @@ const roleConfig = {
   recepcao: { label: "Recepção", cls: "bg-warning/10 text-warning" },
 };
 
-const initialUsers: SystemUser[] = [
-  { id: "u-001", name: "Dr. Ricardo Almeida", email: "ricardo.almeida@pulse.med.br", role: "medico", crm: "12345/SP", status: "ativo" },
-  { id: "u-002", name: "Dra. Juliana Moreira", email: "juliana.moreira@pulse.med.br", role: "medico", crm: "98765/SP", status: "ativo" },
-  { id: "u-003", name: "Dr. André Costa", email: "andre.costa@pulse.med.br", role: "medico", crm: "54321/RJ", status: "ativo" },
-  { id: "u-004", name: "Enf. Carla Souza", email: "carla.souza@pulse.med.br", role: "enfermeiro", coren: "54321/SP", status: "ativo" },
-  { id: "u-005", name: "Enf. Paulo Martins", email: "paulo.martins@pulse.med.br", role: "enfermeiro", coren: "65432/SP", status: "ativo" },
-  { id: "u-006", name: "Ana Gestora", email: "ana.gestora@pulse.med.br", role: "admin", status: "ativo" },
-  { id: "u-007", name: "Beatriz Recepção", email: "beatriz@pulse.med.br", role: "recepcao", status: "inativo" },
-];
+// Removido initialUsers - agora usamos dados do Supabase
 
 function NovoUsuarioDialog({ open, onOpenChange, onSave }: {
   open: boolean; onOpenChange: (v: boolean) => void; onSave: (u: SystemUser) => void;
@@ -131,7 +124,32 @@ export default function Admin() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [userList, setUserList] = useState<SystemUser[]>(initialUsers);
+  const [userList, setUserList] = useState<SystemUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar usuários do Supabase
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('system_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setUserList(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+      toast.error('Erro ao carregar usuários do sistema');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = userList.filter((u) => {
     if (roleFilter !== "all" && u.role !== roleFilter) return false;
@@ -139,21 +157,74 @@ export default function Admin() {
     return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
   });
 
-  const toggleStatus = (id: string) => {
-    setUserList((prev) =>
-      prev.map((u) => u.id === id ? { ...u, status: u.status === "ativo" ? "inativo" : "ativo" } : u)
-    );
-    toast.success("Status do usuário atualizado.");
+  const toggleStatus = async (id: string) => {
+    const user = userList.find(u => u.id === id);
+    if (!user) return;
+
+    const newStatus = user.status === "ativo" ? "inativo" : "ativo";
+
+    try {
+      const { error } = await supabase
+        .from('system_users')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setUserList((prev) =>
+        prev.map((u) => u.id === id ? { ...u, status: newStatus } : u)
+      );
+      toast.success("Status do usuário atualizado.");
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status do usuário');
+    }
   };
 
-  const removeUser = (id: string) => {
-    setUserList((prev) => prev.filter((u) => u.id !== id));
-    toast.success("Usuário removido.");
+  const removeUser = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('system_users')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setUserList((prev) => prev.filter((u) => u.id !== id));
+      toast.success("Usuário removido.");
+    } catch (error) {
+      console.error('Erro ao remover usuário:', error);
+      toast.error('Erro ao remover usuário');
+    }
   };
 
-  const handleSave = (u: SystemUser) => {
-    setUserList((prev) => [u, ...prev]);
-    toast.success("Usuário criado com sucesso.");
+  const handleSave = async (u: SystemUser) => {
+    try {
+      const { data, error } = await supabase
+        .from('system_users')
+        .insert([{
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          crm: u.crm || null,
+          coren: u.coren || null,
+          status: u.status,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setUserList((prev) => [data, ...prev]);
+      toast.success("Usuário criado com sucesso.");
+    } catch (error: any) {
+      console.error('Erro ao criar usuário:', error);
+      if (error.code === '23505') {
+        toast.error('Este e-mail já está cadastrado');
+      } else {
+        toast.error('Erro ao criar usuário');
+      }
+    }
   };
 
   const stats = [

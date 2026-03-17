@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Paperclip, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { patients, type TimelineEvent } from "@/lib/mock-data";
+import { type TimelineEvent, type Patient } from "@/lib/mock-data";
 
 interface NovoAnexoDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSave: (v: TimelineEvent) => void;
   initialPatientId?: string;
+  patients: Patient[];
 }
 
-export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId }: NovoAnexoDialogProps) {
+export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId, patients }: NovoAnexoDialogProps) {
   const [patientId, setPatientId] = useState(initialPatientId || "");
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");

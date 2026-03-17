@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
-import { patients, type TimelineEvent } from "@/lib/mock-data";
+import { type TimelineEvent, type Patient } from "@/lib/mock-data";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -12,9 +12,10 @@ interface NovaEvolucaoDialogProps {
   onSave: (v: TimelineEvent) => void;
   type: "evolucao_medica" | "evolucao_enfermagem";
   initialPatientId?: string;
+  patients: Patient[];
 }
 
-export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPatientId }: NovaEvolucaoDialogProps) {
+export function NovaEvolucaoDialog({ open, onOpenChange, onSave, type, initialPatientId, patients }: NovaEvolucaoDialogProps) {
   const { user } = useAuth();
   const { can, isEnfermeiro, isMedico, isAdmin } = usePermissions();
   const [patientId, setPatientId] = useState(initialPatientId || "");

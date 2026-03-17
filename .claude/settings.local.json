@@ -4,7 +4,10 @@
       "Bash(npm run:*)",
       "Bash(npm install:*)",
       "Bash(curl -s http://localhost:8080)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(git add -A)",
+      "Bash(git reset HEAD .claude/settings.local.json)",
+      "Bash(git add src/pages/Prescricoes.tsx src/pages/Prontuarios.tsx src/components/NovaPrescricaoDialog.tsx)"
     ]
   }
 }

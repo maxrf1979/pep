@@ -24,6 +24,10 @@ export default function Pacientes() {
   useEffect(() => {
     const fetchClinic = async () => {
       const { data, error } = await supabase.from('clinics').select('id').limit(1);
+      if (error) {
+        console.warn("Erro ao buscar clínica do Supabase:", error.message);
+      }
+      
       if (data && data.length > 0) {
         setClinicId(data[0].id);
       } else {
@@ -32,6 +36,10 @@ export default function Pacientes() {
           .from('clinics')
           .insert([{ name: 'Clínica Geral', cnpj: '00000000000' }])
           .select();
+        
+        if (createError) {
+          console.warn("Erro ao criar clínica default no Supabase:", createError.message);
+        }
         
         if (!createError && nClinic && nClinic.length > 0) {
           setClinicId(nClinic[0].id);
@@ -92,7 +100,15 @@ export default function Pacientes() {
 
   const handleNewPatient = async (p: Patient) => {
     if (!clinicId) {
-      toast.error("Não foi possível salvar: ID da clínica não encontrado.");
+      console.warn("Clinic ID not found, saving to localStorage fallback.");
+      const localId = `p-local-${Date.now()}`;
+      const newPatient = { ...p, id: localId };
+      setPatientList((prev) => [newPatient, ...prev]);
+      toast.warning(`[Local] Paciente ${p.name} cadastrado com sucesso!`);
+      
+      const saved = localStorage.getItem("patients");
+      const currentList = saved ? JSON.parse(saved) : [];
+      localStorage.setItem("patients", JSON.stringify([newPatient, ...currentList]));
       return;
     }
 
@@ -116,7 +132,15 @@ export default function Pacientes() {
 
     if (error) {
       console.error("Erro ao inserir paciente no Supabase:", error);
-      toast.error(`Erro ao salvar no banco de dados: ${error.message}`);
+      toast.warning(`[Local] Salvo localmente devido a erro: ${error.message}`);
+      
+      const localId = `p-local-${Date.now()}`;
+      const newPatient = { ...p, id: localId };
+      setPatientList((prev) => [newPatient, ...prev]);
+      
+      const saved = localStorage.getItem("patients");
+      const currentList = saved ? JSON.parse(saved) : [];
+      localStorage.setItem("patients", JSON.stringify([newPatient, ...currentList]));
       return;
     }
 

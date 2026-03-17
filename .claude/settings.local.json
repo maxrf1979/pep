@@ -14,7 +14,8 @@
       "Bash(git add src/components/VisualizarEvolucaoDialog.tsx src/components/PrintableDocument.tsx src/pages/Prontuario.tsx)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Adicionar visualização completa de evoluções com impressão\n\n- Criar componente VisualizarEvolucaoDialog para mostrar todos os campos\n- Adicionar suporte a evoluções no PrintableDocument\n- Implementar impressão com cabeçalho e rodapé profissional\n- Integrar visualização ao clicar em evoluções médicas e de enfermagem\n- Mostrar data/hora, título, resumo e descrição completa\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git add src/pages/Prontuario.tsx)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Corrigir carregamento de dados do paciente no prontuário\n\n- Converter campos do Supabase de snake_case para camelCase\n- Adicionar formatação adequada de birth_date, blood_type, last_visit\n- Calcular idade corretamente a partir de birth_date\n- Resolver problema de \"Paciente não encontrado\" ao clicar na lista\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Corrigir carregamento de dados do paciente no prontuário\n\n- Converter campos do Supabase de snake_case para camelCase\n- Adicionar formatação adequada de birth_date, blood_type, last_visit\n- Calcular idade corretamente a partir de birth_date\n- Resolver problema de \"Paciente não encontrado\" ao clicar na lista\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(mv .env.example .env)"
     ]
   }
 }

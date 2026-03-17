@@ -476,7 +476,7 @@ export default function Prontuario() {
       <NovaEvolucaoDialog open={evolucaoEnfermagemOpen} onOpenChange={setEvolucaoEnfermagemOpen} initialPatientId={id} type="evolucao_enfermagem" onSave={onSaveEvent} patients={[patient]} />
       <NovoAnexoDialog open={anexoOpen} onOpenChange={setAnexoOpen} initialPatientId={id} onSave={onSaveEvent} patients={[patient]} />
       <NovoAtestadoDialog open={atestadoOpen} onOpenChange={setAtestadoOpen} onSave={(v: { daysOff: number; description: string }) => { onSaveEvent({ id: `at-${Date.now()}`, patientId: id!, type: "atestado" as any, date: new Date().toISOString(), title: "Atestado Médico Emitido", summary: `Afastamento de ${v.daysOff} dias.`, professional: user?.name || "Dr. Profissional", details: v.description }); }} />
-      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: crypto.randomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} />
+      <RequestExamDialog open={exameOpen} onOpenChange={setExameOpen} patientName={patient.name} onSave={(examList) => { examList.forEach((ex: any) => { onSaveEvent({ id: crypto.randomUUID(), patientId: id!, type: "exame", date: new Date().toISOString(), title: "Exame Solicitado", summary: `${ex.name} (${ex.type})`, professional: user?.name || "Dr. Profissional" }); }); }} patients={[patient]} />
       {patient && (
         <AlterarStatusDialog 
           open={statusOpen} 

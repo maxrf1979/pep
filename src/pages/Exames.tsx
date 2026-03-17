@@ -23,10 +23,9 @@ const typeConfig = {
   outro: { label: "Outro", cls: "bg-muted text-muted-foreground" },
 };
 
-function ExameCard({ exam, index }: { exam: ExamRequest; index: number }) {
+function ExameCard({ exam, index, patient }: { exam: ExamRequest; index: number; patient?: Patient }) {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === exam.patientId);
   if (!patient) return null;
   const examAny = exam as any;
   const st = statusConfig[examAny.status || "solicitado"];
@@ -100,8 +99,8 @@ function ExameCard({ exam, index }: { exam: ExamRequest; index: number }) {
   );
 }
 
-function NovoExameDialog({ open, onOpenChange, onSave }: {
-  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: any[]) => void;
+function NovoExameDialog({ open, onOpenChange, onSave, patients }: {
+  open: boolean; onOpenChange: (v: boolean) => void; onSave: (e: any[]) => void; patients: Patient[];
 }) {
   const [patientId, setPatientId] = useState("");
   const [exams, setExams] = useState<{ id: string; name: string; type: string }[]>(() => [
@@ -321,7 +320,7 @@ export default function Exames() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <NovoExameDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} />
+      <NovoExameDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} patients={allPatients} />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -404,7 +403,10 @@ export default function Exames() {
             Nenhum exame encontrado.
           </div>
         ) : (
-          filtered.map((e, i) => <ExameCard key={e.id} exam={e} index={i} />)
+          filtered.map((e, i) => {
+            const patient = allPatients.find((p) => p.id === e.patientId);
+            return <ExameCard key={e.id} exam={e} index={i} patient={patient} />;
+          })
         )}
       </div>
     </div>

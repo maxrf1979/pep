@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { patients } from "@/lib/mock-data";
+import { patients as staticPatients, type Patient } from "@/lib/mock-data";
 import { PrintableDocument } from "./PrintableDocument";
 
 interface ExamField {
@@ -32,6 +32,7 @@ interface RequestExamDialogProps {
   onOpenChange: (open: boolean) => void;
   patientName?: string;
   onSave?: (exams: any[]) => void;
+  patients?: Patient[];
 }
 
 const EXAM_TYPES = [
@@ -49,7 +50,9 @@ export function RequestExamDialog({
   onOpenChange,
   patientName = "",
   onSave,
+  patients = [],
 }: RequestExamDialogProps) {
+  const allPatients = patients.length > 0 ? patients : staticPatients;
   const [exams, setExams] = useState<ExamField[]>([
     { id: "1", name: "", type: "Laboratorial" },
   ]);
@@ -212,14 +215,14 @@ export function RequestExamDialog({
             Solicitar e Imprimir
           </Button>
         </DialogFooter>
-        {patients.find(p => p.name === patientName) && (
+        {allPatients.find(p => p.name === patientName) && (
           <PrintableDocument
             type="exam"
             patient={{
               name: patientName,
-              age: patients.find(p => p.name === patientName)!.age,
-              cpf: patients.find(p => p.name === patientName)!.cpf || "---",
-              sex: patients.find(p => p.name === patientName)!.sex,
+              age: allPatients.find(p => p.name === patientName)!.age,
+              cpf: allPatients.find(p => p.name === patientName)!.cpf || "---",
+              sex: allPatients.find(p => p.name === patientName)!.sex,
             }}
             items={exams}
             notes={justification}

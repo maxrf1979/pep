@@ -9,6 +9,7 @@ import Pacientes from "./pages/Pacientes";
 import Prontuario from "./pages/Prontuario";
 import Prontuarios from "./pages/Prontuarios";
 import SinaisVitais from "./pages/SinaisVitais";
+import Evolucoes from "./pages/Evolucoes";
 import Prescricoes from "./pages/Prescricoes";
 import Exames from "./pages/Exames";
 import Relatorios from "./pages/Relatorios";
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/prontuarios" element={<ProtectedRoute><Prontuarios /></ProtectedRoute>} />
           <Route path="/prontuario/:id" element={<ProtectedRoute><Prontuario /></ProtectedRoute>} />
           <Route path="/sinais-vitais" element={<ProtectedRoute><SinaisVitais /></ProtectedRoute>} />
+          <Route path="/evolucoes" element={<ProtectedRoute><Evolucoes /></ProtectedRoute>} />
           <Route path="/prescricoes" element={<ProtectedRoute><Prescricoes /></ProtectedRoute>} />
           <Route path="/exames" element={<ProtectedRoute><Exames /></ProtectedRoute>} />
           <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />

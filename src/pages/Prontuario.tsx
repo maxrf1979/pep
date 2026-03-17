@@ -252,7 +252,7 @@ export default function Prontuario() {
   // 1. Carregar Dados do Paciente
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchPatient = async () => {
       const { data, error } = await supabase
         .from('patients')
@@ -261,7 +261,32 @@ export default function Prontuario() {
         .maybeSingle();
 
       if (!error && data) {
-        setPatientData(data as Patient);
+        // Converter dados do Supabase (snake_case) para o formato Patient (camelCase)
+        const calcAge = (birth: string) => {
+          const d = new Date(birth);
+          const now = new Date();
+          let age = now.getFullYear() - d.getFullYear();
+          if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
+          return age;
+        };
+
+        const formattedPatient: Patient = {
+          id: data.id,
+          name: data.name,
+          cpf: data.cpf,
+          sus: data.sus,
+          birthDate: data.birth_date,
+          sex: data.sex,
+          phone: data.phone,
+          email: data.email,
+          bloodType: data.blood_type,
+          allergies: data.allergies || [],
+          status: data.status,
+          lastVisit: data.last_visit || new Date().toISOString().split("T")[0],
+          age: data.birth_date ? calcAge(data.birth_date) : 0,
+          deathDate: data.death_date
+        };
+        setPatientData(formattedPatient);
       } else {
         // Fallback para mock se o Supabase falhar ou estiver vazio
         const p = getPatient(id);

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Bell, User, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface ChamarPacienteDialogProps {
   open: boolean;
@@ -26,7 +27,40 @@ export default function ChamarPacienteDialog({ open, onOpenChange, patientName, 
     }
   }, [open]);
 
-  const handleCall = () => {
+  const handleCall = async () => {
+    let supabaseSuccess = false;
+    const session = localStorage.getItem("pulse-auth-session");
+    const user = session ? JSON.parse(session) : null;
+    const callerId = user?.id;
+
+    // Função simples de validação de UUID
+    const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+    if (callerId && patientId && isValidUUID(callerId) && isValidUUID(patientId)) {
+      try {
+        const { error } = await supabase
+          .from('patient_calls')
+          .insert([{
+            patient_id: patientId,
+            called_by_id: callerId,
+            room: room,
+            called_at: new Date().toISOString()
+          }]);
+
+        if (!error) {
+          supabaseSuccess = true;
+          console.log("Chamada salva no Supabase com sucesso.");
+        } else {
+          console.error("Erro ao inserir chamada no Supabase:", error.message);
+        }
+      } catch (e) {
+        console.error("Falha na requisição para o supabase:", e);
+      }
+    } else {
+      console.warn("Chamada local: Dados de usuário ou paciente inválidos para Supabase.", { callerId, patientId });
+    }
+
+    // Fallback / Sincronização LocalStorage
     const saved = localStorage.getItem("pep-calls");
     const calls = saved ? JSON.parse(saved) : [];
 
@@ -41,13 +75,15 @@ export default function ChamarPacienteDialog({ open, onOpenChange, patientName, 
       created_at: new Date().toISOString()
     };
 
-    // Salvar no localStorage
     localStorage.setItem("pep-calls", JSON.stringify([...calls, newCall]));
-    
-    // Disparar evento para atualizar a aba do painel
     window.dispatchEvent(new Event('storage'));
 
-    toast.success(`${patientName} chamado no painel para ${room}`);
+    if (supabaseSuccess) {
+      toast.success(`${patientName} chamado no painel!`);
+    } else {
+      toast.warning(`${patientName} chamado no painel (Modo Local)`);
+    }
+
     onOpenChange(false);
   };
 

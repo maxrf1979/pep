@@ -1,6 +1,7 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { HeartPulse, Volume2, User, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 interface Call {
   id: string;
@@ -16,22 +17,61 @@ export default function PainelChamadaExibicao() {
   const [lastCalledId, setLastCalledId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const loadCalls = () => {
-    const saved = localStorage.getItem("pep-calls");
-    if (saved) {
-      const parsedCalls = JSON.parse(saved) as Call[];
-      // Ordenar por data de chamada decrescente
-      const sorted = parsedCalls.sort((a, b) => 
-        new Date(b.called_at).getTime() - new Date(a.called_at).getTime()
-      );
-      setCalls(sorted);
+  const loadCalls = async () => {
+    let supabaseCalls: Call[] = [];
+    try {
+      const { data, error } = await supabase
+        .from('patient_calls')
+        .select(`
+          id,
+          room,
+          called_at,
+          patients (
+            name
+          )
+        `)
+        .order('called_at', { ascending: false })
+        .limit(10);
 
-      // Verificar se há uma nova chamada para soar alerta e falar o nome
-      const latestCalled = sorted.find(c => c.status === 'called');
-      if (latestCalled && latestCalled.id !== lastCalledId) {
-        setLastCalledId(latestCalled.id);
-        triggerAlarm(latestCalled);
+      if (!error && data) {
+        supabaseCalls = data.map((c: any) => ({
+          id: c.id,
+          patient_name: c.patients?.name || "Desconhecido",
+          room: c.room,
+          professional: "Médico",
+          status: 'called',
+          called_at: c.called_at
+        }));
+      } else if (error) {
+        console.error("Erro ao carregar chamadas do Supabase:", error.message);
       }
+    } catch (e) {
+      console.error("Falha ao conectar no Supabase para chamadas:", e);
+    }
+
+    const saved = localStorage.getItem("pep-calls");
+    const localCalls = saved ? (JSON.parse(saved) as Call[]) : [];
+
+    // Mesclar Supabase com LocalStorage (evitando duplicatas por timestamp)
+    const merged = [...supabaseCalls];
+    localCalls.forEach(lc => {
+      if (!merged.find(mc => mc.called_at === lc.called_at || mc.id === lc.id)) {
+        merged.push(lc);
+      }
+    });
+
+    // Ordenar de forma decrescente
+    const sorted = merged.sort((a, b) => 
+      new Date(b.called_at).getTime() - new Date(a.called_at).getTime()
+    );
+
+    setCalls(sorted);
+
+    // Alerta sonoro / Voz
+    const latestCalled = sorted.find(c => c.status === 'called');
+    if (latestCalled && latestCalled.id !== lastCalledId) {
+      setLastCalledId(latestCalled.id);
+      triggerAlarm(latestCalled);
     }
   };
 
@@ -56,7 +96,15 @@ export default function PainelChamadaExibicao() {
   useEffect(() => {
     loadCalls();
 
-    // Ouvir alterações no localStorage de outras abas
+    // 1. Realtime com Supabase
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'patient_calls' }, () => {
+        loadCalls();
+      })
+      .subscribe();
+
+    // 2. Ouvir alterações no localStorage de outras abas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "pep-calls") {
         loadCalls();
@@ -64,13 +112,12 @@ export default function PainelChamadaExibicao() {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    
-    // Intervalo de segurança para pooling local
-    const interval = setInterval(loadCalls, 2000);
+    const interval = setInterval(loadCalls, 3000); // Polling com margem maior
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
+      supabase.removeChannel(channel);
     };
   }, [lastCalledId]);
 

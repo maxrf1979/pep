@@ -54,7 +54,7 @@ export default function NovoPacienteDialog({ open, onOpenChange, onSave }: Props
   const handleSave = () => {
     if (!validate()) return;
     const patient: Patient = {
-      id: crypto.randomUUID(),
+      id: getRandomUUID(),
       name: form.name.trim(),
       cpf: form.cpf,
       sus: form.sus || undefined,

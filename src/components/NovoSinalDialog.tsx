@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { patients, type VitalSign, type Patient } from "@/lib/mock-data";
+import { getRandomUUID } from "@/lib/utils";
 
 interface NewVitalForm {
   patientId: string;
@@ -65,7 +66,7 @@ export function NovoSinalDialog({ open, onOpenChange, onSave, initialPatientId }
     const bmi = weight && height ? Math.round((weight / (height * height)) * 10) / 10 : undefined;
     
     onSave({
-      id: crypto.randomUUID(),
+      id: getRandomUUID(),
       patientId: form.patientId,
       temperature: Number(form.temperature),
       heartRate: Number(form.heartRate),

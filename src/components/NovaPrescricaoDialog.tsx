@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, X, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { patients, type Prescription } from "@/lib/mock-data";
+import { type Prescription, type Patient } from "@/lib/mock-data";
 import { PrintableDocument } from "./PrintableDocument";
 
 interface MedLine {
@@ -17,9 +17,10 @@ interface NovaPrescricaoDialogProps {
   onOpenChange: (v: boolean) => void;
   onSave: (p: Prescription[]) => void;
   initialPatientId?: string;
+  patients: Patient[];
 }
 
-export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatientId }: NovaPrescricaoDialogProps) {
+export function NovaPrescricaoDialog({ open, onOpenChange, onSave, initialPatientId, patients }: NovaPrescricaoDialogProps) {
   const [patientId, setPatientId] = useState(initialPatientId || "");
   const [notes, setNotes] = useState("");
   const [meds, setMeds] = useState<MedLine[]>([{ name: "", dose: "", route: "VO", frequency: "", duration: "" }]);

@@ -16,11 +16,10 @@ const statusConfig = {
   suspensa: { label: "Suspensa", cls: "bg-warning/10 text-warning" },
 };
 
-function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
+function PrescricaoCard({ rx, index, patient }: { rx: Prescription; index: number; patient?: Patient }) {
   const [expanded, setExpanded] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === rx.patientId);
   if (!patient) return null;
   const st = statusConfig[rx.status || "ativa"];
 
@@ -183,7 +182,7 @@ export default function Prescricoes() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <NovaPrescricaoDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} />
+      <NovaPrescricaoDialog open={dialogOpen} onOpenChange={setDialogOpen} onSave={handleSave} patients={allPatients} />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -245,7 +244,10 @@ export default function Prescricoes() {
             Nenhuma prescrição encontrada.
           </div>
         ) : (
-          filtered.map((rx, i) => <PrescricaoCard key={rx.id} rx={rx} index={i} />)
+          filtered.map((rx, i) => {
+            const patient = allPatients.find((p) => p.id === rx.patientId);
+            return <PrescricaoCard key={rx.id} rx={rx} index={i} patient={patient} />;
+          })
         )}
       </div>
     </div>

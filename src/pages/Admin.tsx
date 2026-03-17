@@ -9,7 +9,6 @@ const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 interface SystemUser {
   id: string;
   name: string;
-  email: string;
   login: string;
   roles: ("medico" | "enfermeiro" | "admin" | "recepcao" | "tecnico_enfermagem")[];
   crm?: string;
@@ -38,7 +37,6 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     if (editingUser) {
       return {
         name: editingUser.name,
-        email: editingUser.email,
         login: editingUser.login,
         password: "",
         confirmPassword: "",
@@ -53,7 +51,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         }
       };
     }
-    return { name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } };
+    return { name: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -61,7 +59,6 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     if (editingUser) {
       setForm({
         name: editingUser.name,
-        email: editingUser.email,
         login: editingUser.login,
         password: "",
         confirmPassword: "",
@@ -76,7 +73,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
         }
       });
     } else {
-      setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
+      setForm({ name: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
     }
     setErrors({});
   }, [editingUser]);
@@ -115,7 +112,6 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
     onSave({
       id: editingUser ? editingUser.id : crypto.randomUUID(),
       name: form.name.trim(),
-      email: form.email.trim(),
       login: form.login.trim(),
       roles: selectedRoles,
       crm: form.roles.medico ? form.crm : undefined,
@@ -124,7 +120,7 @@ function UsuarioDialog({ open, onOpenChange, onSave, editingUser }: {
       password: form.password || (editingUser ? editingUser.password : "admin123"),
       mustChangePassword: editingUser ? editingUser.mustChangePassword : true,
     });
-    setForm({ name: "", email: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
+    setForm({ name: "", login: "", password: "", confirmPassword: "", crm: "", coren: "", roles: { medico: false, enfermeiro: false, tecnico_enfermagem: false, admin: false, recepcao: false } });
     setErrors({});
     onOpenChange(false);
   };
@@ -274,7 +270,7 @@ export default function Admin() {
   const filtered = userList.filter((u) => {
     if (roleFilter !== "all" && !u.roles.includes(roleFilter as any)) return false;
     if (!search) return true;
-    return u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
+    return u.name.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
   });
 
   const toggleStatus = (id: string, currentStatus: string) => {
@@ -408,7 +404,6 @@ export default function Admin() {
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Usuário</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden lg:table-cell">Login</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden md:table-cell">E-mail</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Papéis</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 hidden sm:table-cell">Conselho</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
@@ -438,9 +433,6 @@ export default function Admin() {
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       <span className="text-sm text-muted-foreground font-mono">{u.login}</span>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-sm text-muted-foreground">{u.email}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1.5">

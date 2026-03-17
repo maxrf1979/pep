@@ -22,7 +22,7 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
   const navigate = useNavigate();
   const patient = patients.find((p) => p.id === rx.patientId);
   if (!patient) return null;
-  const st = statusConfig[rx.status];
+  const st = statusConfig[rx.status || "ativa"];
 
   return (
     <motion.div
@@ -53,12 +53,12 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-right shrink-0 tabular-nums">
-          {new Date(rx.date).toLocaleDateString("pt-BR")}
+          {new Date(rx.date || rx.created_at).toLocaleDateString("pt-BR")}
         </div>
       </div>
 
       <div className="mt-3 space-y-2">
-        {rx.medications.slice(0, expanded ? undefined : 2).map((med, i) => (
+        {(rx.medications || [{ name: rx.medication, dose: rx.dosage, route: "", frequency: "", duration: "" }]).slice(0, expanded ? undefined : 2).map((med, i) => (
           <div key={i} className="flex items-start gap-2 text-sm">
             <Pill className="h-4 w-4 text-primary mt-0.5 shrink-0" strokeWidth={1.5} />
             <div>
@@ -67,19 +67,19 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
             </div>
           </div>
         ))}
-        {rx.medications.length > 2 && !expanded && (
-          <span className="text-xs text-muted-foreground">+{rx.medications.length - 2} medicamento(s)...</span>
+        {(rx.medications || []).length > 2 && !expanded && (
+          <span className="text-xs text-muted-foreground">+{(rx.medications || []).length - 2} medicamento(s)...</span>
         )}
       </div>
 
-      {rx.notes && expanded && (
+      {(rx.notes || rx.instructions) && expanded && (
         <div className="mt-3 px-3 py-2 rounded-md bg-warning/5 border border-warning/20 text-xs text-muted-foreground">
-          <span className="font-medium text-warning">Observações:</span> {rx.notes}
+          <span className="font-medium text-warning">Observações:</span> {rx.notes || rx.instructions}
         </div>
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{rx.professional}</span>
+        <span className="text-xs text-muted-foreground">{rx.professional || rx.doctorId}</span>
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
@@ -113,9 +113,9 @@ function PrescricaoCard({ rx, index }: { rx: Prescription; index: number }) {
             cpf: patient.cpf || "---",
             sex: patient.sex,
           }}
-          items={rx.medications}
-          notes={rx.notes}
-          professionalLabel={rx.professional}
+          items={rx.medications || [{ name: rx.medication, dose: rx.dosage, route: "", frequency: "", duration: "" }]}
+          notes={rx.notes || rx.instructions}
+          professionalLabel={rx.professional || rx.doctorId}
         />
       )}
     </motion.div>
@@ -147,7 +147,7 @@ export default function Prescricoes() {
   }, [localPrescriptions]);
 
   const allRx = [...localPrescriptions, ...prescriptions].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime()
   );
 
   const filtered = allRx.filter((rx) => {
@@ -158,22 +158,25 @@ export default function Prescricoes() {
     return p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search);
   });
 
-  const handleSave = (rx: Prescription) => {
-    setLocalPrescriptions((prev) => [rx, ...prev]);
+  const handleSave = (rxList: Prescription[]) => {
+    setLocalPrescriptions((prev) => [...rxList, ...prev]);
 
     // Also save to global timeline
     const savedTimeline = localStorage.getItem("pep-timeline");
     const timeline = savedTimeline ? JSON.parse(savedTimeline) : [];
-    const ev = {
-      id: rx.id,
-      patientId: rx.patientId,
-      type: "prescricao",
-      date: rx.date,
-      title: "Prescrição Médica",
-      summary: rx.medications.map(m => m.name).join(", "),
-      professional: rx.professional
-    };
-    localStorage.setItem("pep-timeline", JSON.stringify([ev, ...timeline]));
+    rxList.forEach((rx) => {
+      const ev = {
+        id: rx.id,
+        patientId: rx.patientId,
+        type: "prescricao",
+        date: rx.date || rx.created_at,
+        title: "Prescrição Médica",
+        summary: rx.medications ? rx.medications.map(m => m.name).join(", ") : rx.medication,
+        professional: rx.professional || rx.doctorId
+      };
+      timeline.push(ev);
+    });
+    localStorage.setItem("pep-timeline", JSON.stringify(timeline));
 
     toast.success("Prescrição emitida com sucesso.");
   };

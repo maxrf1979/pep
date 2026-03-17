@@ -11,11 +11,12 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
     return saved
       ? JSON.parse(saved)
       : {
-          name: "Pulse Clínica Médica",
+          name: "Pulse PEP Clinic",
           cnpj: "12.345.678/0001-90",
           phone: "(11) 3456-7890",
-          email: "contato@pulsesecond.com.br",
-          address: "Av. Paulista, 1000 - São Paulo, SP",
+          email: "contato@pulsepep.com.br",
+          address: "Av. Paulista, 1000 – São Paulo, SP",
+          primaryColor: "#1B66E8",
           logo: null,
         };
   })();
@@ -27,7 +28,6 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
 
   const patient = allPatients.find((p) => p.id === patientId);
 
-  // Load and combine data like local dashboards
   const combinedVitals: VitalSign[] = (() => {
     const saved = localStorage.getItem("localVitals");
     const local = saved ? JSON.parse(saved) : [];
@@ -55,85 +55,101 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
   const combinedTimeline: TimelineEvent[] = (() => {
     const saved = localStorage.getItem("pep-timeline");
     const local = saved ? JSON.parse(saved) : [];
-    // Ensure static timeline gets added and merged correctly
     const all = saved ? local : [...local, ...timelineEvents];
     return all
-      .filter((ev) => ev.patientId === patientId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .filter((ev: TimelineEvent) => ev.patientId === patientId)
+      .sort((a: TimelineEvent, b: TimelineEvent) => new Date(b.date).getTime() - new Date(a.date).getTime());
   })();
 
   if (!patient) return null;
 
+  const now = new Date();
+  const printDate = now.toLocaleDateString("pt-BR");
+  const printTime = now.toLocaleTimeString("pt-BR");
+
+  const s = {
+    header: { display: "flex" as const, justifyContent: "space-between" as const, alignItems: "center" as const, borderBottom: "3px solid #000", paddingBottom: "12px", marginBottom: "16px" },
+    sectionTitle: { fontSize: "11pt", fontWeight: 700 as const, background: "#e8e8e8", padding: "4px 8px", marginBottom: "8px", borderLeft: "4px solid #000", pageBreakInside: "avoid" as const },
+    infoGrid: { display: "grid" as const, gridTemplateColumns: "repeat(3, 1fr)", gap: "8px 12px", background: "#fafafa", padding: "8px", border: "1px solid #ddd", borderRadius: "2px", marginBottom: "8px", fontSize: "10pt" },
+    label: { color: "#555", fontWeight: 600 as const, display: "block" as const, marginBottom: "2px", fontSize: "8pt" },
+    value: { color: "#000", fontWeight: 500 as const, fontSize: "9pt" },
+  };
+
   return createPortal(
-    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content px-4 py-2 font-sans text-xs">
-      {/* Header institucional */}
-      <div className="flex justify-between items-center border-b-2 border-gray-800 pb-3 mb-4">
-        <div className="flex items-center gap-3">
+    <div className="hidden print:block fixed inset-0 bg-white z-[9999] printable-content" style={{ padding: "2cm", fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "10pt", color: "#000" }}>
+      {/* Header */}
+      <div style={s.header}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {clinicData.logo ? (
-            <img src={clinicData.logo} alt="Logo" className="h-10 w-10 object-contain" />
+            <img src={clinicData.logo} alt="Logo" style={{ height: "40px", width: "40px", objectFit: "contain" }} />
           ) : (
-            <div className="text-xl">ðŸ¥</div>
+            <span style={{ fontSize: "24px" }}>🩺</span>
           )}
           <div>
-            <h1 className="text-sm font-bold">{clinicData.name}</h1>
-            <p className="text-[10px] text-gray-600">CNPJ: {clinicData.cnpj}</p>
+            <h1 style={{ fontSize: "12pt", fontWeight: 700, margin: 0 }}>{clinicData.name}</h1>
+            <p style={{ fontSize: "8pt", color: "#666", margin: "2px 0 0" }}>CNPJ: {clinicData.cnpj}</p>
           </div>
         </div>
-        <div className="text-right text-[10px] text-gray-600">
-          <p>{clinicData.address}</p>
-          <p>Tel: {clinicData.phone} | {clinicData.email}</p>
-          <p>Impressão: {new Date().toLocaleDateString("pt-BR")} às {new Date().toLocaleTimeString("pt-BR")}</p>
+        <div style={{ textAlign: "right", fontSize: "8pt", color: "#666", lineHeight: 1.6 }}>
+          <p style={{ margin: 0 }}>{clinicData.address}</p>
+          <p style={{ margin: 0 }}>Tel: {clinicData.phone} | {clinicData.email}</p>
+          <p style={{ margin: 0 }}>Impressão: {printDate} às {printTime}</p>
         </div>
       </div>
 
-      <div className="text-center mb-4">
-        <h2 className="text-base font-bold tracking-wider uppercase">Prontuário Médico do Paciente</h2>
+      {/* Title */}
+      <div style={{ textAlign: "center", marginBottom: "16px" }}>
+        <h2 style={{ fontSize: "14pt", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", margin: 0 }}>
+          Prontuário Médico do Paciente
+        </h2>
       </div>
 
-      {/* Identificação do Paciente */}
-      <div className="bg-gray-50 p-3 rounded-md border border-gray-200 mb-5">
-        <h3 className="text-xs font-bold mb-2 border-b border-gray-300 pb-1">Identificação do Paciente</h3>
-        <div className="grid grid-cols-3 gap-y-1.5 gap-x-4 text-[11px]">
-          <div><span className="font-semibold text-gray-500">Nome:</span> <span className="font-medium text-gray-900">{patient.name}</span></div>
-          <div><span className="font-semibold text-gray-500">Idade:</span> <span className="font-medium text-gray-900">{patient.age} anos</span></div>
-          <div><span className="font-semibold text-gray-500">Sexo:</span> <span className="font-medium text-gray-900">{patient.sex === "M" ? "Masculino" : "Feminino"}</span></div>
-          <div><span className="font-semibold text-gray-500">CPF:</span> <span className="font-medium text-gray-900 tabular-nums">{patient.cpf}</span></div>
-          <div><span className="font-semibold text-gray-500">RG:</span> <span className="font-medium text-gray-900 tabular-nums">---</span></div>
-          <div><span className="font-semibold text-gray-500">Cartão SUS:</span> <span className="font-medium text-gray-900 tabular-nums">{patient.sus || "---"}</span></div>
-          <div><span className="font-semibold text-gray-500">Telefone:</span> <span className="font-medium text-gray-900">{patient.phone}</span></div>
-          <div className="col-span-2"><span className="font-semibold text-gray-500">Endereço:</span> <span className="font-medium text-gray-900">Av. Paulista, 1000 - São Paulo, SP</span></div>
-          <div className="col-span-3 text-red-600 font-semibold">
-            {patient.allergies.length > 0 ? `Alergias: ${patient.allergies.join(", ")}` : "Sem alergias conhecidas"}
+      {/* Patient Info */}
+      <div style={{ marginBottom: "20px" }}>
+        <div style={s.sectionTitle}>Identificação do Paciente</div>
+        <div style={s.infoGrid}>
+          <div><span style={s.label}>Nome:</span> <span style={s.value}>{patient.name}</span></div>
+          <div><span style={s.label}>Idade:</span> <span style={s.value}>{patient.age} anos</span></div>
+          <div><span style={s.label}>Sexo:</span> <span style={s.value}>{patient.sex === "M" ? "Masculino" : "Feminino"}</span></div>
+          <div><span style={s.label}>CPF:</span> <span style={{ ...s.value, fontFamily: "monospace" }}>{patient.cpf}</span></div>
+          <div><span style={s.label}>Cartão SUS:</span> <span style={{ ...s.value, fontFamily: "monospace" }}>{patient.sus || "---"}</span></div>
+          <div><span style={s.label}>Telefone:</span> <span style={s.value}>{patient.phone}</span></div>
+        </div>
+        {patient.allergies.length > 0 && (
+          <div style={{ background: "#ffe6e6", border: "1.5px solid #cc0000", borderRadius: "2px", padding: "6px 8px", fontWeight: 600, color: "#990000", fontSize: "9pt" }}>
+            ⚠️ ALERGIAS: {patient.allergies.join(", ")}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* 2 â€“ Sinais Vitais */}
+      {/* Vital Signs */}
       {combinedVitals.length > 0 && (
-        <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">1. Sinais Vitais</h3>
-          <table className="min-w-full text-[10px] border-collapse">
+        <div style={{ marginBottom: "20px", pageBreakInside: "avoid" }}>
+          <div style={s.sectionTitle}>1. Sinais Vitais</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "9pt" }}>
             <thead>
-              <tr className="border-b border-gray-300 text-gray-600">
-                <th className="text-left py-1">Data/Hora</th>
-                <th className="text-center py-1">Temp (°C)</th>
-                <th className="text-center py-1">FC (bpm)</th>
-                <th className="text-center py-1">PA (mmHg)</th>
-                <th className="text-center py-1">FR (ipm)</th>
-                <th className="text-center py-1">SpO2</th>
-                <th className="text-center py-1">Peso (kg)</th>
+              <tr style={{ backgroundColor: "#f0f0f0" }}>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Data/Hora</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>Temp (°C)</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>FC (bpm)</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>PA (mmHg)</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>FR (ipm)</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>SpO2</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>Peso</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {combinedVitals.map((v) => (
                 <tr key={v.id}>
-                  <td className="py-1 tabular-nums">{new Date(v.created_at).toLocaleDateString("pt-BR")} {new Date(v.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
-                  <td className="text-center tabular-nums">{v.temperature.toFixed(1)}</td>
-                  <td className="text-center tabular-nums">{v.heartRate}</td>
-                  <td className="text-center tabular-nums">{v.bloodPressure}</td>
-                  <td className="text-center tabular-nums">{v.respiratoryRate}</td>
-                  <td className="text-center tabular-nums">{v.oxygenSaturation}%</td>
-                  <td className="text-center tabular-nums">{v.weight ? `${v.weight}kg` : "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", fontFamily: "monospace", fontSize: "8pt" }}>
+                    {new Date(v.created_at).toLocaleDateString("pt-BR")} {new Date(v.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.temperature?.toFixed(1) ?? "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.heartRate ?? "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.bloodPressure ?? "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.respiratoryRate ?? "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.oxygenSaturation ? `${v.oxygenSaturation}%` : "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center" }}>{v.weight ? `${v.weight}kg` : "---"}</td>
                 </tr>
               ))}
             </tbody>
@@ -141,45 +157,45 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 3 â€“ Evoluções Clínicas */}
+      {/* Clinical Evolutions */}
       {combinedTimeline.filter(e => e.type.startsWith("evolucao")).length > 0 && (
-        <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">2. Evoluções Clínicas</h3>
-          <div className="space-y-3">
-            {combinedTimeline
-              .filter(e => e.type.startsWith("evolucao"))
-              .map((ev) => (
-                <div key={ev.id} className="border-b border-gray-100 pb-2">
-                  <div className="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
-                    <span className="font-semibold text-primary">{ev.type === "evolucao_medica" ? "Médica" : "Enfermagem"}</span>
-                    <span className="tabular-nums">{new Date(ev.date || (ev as any).created_at).toLocaleDateString("pt-BR")} {new Date(ev.date || (ev as any).created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-                  </div>
-                  <pre className="text-xs text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">{ev.details || ev.summary}</pre>
-                  <p className="text-[10px] text-gray-400 mt-1">Responsável: {ev.professional}</p>
+        <div style={{ marginBottom: "20px", pageBreakInside: "avoid" }}>
+          <div style={s.sectionTitle}>2. Evoluções Clínicas</div>
+          {combinedTimeline
+            .filter(e => e.type.startsWith("evolucao"))
+            .map((ev) => (
+              <div key={ev.id} style={{ borderLeft: "3px solid #ccc", paddingLeft: "10px", marginBottom: "10px", pageBreakInside: "avoid" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", fontWeight: 600, marginBottom: "4px" }}>
+                  <span style={{ color: "#0066cc", fontWeight: 700 }}>{ev.type === "evolucao_medica" ? "Médica" : "Enfermagem"}</span>
+                  <span style={{ fontFamily: "monospace", color: "#666", fontSize: "8pt" }}>
+                    {new Date(ev.date).toLocaleDateString("pt-BR")} {new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
                 </div>
-              ))}
-          </div>
+                <p style={{ fontSize: "9pt", whiteSpace: "pre-wrap", lineHeight: 1.5, margin: "0 0 4px" }}>{ev.details || ev.summary}</p>
+                <p style={{ fontSize: "8pt", color: "#999", fontStyle: "italic", margin: 0 }}>Responsável: {ev.professional}</p>
+              </div>
+            ))}
         </div>
       )}
 
-      {/* 5 â€“ Prescrições */}
+      {/* Prescriptions */}
       {combinedPrescriptions.length > 0 && (
-        <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">3. Prescrições Médicas</h3>
-          <table className="min-w-full text-[10px] border-collapse border border-gray-200">
-            <thead className="bg-gray-50">
-              <tr className="border-b border-gray-200 text-gray-600">
-                <th className="text-left py-1 px-2 border-r border-gray-200">Medicamento</th>
-                <th className="text-left py-1 px-2 border-r border-gray-200">Dosagem</th>
-                <th className="text-left py-1 px-2">Instruções</th>
+        <div style={{ marginBottom: "20px", pageBreakInside: "avoid" }}>
+          <div style={s.sectionTitle}>3. Prescrições Médicas</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "9pt" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f0f0f0" }}>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Medicamento</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Dosagem</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Instruções</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {combinedPrescriptions.map((px, i) => (
                 <tr key={i}>
-                  <td className="py-1 px-2 border-r border-gray-200 font-medium">{px.medication}</td>
-                  <td className="py-1 px-2 border-r border-gray-200">{px.dosage}</td>
-                  <td className="py-1 px-2">{px.instructions || "---"}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", fontWeight: 500 }}>{px.medication}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px" }}>{px.dosage}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px" }}>{px.instructions || "---"}</td>
                 </tr>
               ))}
             </tbody>
@@ -187,24 +203,24 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* 6 â€“ Exames Solicitados */}
+      {/* Exams */}
       {combinedExams.length > 0 && (
-        <div className="section-block mb-5">
-          <h3 className="text-xs font-bold mb-1.5 bg-gray-100 px-2 py-0.5 rounded">4. Exames Solicitados</h3>
-          <table className="min-w-full text-[10px] border-collapse">
+        <div style={{ marginBottom: "20px", pageBreakInside: "avoid" }}>
+          <div style={s.sectionTitle}>4. Exames Solicitados</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "9pt" }}>
             <thead>
-              <tr className="border-b border-gray-300 text-gray-600">
-                <th className="text-left py-1">Data Solicitação</th>
-                <th className="text-left py-1">Exame</th>
-                <th className="text-center py-1">Status</th>
+              <tr style={{ backgroundColor: "#f0f0f0" }}>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Data</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "left", fontWeight: 700, fontSize: "8pt" }}>Exame</th>
+                <th style={{ border: "1px solid #ccc", padding: "5px", textAlign: "center", fontWeight: 700, fontSize: "8pt" }}>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {combinedExams.map((e) => (
                 <tr key={e.id}>
-                  <td className="py-1 tabular-nums">{new Date(e.created_at).toLocaleDateString("pt-BR")}</td>
-                  <td className="py-1 font-medium">{e.examName}</td>
-                  <td className="text-center py-1 text-gray-500 text-[9px]">Solicitado</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", fontFamily: "monospace", fontSize: "8pt" }}>{new Date(e.created_at).toLocaleDateString("pt-BR")}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", fontWeight: 500 }}>{e.examName}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "4px 5px", textAlign: "center", color: "#666", fontSize: "8pt" }}>Solicitado</td>
                 </tr>
               ))}
             </tbody>
@@ -212,14 +228,13 @@ export function PrintableProntuario({ patientId }: PrintableProntuarioProps) {
         </div>
       )}
 
-      {/* Rodapé fixo de impressão por página */}
-      <div className="print-footer fixed bottom-0 left-0 right-0 border-t border-gray-300 pt-2 text-[9px] text-gray-500 flex justify-between">
-        <div>Pulse PEP Clinic â€“ Prontuário Médico</div>
-        <div>Paciente: {patient.name}</div>
-        <div className="tabular-nums">Página <span className="print-page-number"></span></div>
+      {/* Footer */}
+      <div style={{ borderTop: "1px solid #ccc", paddingTop: "8px", marginTop: "24px", fontSize: "8pt", color: "#666", display: "flex", justifyContent: "space-between" }}>
+        <span>Pulse PEP Clinic – Prontuário Médico</span>
+        <span>Paciente: {patient.name}</span>
+        <span>Impresso em {printDate} às {printTime}</span>
       </div>
     </div>,
     document.body
   );
 }
-

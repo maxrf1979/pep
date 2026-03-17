@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, Users, Plus, Search, X, Lock, LockOpen, Eye, EyeOff, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 const transition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const };
 
@@ -257,15 +258,63 @@ export default function Admin() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<SystemUser | undefined>();
-  const [userList, setUserList] = useState<SystemUser[]>(() => {
-    const saved = localStorage.getItem("systemUsers");
-    return saved ? JSON.parse(saved) : initialUsers;
-  });
+  const [userList, setUserList] = useState<SystemUser[]>([]);
+  const [clinicId, setClinicId] = useState<string | null>(null);
 
-  // Salvar usuários no localStorage sempre que a lista mudar
+  // 1. Carregar Clinic ID
   useEffect(() => {
-    localStorage.setItem("systemUsers", JSON.stringify(userList));
-  }, [userList]);
+    const fetchClinic = async () => {
+      const { data, error } = await supabase.from('clinics').select('id').limit(1);
+      if (error) {
+        console.warn("Erro ao buscar clínica:", error.message);
+        return;
+      }
+      if (data && data.length > 0) {
+        setClinicId(data[0].id);
+      }
+    };
+    fetchClinic();
+  }, []);
+
+  // 2. Carregar Usuários do Supabase
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data: users, error } = await supabase
+        .from('system_users')
+        .select(`
+          *,
+          user_role_assignments (
+            role_id,
+            user_roles (name)
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (!error && users) {
+        // Converter dados do Supabase para o formato SystemUser
+        const formattedUsers = users.map((u: any) => {
+          const roles = u.user_role_assignments?.map((ra: any) => ra.user_roles.name) || [];
+          return {
+            id: u.id,
+            name: u.name,
+            login: u.login,
+            roles: roles,
+            crm: u.crm,
+            coren: u.coren,
+            status: u.status,
+            mustChangePassword: u.must_change_password
+          };
+        });
+        setUserList(formattedUsers);
+      } else {
+        // Fallback para localStorage se o Supabase falhar
+        const saved = localStorage.getItem("systemUsers");
+        setUserList(saved ? JSON.parse(saved) : initialUsers);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const filtered = userList.filter((u) => {
     if (roleFilter !== "all" && !u.roles.includes(roleFilter as any)) return false;
@@ -273,22 +322,134 @@ export default function Admin() {
     return u.name.toLowerCase().includes(search.toLowerCase()) || u.login.toLowerCase().includes(search.toLowerCase());
   });
 
-  const toggleStatus = (id: string, currentStatus: string) => {
+  const toggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "ativo" ? "inativo" : "ativo";
+
+    // Atualizar no Supabase
+    const { error } = await supabase
+      .from('system_users')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast.error("Erro ao atualizar status no banco de dados.");
+      return;
+    }
+
+    // Atualizar estado local
     setUserList((prev) =>
-      prev.map((u) => u.id === id ? { ...u, status: u.status === "ativo" ? "inativo" : "ativo" } : u)
+      prev.map((u) => u.id === id ? { ...u, status: newStatus as "ativo" | "inativo" } : u)
     );
     toast.success(`Usuário ${currentStatus === "ativo" ? "inativado" : "ativado"} com sucesso.`);
   };
 
+  const handleSave = async (u: SystemUser) => {
+    if (!clinicId) {
+      toast.error("Clínica não encontrada. Não é possível salvar usuário.");
+      return;
+    }
 
-  const handleSave = (u: SystemUser) => {
     if (editingUser) {
+      // ATUALIZAR USUÁRIO EXISTENTE
+      const updateData: any = {
+        name: u.name,
+        login: u.login,
+        crm: u.crm,
+        coren: u.coren,
+        status: u.status
+      };
+
+      // Se forneceu nova senha, atualizar (hash simples para demo - use bcrypt em produção)
+      if (u.password) {
+        updateData.password_hash = u.password; // TODO: usar bcrypt
+      }
+
+      const { error: updateError } = await supabase
+        .from('system_users')
+        .update(updateData)
+        .eq('id', u.id);
+
+      if (updateError) {
+        console.error("Erro ao atualizar usuário:", updateError);
+        toast.error("Erro ao atualizar usuário.");
+        return;
+      }
+
+      // Atualizar roles - deletar antigas e inserir novas
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('id, name')
+        .in('name', u.roles);
+
+      if (roleData) {
+        // Deletar role assignments antigas
+        await supabase
+          .from('user_role_assignments')
+          .delete()
+          .eq('user_id', u.id);
+
+        // Inserir novas
+        const assignments = roleData.map(role => ({
+          user_id: u.id,
+          role_id: role.id
+        }));
+
+        await supabase
+          .from('user_role_assignments')
+          .insert(assignments);
+      }
+
       setUserList((prev) => prev.map((user) => user.id === u.id ? u : user));
       toast.success("Usuário atualizado com sucesso.");
       setEditingUser(undefined);
     } else {
-      setUserList((prev) => [u, ...prev]);
-      toast.success("Usuário criado com sucesso.");
+      // CRIAR NOVO USUÁRIO
+      const { data: newUser, error: insertError } = await supabase
+        .from('system_users')
+        .insert([{
+          clinic_id: clinicId,
+          name: u.name,
+          email: u.login + '@clinic.local', // Email fake baseado no login
+          login: u.login,
+          password_hash: u.password || 'admin123', // TODO: usar bcrypt
+          crm: u.crm,
+          coren: u.coren,
+          status: u.status,
+          must_change_password: u.mustChangePassword || true
+        }])
+        .select();
+
+      if (insertError) {
+        console.error("Erro ao criar usuário:", insertError);
+        toast.error("Erro ao criar usuário: " + insertError.message);
+        return;
+      }
+
+      if (newUser && newUser.length > 0) {
+        const userId = newUser[0].id;
+
+        // Inserir roles
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('id, name')
+          .in('name', u.roles);
+
+        if (roleData) {
+          const assignments = roleData.map(role => ({
+            user_id: userId,
+            role_id: role.id
+          }));
+
+          await supabase
+            .from('user_role_assignments')
+            .insert(assignments);
+        }
+
+        // Atualizar lista local
+        setUserList((prev) => [{ ...u, id: userId }, ...prev]);
+        toast.success("Usuário criado com sucesso.");
+      }
     }
     setDialogOpen(false);
   };

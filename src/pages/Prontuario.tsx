@@ -215,8 +215,15 @@ export default function Prontuario() {
   const onSaveEvent = (ev: TimelineEvent, rawData?: any) => {
     // 1. Save to Timeline
     const updatedTimeline = [ev, ...localTimeline];
-    setLocalTimeline(updatedTimeline);
-    localStorage.setItem("pep-timeline", JSON.stringify(updatedTimeline));
+    
+    try {
+      localStorage.setItem("pep-timeline", JSON.stringify(updatedTimeline));
+      setLocalTimeline(updatedTimeline);
+    } catch (error) {
+      console.error("Storage error:", error);
+      toast.error("Erro ao salvar: Espaço de armazenamento local esgotado (arquivo muito grande).");
+      return; // Do not update view if save fails
+    }
 
     // 2. Save to specific stores if needed
     if (ev.type === "sinais_vitais" && rawData) {
@@ -447,7 +454,6 @@ export default function Prontuario() {
               { label: "Evolução Enferm.", icon: ClipboardPlus, onClick: () => setEvolucaoEnfermagemOpen(true), visible: canCreateNursingEvolution() },
               { label: "Prescrever", icon: Pill, onClick: () => setPrescricaoOpen(true), visible: canCreatePrescription() },
               { label: "Solicitar Exame", icon: FlaskConical, onClick: () => setExameOpen(true), visible: canRequestExam() },
-              { label: "Atestado Médico", icon: FileText, onClick: () => setAtestadoOpen(true), visible: isMedico() || isAdmin() },
               { label: "Anexar Arquivo", icon: Paperclip, onClick: () => setAnexoOpen(true), visible: true },
               { label: "Alterar Status", icon: Stethoscope, onClick: () => setStatusOpen(true), visible: isMedico() || isAdmin() },
             ].filter(action => action.visible).map((action) => (

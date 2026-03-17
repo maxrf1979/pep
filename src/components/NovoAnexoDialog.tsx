@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Paperclip, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { type TimelineEvent, type Patient } from "@/lib/mock-data";
+import { toast } from "sonner";
 
 interface NovoAnexoDialogProps {
   open: boolean;

@@ -17,6 +17,7 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId, 
   const [summary, setSummary] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileData, setFileData] = useState<string | undefined>(undefined);
+  const [isReading, setIsReading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -109,16 +110,22 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId, 
                 <div className="mt-2 flex text-sm text-muted-foreground">
                   <label className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
                     <span>Fazer upload</span>
-                    <input type="file" className="sr-only" onChange={(e) => {
+                    <input type="file" className="sr-only" disabled={isReading} onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         setFileName(file.name);
                         setErrors(er => ({ ...er, file: "" }));
                         if (!title) setTitle(file.name.split('.')[0]);
 
+                        setIsReading(true);
                         const reader = new FileReader();
                         reader.onload = (event) => {
                           setFileData(event.target?.result as string);
+                          setIsReading(false);
+                        };
+                        reader.onerror = () => {
+                          setIsReading(false);
+                          toast.error("Erro ao ler o arquivo");
                         };
                         reader.readAsDataURL(file);
                       }
@@ -145,8 +152,8 @@ export function NovoAnexoDialog({ open, onOpenChange, onSave, initialPatientId, 
           <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-md font-medium text-muted-foreground hover:bg-muted transition-colors">
             Cancelar
           </button>
-          <button onClick={handleSave} className="px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-            Anexar
+          <button onClick={handleSave} disabled={isReading} className="px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
+            {isReading ? "Carregando..." : "Anexar"}
           </button>
         </DialogFooter>
       </DialogContent>

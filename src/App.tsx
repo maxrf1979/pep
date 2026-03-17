@@ -20,6 +20,7 @@ import AlterarSenha from "./pages/AlterarSenha";
 import PainelChamadaExibicao from "./pages/PainelChamadaExibicao";
 import PainelChamadaAdmin from "./pages/PainelChamadaAdmin";
 import NotFound from "./pages/NotFound";
+import TestSupabase from "./pages/TestSupabase";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/alterar-senha" element={<AlterarSenha />} />
           <Route path="/painel" element={<PainelChamadaExibicao />} />
+          <Route path="/test-supabase" element={<TestSupabase />} />
           
           {/* Protected Routes */}
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

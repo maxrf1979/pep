@@ -40,7 +40,7 @@ export default function Pacientes() {
     const matchesQuery =
       !query ||
       p.name.toLowerCase().includes(query.toLowerCase()) ||
-      p.cpf.includes(query) ||
+      p.cpf.replace(/\D/g, "").includes(query.replace(/\D/g, "")) ||
       (p.sus && p.sus.includes(query));
     const matchesStatus = statusFilter === "todos" || p.status === statusFilter;
     return matchesQuery && matchesStatus;

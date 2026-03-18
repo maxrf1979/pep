@@ -46,7 +46,7 @@ const clinicalNav = [
 const adminNav = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Painel de Chamada", url: "/admin/painel", icon: Tv },
-  { title: "Administração", url: "/admin", icon: Shield },
+  { title: "Usuários", url: "/admin", icon: Shield },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
@@ -61,7 +61,7 @@ export function AppSidebar() {
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
   const filteredAdminNav = adminNav.filter(item => {
-    if (userRole === "medico" && ["Administração", "Configurações"].includes(item.title)) {
+    if (userRole === "medico" && ["Usuários", "Configurações"].includes(item.title)) {
       return false;
     }
     return true;
